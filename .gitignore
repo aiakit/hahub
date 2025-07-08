@@ -53,3 +53,5 @@ pnpm-debug.log*
 package-lock.json
 
 go.sum
+
+*.json
