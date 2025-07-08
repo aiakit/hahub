@@ -92,6 +92,6 @@ func callEntityList() {
 		Type string `json:"type"`
 	}
 	to.Id = getEntityListId
-	to.Type = "config/device_registry/list"
+	to.Type = "config/entity_registry/list"
 	CallServiceWs(&to)
 }
