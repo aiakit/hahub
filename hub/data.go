@@ -13,7 +13,10 @@ type areaInfo struct {
 }
 
 type areaList struct {
-	Result []*areaInfo `json:"result"`
+	Id      int         `json:"id"`
+	Type    string      `json:"type"`
+	Success bool        `json:"success"`
+	Result  []*areaInfo `json:"result"`
 }
 
 func callAreaList() {
@@ -38,6 +41,24 @@ func getAreaData(message string) (*areaList, error) {
 }
 
 // 获取全量设备数据
+type deviceList struct {
+	ID      int64     `json:"id"`
+	Type    string    `json:"type"`
+	Success bool      `json:"success"`
+	Result  []*device `json:"result"`
+}
+
+type device struct {
+	AreaID     string  `json:"area_id"`     //区域id
+	AreaName   string  `json:"area_name"`   //区域名称
+	CreatedAt  float64 `json:"created_at"`  //创建时间
+	ModifiedAt float64 `json:"modified_at"` //修改时间
+	ID         string  `json:"id"`          //设备id
+	Model      string  `json:"model"`       //使用的模型
+	Name       string  `json:"name"`        //用户命名的产品名称
+	SwVersion  string  `json:"sw_version"`  //固件版本
+}
+
 func callDeviceList() {
 	var to struct {
 		Id   int    `json:"id"`
@@ -49,6 +70,22 @@ func callDeviceList() {
 }
 
 // 获取全量实体数据
+type entityList struct {
+	ID      int64     `json:"id"`
+	Type    string    `json:"type"`
+	Success bool      `json:"success"`
+	Result  []*entity `json:"result"`
+}
+
+type entity struct {
+	DeviceID     string `json:"device_id"`     //设备id
+	EntityID     string `json:"entity_id"`     //实体id
+	ID           string `json:"id"`            //真实实体id，数据id
+	OriginalName string `json:"original_name"` //实体名称
+	Platform     string `json:"platform"`      //产自什么平台
+	UniqueID     string `json:"unique_id"`     //唯一id
+}
+
 func callEntityList() {
 	var to struct {
 		Id   int    `json:"id"`
