@@ -63,44 +63,75 @@ func callback() {
 			switch id {
 			case getAreaInfoId: // 获取区域数据
 				var data areaList
-				if err := Unmarshal(msg, &data); err == nil {
-					for _, a := range data.Result {
-						areaMap[a.AreaId] = a.Name
-					}
-					writeToFile("area.json", msg)
+				err := Unmarshal(msg, &data)
+				if err != nil {
+					ava.Errorf("Unmarshal areaList error: %v", err)
+					break
 				}
+				for _, a := range data.Result {
+					areaMap[a.AreaId] = a.Name
+				}
+				writeToFile("area.json", &data)
 			case getDeviceListId: // 获取设备数据
 				var data deviceList
-				if err := Unmarshal(msg, &data); err == nil {
-					var filtered []*device
-					for _, d := range data.Result {
-						// area_id 为空则忽略
-						if d.AreaID == "" {
-							continue
-						}
-						if name, ok := areaMap[d.AreaID]; ok {
-							d.AreaName = name
-						}
-						filtered = append(filtered, d)
-					}
-					data.Result = filtered
-					ava.Debugf("total device=%d", len(filtered))
-					writeToFile("device.json", MustMarshal(data))
+				err := Unmarshal(msg, &data)
+				if err != nil {
+					ava.Errorf("Unmarshal deviceList error: %v", err)
+					break
 				}
+				var filtered []*device
+				for _, d := range data.Result {
+					// area_id 为空则忽略
+					if d.AreaID == "" {
+						continue
+					}
+					if name, ok := areaMap[d.AreaID]; ok {
+						d.AreaName = name
+					}
+					filtered = append(filtered, d)
+				}
+				data.Result = filtered
+				ava.Debugf("total device=%d", len(filtered))
+				writeToFile("device.json", data)
 			case getEntityListId: // 获取实体数据
 				var data entityList
-				if err := Unmarshal(msg, &data); err == nil {
-					var filtered []*entity
-					for _, e := range data.Result {
-						if strings.Contains(e.OriginalName, "厂家设置") || strings.Contains(e.OriginalName, "厂商") || strings.Contains(e.OriginalName, "恢复出厂设置") {
-							continue
-						}
-						filtered = append(filtered, e)
-					}
-					data.Result = filtered
-					ava.Debugf("total entity=%d", len(filtered))
-					writeToFile("entity.json", MustMarshal(data))
+				err := Unmarshal(msg, &data)
+				if err != nil {
+					ava.Errorf("Unmarshal entityList error: %v", err)
+					break
 				}
+				var filtered []*entity
+				for _, e := range data.Result {
+					if strings.Contains(e.OriginalName, "厂家设置") || strings.Contains(e.OriginalName, "厂商") || strings.Contains(e.OriginalName, "恢复出厂设置") {
+						continue
+					}
+					if e.Platform == "hacs" || e.Platform == "hassio" || e.Platform == "sun" || e.Platform == "backup" || e.Platform == "person" ||
+						e.Platform == "shopping_list" || e.Platform == "google_translate" || e.Platform == "met" {
+						continue
+					}
+					filtered = append(filtered, e)
+				}
+				data.Result = filtered
+				ava.Debugf("total entity=%d", len(filtered))
+				writeToFile("entity.json", &data)
+			case getServicesId: // 获取服务数据
+				var data serviceList
+				err := Unmarshal(msg, &data)
+				if err != nil {
+					ava.Errorf("Unmarshal serviceList error: %v", err)
+					break
+				}
+				ava.Debugf("total services=%d", len(data.Result))
+				writeToFile("services.json", &data)
+			case getStatesId: // 获取实体详细信息
+				var data stateList
+				err := Unmarshal(msg, &data)
+				if err != nil {
+					ava.Errorf("Unmarshal stateList error: %v", err)
+					break
+				}
+				ava.Debugf("total states=%d", len(data.Result))
+				writeToFile("states.json", &data)
 			default:
 				ava.Debugf("no id function |data=%v", BytesToString(msg))
 			}
@@ -111,13 +142,13 @@ func callback() {
 	}
 }
 
-func writeToFile(filename string, data []byte) {
+func writeToFile(filename string, data interface{}) {
 	file, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0777)
 	if err != nil {
 		return
 	}
 	defer file.Close()
-	_, _ = file.Write(data)
+	_, _ = file.Write(ava.MustMarshal(data))
 }
 
 func handleData(data []byte) {
@@ -132,6 +163,8 @@ func websocketHaWithInit(token, url string) {
 			callAreaList()
 			callDeviceList()
 			callEntityList()
+			callServices()
+			callStates()
 			firstConnect = false
 		}
 	})

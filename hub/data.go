@@ -1,11 +1,17 @@
 package hub
 
+import "math"
+
 //向远程获取方案，将各种方案缓存到本地，本地执行
 
 // 获取区域数据
-const getAreaInfoId = 999999999999999991
-const getDeviceListId = 999999999999999992
-const getEntityListId = 999999999999999993
+const (
+	getAreaInfoId = math.MaxInt64 - iota
+	getDeviceListId
+	getEntityListId
+	getServicesId
+	getStatesId
+)
 
 type areaInfo struct {
 	AreaId string `json:"area_id"`
@@ -93,5 +99,53 @@ func callEntityList() {
 	}
 	to.Id = getEntityListId
 	to.Type = "config/entity_registry/list"
+	CallServiceWs(&to)
+}
+
+// 获取服务数据
+type serviceList struct {
+	ID      int64          `json:"id"`
+	Type    string         `json:"type"`
+	Success bool           `json:"success"`
+	Result  map[string]any `json:"result"`
+}
+
+func callServices() {
+	var to struct {
+		Id   int    `json:"id"`
+		Type string `json:"type"`
+	}
+	to.Id = getServicesId
+	to.Type = "get_services"
+	CallServiceWs(&to)
+}
+
+// 获取实体详细信息
+// 结构参考Home Assistant get_states返回
+// https://developers.home-assistant.io/docs/api/websocket/#get_states
+
+type stateList struct {
+	ID      int64    `json:"id"`
+	Type    string   `json:"type"`
+	Success bool     `json:"success"`
+	Result  []*state `json:"result"`
+}
+
+type state struct {
+	EntityID    string                 `json:"entity_id"`
+	State       string                 `json:"state"`
+	Attributes  map[string]interface{} `json:"attributes"`
+	LastChanged string                 `json:"last_changed"`
+	LastUpdated string                 `json:"last_updated"`
+	Context     map[string]interface{} `json:"context"`
+}
+
+func callStates() {
+	var to struct {
+		Id   int    `json:"id"`
+		Type string `json:"type"`
+	}
+	to.Id = getStatesId
+	to.Type = "get_states"
 	CallServiceWs(&to)
 }

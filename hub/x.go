@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"strings"
+	"time"
 	"unsafe"
 
+	"github.com/RussellLuo/timingwheel"
 	jsoniter "github.com/json-iterator/go"
 )
 
@@ -91,4 +93,26 @@ func FindJSON(str string) string {
 	}
 
 	return ""
+}
+
+var tw = timingwheel.NewTimingWheel(time.Second, 20)
+
+func init() {
+	tw.Start()
+}
+
+type EveryScheduler struct {
+	Interval time.Duration
+}
+
+func (s *EveryScheduler) Next(prev time.Time) time.Time {
+	return prev.Add(s.Interval)
+}
+
+func TimingwheelAfter(t time.Duration, f func()) {
+	tw.AfterFunc(t, f)
+}
+
+func TimingwheelTicker(t time.Duration, f func()) *timingwheel.Timer {
+	return tw.ScheduleFunc(&EveryScheduler{Interval: t}, f)
 }
