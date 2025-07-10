@@ -6,7 +6,7 @@ import "math"
 
 // 获取区域数据
 const (
-	getAreaInfoId = math.MaxInt64 - iota
+	getAreaInfoId = (math.MaxInt64 - 1000) + iota
 	getDeviceListId
 	getEntityListId
 	getServicesId
@@ -22,6 +22,7 @@ type areaList struct {
 	Id      int         `json:"id"`
 	Type    string      `json:"type"`
 	Success bool        `json:"success"`
+	Total   int         `json:"total"`
 	Result  []*areaInfo `json:"result"`
 }
 
@@ -51,6 +52,7 @@ type deviceList struct {
 	ID      int64     `json:"id"`
 	Type    string    `json:"type"`
 	Success bool      `json:"success"`
+	Total   int       `json:"total"`
 	Result  []*device `json:"result"`
 }
 
@@ -80,6 +82,7 @@ type entityList struct {
 	ID      int64     `json:"id"`
 	Type    string    `json:"type"`
 	Success bool      `json:"success"`
+	Total   int       `json:"total"`
 	Result  []*entity `json:"result"`
 }
 
@@ -90,6 +93,10 @@ type entity struct {
 	OriginalName string `json:"original_name"` //实体名称
 	Platform     string `json:"platform"`      //产自什么平台
 	UniqueID     string `json:"unique_id"`     //唯一id
+
+	Category string `json:"category"`  //设备类型
+	AreaID   string `json:"area_id"`   //区域id
+	AreaName string `json:"area_name"` //区域名称
 }
 
 func callEntityList() {
@@ -107,6 +114,7 @@ type serviceList struct {
 	ID      int64          `json:"id"`
 	Type    string         `json:"type"`
 	Success bool           `json:"success"`
+	Total   int            `json:"total"`
 	Result  map[string]any `json:"result"`
 }
 
@@ -125,19 +133,11 @@ func callServices() {
 // https://developers.home-assistant.io/docs/api/websocket/#get_states
 
 type stateList struct {
-	ID      int64    `json:"id"`
-	Type    string   `json:"type"`
-	Success bool     `json:"success"`
-	Result  []*state `json:"result"`
-}
-
-type state struct {
-	EntityID    string                 `json:"entity_id"`
-	State       string                 `json:"state"`
-	Attributes  map[string]interface{} `json:"attributes"`
-	LastChanged string                 `json:"last_changed"`
-	LastUpdated string                 `json:"last_updated"`
-	Context     map[string]interface{} `json:"context"`
+	ID      int64         `json:"id"`
+	Type    string        `json:"type"`
+	Success bool          `json:"success"`
+	Total   int           `json:"total"`
+	Result  []interface{} `json:"result"`
 }
 
 func callStates() {

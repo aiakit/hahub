@@ -5,6 +5,7 @@ import (
 	urlpkg "net/url"
 	"os"
 	"os/signal"
+	"sync"
 	"time"
 
 	"github.com/aiakit/ava"
@@ -25,12 +26,13 @@ const defaultURL = "homeassistant.local:8123"
 
 type hub struct {
 	conn *websocket.Conn
+	lock *sync.RWMutex
 }
 
 var gHub *hub
 
 func newHub() {
-	gHub = &hub{}
+	gHub = &hub{lock: new(sync.RWMutex)}
 }
 
 func (h *hub) writeJson(data interface{}) {
@@ -52,89 +54,121 @@ func init() {
 // 初始化数据，设备信息-区域信息
 // 版本信息，获取版本号，替换缓存数据
 func callback() {
-	var areaMap = make(map[string]string) // area_id -> name
-
+	var areaMap = make(map[string]string, 10) // area_id -> name
+	var entityShortMap = make(map[string]*entity, 1024)
+	var deviceMap = make(map[string]*device, 1024)
 	for msg := range channelMessage {
 		id := jsoniter.Get(msg, "id").ToInt64()
 		tpe := jsoniter.Get(msg, "type").ToString()
 		success := jsoniter.Get(msg, "success").ToBool()
 
 		if tpe == "result" && success == true {
-			switch id {
-			case getAreaInfoId: // 获取区域数据
-				var data areaList
-				err := Unmarshal(msg, &data)
-				if err != nil {
-					ava.Errorf("Unmarshal areaList error: %v", err)
-					break
-				}
-				for _, a := range data.Result {
-					areaMap[a.AreaId] = a.Name
-				}
-				writeToFile("area.json", &data)
-			case getDeviceListId: // 获取设备数据
-				var data deviceList
-				err := Unmarshal(msg, &data)
-				if err != nil {
-					ava.Errorf("Unmarshal deviceList error: %v", err)
-					break
-				}
-				var filtered []*device
-				for _, d := range data.Result {
-					// area_id 为空则忽略
-					if d.AreaID == "" {
-						continue
+			func() {
+				gHub.lock.Lock()
+				defer gHub.lock.Unlock()
+				switch id {
+				case getAreaInfoId: // 获取区域数据
+					var data areaList
+					err := Unmarshal(msg, &data)
+					if err != nil {
+						ava.Errorf("Unmarshal areaList error: %v", err)
+						break
 					}
-					if name, ok := areaMap[d.AreaID]; ok {
-						d.AreaName = name
+					for _, a := range data.Result {
+						areaMap[a.AreaId] = a.Name
 					}
-					filtered = append(filtered, d)
-				}
-				data.Result = filtered
-				ava.Debugf("total device=%d", len(filtered))
-				writeToFile("device.json", data)
-			case getEntityListId: // 获取实体数据
-				var data entityList
-				err := Unmarshal(msg, &data)
-				if err != nil {
-					ava.Errorf("Unmarshal entityList error: %v", err)
-					break
-				}
-				var filtered []*entity
-				for _, e := range data.Result {
-					if strings.Contains(e.OriginalName, "厂家设置") || strings.Contains(e.OriginalName, "厂商") || strings.Contains(e.OriginalName, "恢复出厂设置") {
-						continue
+					data.Total = len(data.Result)
+					writeToFile("area.json", &data)
+				case getDeviceListId: // 获取设备数据
+					var data deviceList
+					err := Unmarshal(msg, &data)
+					if err != nil {
+						ava.Errorf("Unmarshal deviceList error: %v", err)
+						break
 					}
-					if e.Platform == "hacs" || e.Platform == "hassio" || e.Platform == "sun" || e.Platform == "backup" || e.Platform == "person" ||
-						e.Platform == "shopping_list" || e.Platform == "google_translate" || e.Platform == "met" {
-						continue
+					var filtered []*device
+					for _, d := range data.Result {
+						// area_id 为空则忽略
+						if d.AreaID == "" {
+							continue
+						}
+						if name, ok := areaMap[d.AreaID]; ok {
+							d.AreaName = name
+						}
+						filtered = append(filtered, d)
+						deviceMap[d.ID] = d
 					}
-					filtered = append(filtered, e)
+					data.Result = filtered
+					data.Total = len(filtered)
+					ava.Debugf("total device=%d", len(filtered))
+					writeToFile("device.json", data)
+				case getEntityListId: // 获取实体数据
+					var data entityList
+					err := Unmarshal(msg, &data)
+					if err != nil {
+						ava.Errorf("Unmarshal entityList error: %v", err)
+						break
+					}
+					var filtered []*entity
+					for _, e := range data.Result {
+						if strings.Contains(e.OriginalName, "厂家设置") || strings.Contains(e.OriginalName, "厂商") || strings.Contains(e.OriginalName, "恢复出厂设置") {
+							continue
+						}
+						if e.Platform == "hacs" || e.Platform == "hassio" || e.Platform == "sun" || e.Platform == "backup" || e.Platform == "person" ||
+							e.Platform == "shopping_list" || e.Platform == "google_translate" || e.Platform == "met" {
+							continue
+						}
+
+						filtered = append(filtered, e)
+					}
+					data.Result = filtered
+					data.Total = len(filtered)
+					ava.Debugf("total entity=%d", len(filtered))
+					writeToFile("entity.json", &data)
+
+					// 写入短实体
+					shortEntities := FilterEntities(filtered, deviceMap)
+					shortData := entityList{ID: data.ID, Type: data.Type, Success: data.Success, Result: shortEntities}
+					shortData.Total = len(shortEntities)
+					for _, d := range shortEntities {
+						entityShortMap[d.EntityID] = d
+					}
+					writeToFile("entity_short.json", &shortData)
+				case getServicesId: // 获取服务数据
+					var data serviceList
+					err := Unmarshal(msg, &data)
+					if err != nil {
+						ava.Errorf("Unmarshal serviceList error: %v", err)
+						break
+					}
+					data.Total = len(data.Result)
+					ava.Debugf("total services=%d", len(data.Result))
+					writeToFile("services.json", &data)
+				case getStatesId: // 获取实体详细信息
+					var data stateList
+					err := Unmarshal(msg, &data)
+					if err != nil {
+						ava.Errorf("Unmarshal stateList error: %v", err)
+						break
+					}
+
+					var filter = make([]interface{}, 0, 1024)
+					for _, v := range data.Result {
+						tmp := MustMarshal(v)
+						id := Json.Get(tmp, "entity_id").ToString()
+						if _, ok := entityShortMap[id]; ok {
+							filter = append(filter, v)
+						}
+					}
+					data.Result = nil
+					data.Result = filter
+					data.Total = len(data.Result)
+					ava.Debugf("total states=%d", len(data.Result))
+					writeToFile("states.json", &data)
+				default:
+					ava.Debugf("no id function |data=%v", BytesToString(msg))
 				}
-				data.Result = filtered
-				ava.Debugf("total entity=%d", len(filtered))
-				writeToFile("entity.json", &data)
-			case getServicesId: // 获取服务数据
-				var data serviceList
-				err := Unmarshal(msg, &data)
-				if err != nil {
-					ava.Errorf("Unmarshal serviceList error: %v", err)
-					break
-				}
-				ava.Debugf("total services=%d", len(data.Result))
-				writeToFile("services.json", &data)
-			case getStatesId: // 获取实体详细信息
-				var data stateList
-				err := Unmarshal(msg, &data)
-				if err != nil {
-					ava.Errorf("Unmarshal stateList error: %v", err)
-					break
-				}
-				ava.Debugf("total states=%d", len(data.Result))
-				writeToFile("states.json", &data)
-			default:
-				ava.Debugf("no id function |data=%v", BytesToString(msg))
-			}
+			}()
 		}
 		if tpe == "event" {
 			handleData(msg)
@@ -155,16 +189,20 @@ func handleData(data []byte) {
 
 }
 
+func callService() {
+	callAreaList()
+	callDeviceList()
+	callEntityList()
+	callServices()
+	callStates()
+}
+
 // websocketHaWithInit wraps websocketHa, on first connect success, calls data fetchers
 func websocketHaWithInit(token, url string) {
 	firstConnect := true
 	websocketHaWithCallback(token, url, func() {
 		if firstConnect {
-			callAreaList()
-			callDeviceList()
-			callEntityList()
-			callServices()
-			callStates()
+			callService()
 			firstConnect = false
 		}
 	})
@@ -228,7 +266,7 @@ func websocketHaWithCallback(token, url string, onConnect func()) {
 			ava.Errorf("host=%s |token=%s |err=%v", url, token, err)
 			return nil, err
 		}
-		ava.Debugf("state_changed |message=%s", string(stateMessage))
+		ava.Debugf("handshake |state_changed |message=%s", string(stateMessage))
 		var stateResult Result
 		err = Unmarshal(stateMessage, &stateResult)
 		if err != nil {
@@ -244,6 +282,7 @@ func websocketHaWithCallback(token, url string, onConnect func()) {
 		if onConnect != nil {
 			onConnect()
 		}
+		ava.Debug("handshake success")
 		return conn, nil
 	}
 
