@@ -7,6 +7,7 @@ require (
 	github.com/aiakit/ava v0.0.0-20250708184315-b24a46105fa7
 	github.com/gorilla/websocket v1.5.3
 	github.com/json-iterator/go v1.1.12
+	github.com/mozillazg/go-pinyin v0.20.0
 )
 
 require (

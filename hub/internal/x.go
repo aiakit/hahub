@@ -1,14 +1,16 @@
-package hub
+package internal
 
 import (
 	"bytes"
 	"encoding/json"
 	"strings"
 	"time"
+	"unicode"
 	"unsafe"
 
 	"github.com/RussellLuo/timingwheel"
 	jsoniter "github.com/json-iterator/go"
+	"github.com/mozillazg/go-pinyin"
 )
 
 var Json = jsoniter.ConfigFastest
@@ -115,4 +117,55 @@ func TimingwheelAfter(t time.Duration, f func()) {
 
 func TimingwheelTicker(t time.Duration, f func()) *timingwheel.Timer {
 	return tw.ScheduleFunc(&EveryScheduler{Interval: t}, f)
+}
+
+var defaultPinyinArgs = pinyin.NewArgs()
+
+// 中文转拼音，拼音之间用_连接，英文或数字照常拼接
+func ChineseToPinyin(s string) string {
+	var result []string
+	var prevPos int
+	runes := []rune(s)
+	for i, r := range runes {
+		if unicode.Is(unicode.Han, r) {
+			// 处理之前的非汉字部分
+			if i > prevPos {
+				nonHanziPart := filterNonAlphaNumeric(string(runes[prevPos:i]))
+				if nonHanziPart != "" {
+					result = append(result, nonHanziPart)
+				}
+			}
+			// 处理汉字部分
+			py := pinyin.Pinyin(string(r), defaultPinyinArgs)
+			result = append(result, py[0][0])
+			prevPos = i + 1
+		} else if unicode.IsLetter(r) || unicode.IsDigit(r) {
+			// 处理英文或数字部分
+			continue
+		} else {
+			// 处理其他非汉字、非英文、非数字的部分
+			if i > prevPos {
+				result = append(result, string(runes[prevPos:i]))
+			}
+			prevPos = i + 1
+		}
+	}
+	// 处理最后的非汉字部分
+	if prevPos < len(runes) {
+		nonHanziPart := filterNonAlphaNumeric(string(runes[prevPos:]))
+		if nonHanziPart != "" {
+			result = append(result, nonHanziPart)
+		}
+	}
+	return strings.Join(result, "_")
+}
+
+func filterNonAlphaNumeric(s string) string {
+	var sb strings.Builder
+	for _, r := range s {
+		if unicode.IsLetter(r) || unicode.IsDigit(r) {
+			sb.WriteRune(r)
+		}
+	}
+	return sb.String()
 }

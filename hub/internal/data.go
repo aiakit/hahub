@@ -1,6 +1,9 @@
-package hub
+package internal
 
-import "math"
+import (
+	"math"
+	"strings"
+)
 
 //向远程获取方案，将各种方案缓存到本地，本地执行
 
@@ -78,15 +81,15 @@ func callDeviceList() {
 }
 
 // 获取全量实体数据
-type entityList struct {
+type EntityList struct {
 	ID      int64     `json:"id"`
 	Type    string    `json:"type"`
 	Success bool      `json:"success"`
 	Total   int       `json:"total"`
-	Result  []*entity `json:"result"`
+	Result  []*Entity `json:"result"`
 }
 
-type entity struct {
+type Entity struct {
 	DeviceID     string `json:"device_id"`     //设备id
 	EntityID     string `json:"entity_id"`     //实体id
 	ID           string `json:"id"`            //真实实体id，数据id
@@ -97,6 +100,7 @@ type entity struct {
 	Category string `json:"category"`  //设备类型
 	AreaID   string `json:"area_id"`   //区域id
 	AreaName string `json:"area_name"` //区域名称
+	Name     string `json:"name"`      //设备名称（从设备数据获取）
 }
 
 func callEntityList() {
@@ -148,4 +152,17 @@ func callStates() {
 	to.Id = getStatesId
 	to.Type = "get_states"
 	CallServiceWs(&to)
+}
+
+func SpiltAreaName(name string) string {
+	s := strings.Split(name, " ")
+	if len(s) > 1 {
+		return s[1]
+	}
+
+	return s[0]
+}
+
+type HttpServiceData struct {
+	EntityId string `json:"entity_id"`
 }

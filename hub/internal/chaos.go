@@ -1,4 +1,4 @@
-package hub
+package internal
 
 import (
 	"fmt"
@@ -16,23 +16,61 @@ import (
 	jsoniter "github.com/json-iterator/go"
 )
 
-var (
-	defaultAreaInfo *areaList
-)
-
 var defaultToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIwMTZkZmM2ZDEwMTg0ZTRjYjJkMDBkMDUzMTYwNmFmZSIsImlhdCI6MTc1MTM0ODQyNCwiZXhwIjoyMDY2NzA4NDI0fQ.2W03gIpG2mJaYUPuT0OGST8zFN1paJ40ltFE9WG52Yg"
 
-const defaultURL = "homeassistant.local:8123"
+func GetToken() string {
+	return defaultToken
+}
+
+func GetHassUrl() string {
+	return defaultURL
+}
+
+func getHostAndPath() string {
+	u, err := urlpkg.Parse(GetHassUrl())
+	if err != nil {
+		return ""
+	}
+	return u.Host + u.Path
+}
+
+const defaultURL = "http://homeassistant.local:8123"
 
 type hub struct {
-	conn *websocket.Conn
-	lock *sync.RWMutex
+	conn   *websocket.Conn
+	lock   *sync.RWMutex
+	idLock *sync.Mutex
+
+	// 实体类型映射和实体ID映射
+	entityCategoryMap map[string][]*Entity // key: 设备类型(Category)，value: []*Entity
+	entityIdMap       map[string]*Entity   // key: 实体ID(EntityID)，value: *Entity
+
+	// 新增：区域ID映射
+	entityAreaMap map[string][]*Entity // key: 区域ID(AreaID)，value: []*Entity
+}
+
+func GetEntityAreaMap() map[string][]*Entity {
+	return gHub.entityAreaMap
+}
+
+func GetEntityIdMap() map[string]*Entity {
+	return gHub.entityIdMap
+}
+
+func GetEntityCategoryMap() map[string][]*Entity {
+	return gHub.entityCategoryMap
 }
 
 var gHub *hub
 
 func newHub() {
-	gHub = &hub{lock: new(sync.RWMutex)}
+	gHub = &hub{
+		lock:              new(sync.RWMutex),
+		idLock:            new(sync.Mutex),
+		entityCategoryMap: make(map[string][]*Entity),
+		entityIdMap:       make(map[string]*Entity),
+		entityAreaMap:     make(map[string][]*Entity),
+	}
 }
 
 func (h *hub) writeJson(data interface{}) {
@@ -48,14 +86,15 @@ var channelMessage = make(chan []byte, 1024)
 func init() {
 	newHub()
 	go callback()
-	go websocketHaWithInit(defaultToken, defaultURL)
+	go websocketHaWithInit(defaultToken, getHostAndPath())
+	time.Sleep(time.Second * 3)
 }
 
 // 初始化数据，设备信息-区域信息
 // 版本信息，获取版本号，替换缓存数据
 func callback() {
 	var areaMap = make(map[string]string, 10) // area_id -> name
-	var entityShortMap = make(map[string]*entity, 1024)
+	var entityShortMap = make(map[string]*Entity, 1024)
 	var deviceMap = make(map[string]*device, 1024)
 	for msg := range channelMessage {
 		id := jsoniter.Get(msg, "id").ToInt64()
@@ -103,13 +142,13 @@ func callback() {
 					ava.Debugf("total device=%d", len(filtered))
 					writeToFile("device.json", data)
 				case getEntityListId: // 获取实体数据
-					var data entityList
+					var data EntityList
 					err := Unmarshal(msg, &data)
 					if err != nil {
-						ava.Errorf("Unmarshal entityList error: %v", err)
+						ava.Errorf("Unmarshal EntityList error: %v", err)
 						break
 					}
-					var filtered []*entity
+					var filtered []*Entity
 					for _, e := range data.Result {
 						if strings.Contains(e.OriginalName, "厂家设置") || strings.Contains(e.OriginalName, "厂商") || strings.Contains(e.OriginalName, "恢复出厂设置") {
 							continue
@@ -123,17 +162,40 @@ func callback() {
 					}
 					data.Result = filtered
 					data.Total = len(filtered)
-					ava.Debugf("total entity=%d", len(filtered))
+					ava.Debugf("total Entity=%d", len(filtered))
 					writeToFile("entity.json", &data)
 
 					// 写入短实体
 					shortEntities := FilterEntities(filtered, deviceMap)
-					shortData := entityList{ID: data.ID, Type: data.Type, Success: data.Success, Result: shortEntities}
+					shortData := EntityList{ID: data.ID, Type: data.Type, Success: data.Success, Result: shortEntities}
 					shortData.Total = len(shortEntities)
 					for _, d := range shortEntities {
 						entityShortMap[d.EntityID] = d
 					}
 					writeToFile("entity_short.json", &shortData)
+
+					// 填充entityCategoryMap、entityIdMap和entityAreaMap
+					// 清空旧数据
+					for k := range gHub.entityCategoryMap {
+						delete(gHub.entityCategoryMap, k)
+					}
+					for k := range gHub.entityIdMap {
+						delete(gHub.entityIdMap, k)
+					}
+					for k := range gHub.entityAreaMap {
+						delete(gHub.entityAreaMap, k)
+					}
+					for _, e := range shortEntities {
+						if e.Category != "" {
+							gHub.entityCategoryMap[e.Category] = append(gHub.entityCategoryMap[e.Category], e)
+						}
+						if e.EntityID != "" {
+							gHub.entityIdMap[e.EntityID] = e
+						}
+						if e.AreaID != "" {
+							gHub.entityAreaMap[e.AreaID] = append(gHub.entityAreaMap[e.AreaID], e)
+						}
+					}
 				case getServicesId: // 获取服务数据
 					var data serviceList
 					err := Unmarshal(msg, &data)
@@ -182,14 +244,14 @@ func writeToFile(filename string, data interface{}) {
 		return
 	}
 	defer file.Close()
-	_, _ = file.Write(ava.MustMarshal(data))
+	_, _ = file.Write(MustMarshal(data))
 }
 
 func handleData(data []byte) {
 
 }
 
-func callService() {
+func CallService() {
 	callAreaList()
 	callDeviceList()
 	callEntityList()
@@ -202,7 +264,7 @@ func websocketHaWithInit(token, url string) {
 	firstConnect := true
 	websocketHaWithCallback(token, url, func() {
 		if firstConnect {
-			callService()
+			CallService()
 			firstConnect = false
 		}
 	})
@@ -266,7 +328,7 @@ func websocketHaWithCallback(token, url string, onConnect func()) {
 			ava.Errorf("host=%s |token=%s |err=%v", url, token, err)
 			return nil, err
 		}
-		ava.Debugf("handshake |state_changed |message=%s", string(stateMessage))
+
 		var stateResult Result
 		err = Unmarshal(stateMessage, &stateResult)
 		if err != nil {
@@ -290,7 +352,7 @@ func websocketHaWithCallback(token, url string, onConnect func()) {
 	for {
 		conn, err := reconnect()
 		if err != nil {
-			ava.Errorf("initial connection failed, retrying in %v |err=%v |home=%s", backoffTime, err, defaultURL)
+			ava.Errorf("initial connection failed, retrying in %v |err=%v |home=%s", backoffTime, err, url)
 			time.Sleep(backoffTime)
 			backoffTime *= 2
 			continue
@@ -302,9 +364,12 @@ func websocketHaWithCallback(token, url string, onConnect func()) {
 			for {
 				_, message, err := conn.ReadMessage()
 				if err != nil {
-					ava.Errorf("home=%s |err=%v", defaultURL, err)
+					ava.Errorf("home=%s |err=%v", url, err)
 					return
 				}
+
+				ava.Debugf("handshake |state_changed |message=%s", string(message))
+
 				channelMessage <- message
 			}
 		}()
@@ -323,11 +388,34 @@ func websocketHaWithCallback(token, url string, onConnect func()) {
 }
 
 func CallServiceWs(data interface{}) {
-	ava.Debugf("callServiceHttpWs |home=%s |data=%s", defaultURL, MustMarshal2String(data))
+	now := time.Now()
 
 	if data == nil {
 		data = struct{}{}
 	}
 
 	gHub.writeJson(&data)
+	ava.Debugf("callServiceHttpWs |home=%s |data=%s |latncy=%f", defaultURL, MustMarshal2String(data), time.Since(now).Seconds())
+}
+
+var idDefault = 1000000000
+
+func GetIncreaseId() int {
+	gHub.idLock.Lock()
+	idDefault++
+	id := idDefault
+	gHub.idLock.Unlock()
+	return id
+}
+
+type chatMessage struct {
+	MessageType int32  `protobuf:"varint,1,opt,name=message_type,json=messageType,proto3" json:"message_type,omitempty"`
+	Content     string `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`
+	CreatedAt   int64  `protobuf:"varint,3,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UserName    string `protobuf:"bytes,4,opt,name=user_name,json=userName,proto3" json:"user_name,omitempty"`
+}
+
+// 发送聊天记录到云端
+func sendChatMessage(message *chatMessage) {
+	//todo
 }
