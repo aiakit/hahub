@@ -59,24 +59,28 @@ var (
 	Client *http.Client
 )
 
-func init() {
-	Client = &http.Client{
-		Timeout: 10 * time.Second,
-		Transport: &http.Transport{
-			//TLSClientConfig:   &tls.Config{InsecureSkipVerify: true},
-			DisableKeepAlives: true,
-			//Proxy:             http.ProxyFromEnvironment,
-			DialContext: (&net.Dialer{
-				Timeout:   30 * time.Second,  // tcp连接超时时间
-				KeepAlive: 600 * time.Second, // 保持长连接的时间
-			}).DialContext,                           // 设置连接的参数
-			MaxIdleConns:          50,                // 最大空闲连接
-			MaxConnsPerHost:       100,               //每个host建立多少个连接
-			MaxIdleConnsPerHost:   100,               // 每个host保持的空闲连接数
-			ExpectContinueTimeout: 60 * time.Second,  // 等待服务第一响应的超时时间
-			IdleConnTimeout:       600 * time.Second, // 空闲连接的超时时间
-		},
+func ClientInstance() *http.Client {
+	if Client == nil {
+		Client = &http.Client{
+			Timeout: 10 * time.Second,
+			Transport: &http.Transport{
+				//TLSClientConfig:   &tls.Config{InsecureSkipVerify: true},
+				DisableKeepAlives: true,
+				//Proxy:             http.ProxyFromEnvironment,
+				DialContext: (&net.Dialer{
+					Timeout:   30 * time.Second,  // tcp连接超时时间
+					KeepAlive: 600 * time.Second, // 保持长连接的时间
+				}).DialContext,                           // 设置连接的参数
+				MaxIdleConns:          50,                // 最大空闲连接
+				MaxConnsPerHost:       100,               //每个host建立多少个连接
+				MaxIdleConnsPerHost:   100,               // 每个host保持的空闲连接数
+				ExpectContinueTimeout: 60 * time.Second,  // 等待服务第一响应的超时时间
+				IdleConnTimeout:       600 * time.Second, // 空闲连接的超时时间
+			},
+		}
 	}
+
+	return Client
 }
 
 // CheckRespStatus 状态检查
@@ -101,7 +105,7 @@ func post(c *ava.Context, url string, data []byte, header map[string]string) ([]
 		}
 	}
 
-	resp, err := Client.Do(request)
+	resp, err := ClientInstance().Do(request)
 	if err != nil {
 		c.Error(err)
 		return nil, err
@@ -136,7 +140,7 @@ func postForm(
 		}
 	}
 
-	resp, err := Client.Do(request)
+	resp, err := ClientInstance().Do(request)
 	if err != nil {
 		c.Error(err)
 		return nil, err
@@ -222,7 +226,7 @@ func get(c *ava.Context, url string, header map[string]string) ([]byte, error) {
 		}
 	}
 
-	resp, err := Client.Do(request)
+	resp, err := ClientInstance().Do(request)
 	if err != nil {
 		c.Error(err)
 		return nil, err
@@ -251,7 +255,7 @@ func getWithout(url string, header map[string]string) ([]byte, error) {
 		}
 	}
 
-	resp, err := Client.Do(request)
+	resp, err := ClientInstance().Do(request)
 	if err != nil {
 		ava.Error(err)
 		return nil, err
@@ -280,7 +284,7 @@ func put(c *ava.Context, url string, data []byte, header map[string]string) ([]b
 		}
 	}
 
-	resp, err := Client.Do(request)
+	resp, err := ClientInstance().Do(request)
 	if err != nil {
 		c.Error(err)
 		return nil, err
@@ -309,7 +313,7 @@ func del(c *ava.Context, url string, data []byte, header map[string]string) ([]b
 		}
 	}
 
-	resp, err := Client.Do(request)
+	resp, err := ClientInstance().Do(request)
 	if err != nil {
 		c.Error(err)
 		return nil, err

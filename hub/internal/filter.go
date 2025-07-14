@@ -1,6 +1,8 @@
 package internal
 
-import "strings"
+import (
+	"strings"
+)
 
 const (
 	CategoryXiaomiHomeSpeaker   = "xiaomi_home_speaker"   // 小米音箱
@@ -39,7 +41,7 @@ const (
 //名字中带有窗帘，取出实体id开头是"cover."的实体
 
 //存在传感器:
-//名字中带“存在传感器”，实体id是“binary_sensor.”开头，实体详情中，state:off表示无人，on表示有人，名字中带有“光照”，“有人持续”，“无人持续”
+//名字中带“存在传感器”，实体id是“binary_sensor.”开头，实体详情中，State:off表示无人，on表示有人，名字中带有“光照”，“有人持续”，“无人持续”
 
 //插座
 //名字中带插座,实体名称中带有“开关状态”
@@ -62,6 +64,9 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 			speakerDeviceIDs[dev.ID] = dev
 		}
 	}
+
+	var switchWiredModel = make(map[string]*Entity)
+
 	for _, e := range entities {
 		var (
 			name     = e.OriginalName
@@ -90,23 +95,41 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 		if strings.Contains(name, "虚拟事件") {
 			category = CategoryVirtualEvent
 		}
-		// 4. 开关
-		if strings.Contains(name, "开关") && strings.Contains(e.EntityID, "switch") {
-			if strings.HasPrefix(id, "button.") {
-				category = CategorySwitch
+
+		// 4. 开关,设备和实体都是开关
+		if strings.Contains(name, "开关") && strings.Contains(e.EntityID, "switch.") {
+			if v := deviceMap[e.DeviceID]; v != nil {
+				if strings.Contains(v.Model, ".switch.") {
+					category = CategorySwitch
+				}
 			}
 		}
-		// 4.1 有线开关
-		if strings.Contains(name, "开关") && strings.Contains(name, "有线") {
-			if strings.HasPrefix(id, "select.") {
-				category = CategoryWiredSwitch
+
+		// 4.1 有线开关标记
+		if strings.Contains(e.OriginalName, "开关") && strings.Contains(e.EntityID, "select.") && strings.Contains(e.EntityID, "_mode_") {
+			if v := deviceMap[e.DeviceID]; v != nil {
+				if strings.Contains(v.Model, ".switch.") {
+					st, err := GetState(e.EntityID)
+					if err != nil {
+						continue
+					}
+					if strings.Contains(st.State, "有线") {
+						switchWiredModel[e.DeviceID] = e
+					}
+				}
 			}
 		}
+
+		//// 4.2开关切换
+		//if strings.Contains(name, "开关") && strings.Contains(e.EntityID, "button.") && strings.Contains(e.EntityID, "_toggle_") {
+		//	category = CategorySwitch
+		//}
 
 		// 5. 灯
 		if strings.HasPrefix(id, "light.") && !strings.Contains(e.EntityID, "_group_") {
 			category = CategoryLight
 		}
+
 		//5.1 灯组
 		if strings.HasPrefix(id, "light.") && strings.Contains(e.EntityID, "_group_") {
 			category = CategoryLightGroup
@@ -153,6 +176,7 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 		if strings.HasPrefix(id, "scene.") {
 			category = CategoryScene
 		}
+
 		if category != "" {
 			// 赋值区域信息
 			e.Category = category
@@ -164,6 +188,13 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 				}
 			}
 			filtered = append(filtered, e)
+		}
+
+	}
+
+	for k, e := range filtered {
+		if e.Category == CategorySwitch && switchWiredModel[e.DeviceID] != nil {
+			filtered[k].Category = CategoryWiredSwitch
 		}
 	}
 	return filtered

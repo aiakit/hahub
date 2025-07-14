@@ -3,6 +3,7 @@ package internal
 import (
 	"math"
 	"strings"
+	"time"
 )
 
 //向远程获取方案，将各种方案缓存到本地，本地执行
@@ -89,6 +90,14 @@ type EntityList struct {
 	Result  []*Entity `json:"result"`
 }
 
+type EntityListTest struct {
+	ID      int64  `json:"id"`
+	Type    string `json:"type"`
+	Success bool   `json:"success"`
+	Total   int    `json:"total"`
+	Result  any    `json:"result"`
+}
+
 type Entity struct {
 	DeviceID     string `json:"device_id"`     //设备id
 	EntityID     string `json:"entity_id"`     //实体id
@@ -137,11 +146,27 @@ func callServices() {
 // https://developers.home-assistant.io/docs/api/websocket/#get_states
 
 type stateList struct {
-	ID      int64         `json:"id"`
-	Type    string        `json:"type"`
-	Success bool          `json:"success"`
-	Total   int           `json:"total"`
-	Result  []interface{} `json:"result"`
+	ID      int64    `json:"id"`
+	Type    string   `json:"type"`
+	Success bool     `json:"success"`
+	Total   int      `json:"total"`
+	Result  []*State `json:"result"`
+	//Result []interface{} `json:"result"`
+}
+
+type State struct {
+	EntityID   string `json:"entity_id"`
+	State      string `json:"State"`
+	Attributes struct {
+		Mode          string `json:"mode"`
+		Current       int    `json:"current"`
+		FriendlyName  string `json:"friendly_name"`
+		ID            string `json:"id"`
+		LastTriggered any    `json:"last_triggered"`
+	} `json:"attributes"`
+	LastChanged  time.Time `json:"last_changed"`
+	LastReported time.Time `json:"last_reported"`
+	LastUpdated  time.Time `json:"last_updated"`
 }
 
 func callStates() {

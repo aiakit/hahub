@@ -39,11 +39,11 @@ type Conditions struct {
 }
 
 type Actions struct {
-	Type          string `json:"type"`
-	DeviceID      string `json:"device_id"`
-	EntityID      string `json:"entity_id"`
-	Domain        string `json:"domain"`
-	BrightnessPct int    `json:"brightness_pct"`
+	Type          string  `json:"type"`
+	DeviceID      string  `json:"device_id"`
+	EntityID      string  `json:"entity_id"`
+	Domain        string  `json:"domain"`
+	BrightnessPct float64 `json:"brightness_pct,omitempty"`
 }
 
 type Response struct {

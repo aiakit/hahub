@@ -3,6 +3,7 @@ package automation
 import (
 	"errors"
 	"hahub/hub/internal"
+	"strings"
 
 	"github.com/aiakit/ava"
 )
@@ -52,7 +53,7 @@ func presenceSensorOn(entity *internal.Entity) (*Automation, error) {
 			lights = append(lights, e)
 		}
 		// 有线开关: 名字含“开关”和“有线”，EntityID含switch
-		if e.Category == internal.CategoryWiredSwitch {
+		if e.Category == internal.CategoryWiredSwitch && !strings.HasPrefix(e.EntityID, "button.") {
 			wiredSwitches = append(wiredSwitches, e)
 		}
 	}
@@ -60,10 +61,11 @@ func presenceSensorOn(entity *internal.Entity) (*Automation, error) {
 	var actions []Actions
 	for _, l := range lights {
 		actions = append(actions, Actions{
-			Type:     "turn_on",
-			DeviceID: l.DeviceID,
-			EntityID: l.EntityID,
-			Domain:   "light",
+			Type:          "turn_on",
+			DeviceID:      l.DeviceID,
+			EntityID:      l.EntityID,
+			Domain:        "light",
+			BrightnessPct: 100,
 		})
 	}
 
@@ -112,7 +114,7 @@ func presenceSensorOff(entity *internal.Entity) (*Automation, error) {
 			lights = append(lights, e)
 		}
 		// 有线开关: 名字含“开关”和“有线”，EntityID含switch
-		if e.Category == internal.CategoryWiredSwitch {
+		if e.Category == internal.CategoryWiredSwitch && !strings.HasPrefix(e.EntityID, "button.") {
 			wiredSwitches = append(wiredSwitches, e)
 		}
 	}

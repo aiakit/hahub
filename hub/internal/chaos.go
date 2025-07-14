@@ -94,8 +94,9 @@ func init() {
 // 版本信息，获取版本号，替换缓存数据
 func callback() {
 	var areaMap = make(map[string]string, 10) // area_id -> name
-	var entityShortMap = make(map[string]*Entity, 1024)
-	var deviceMap = make(map[string]*device, 1024)
+	var entityShortMap = make(map[string]*Entity, 10)
+	var deviceMap = make(map[string]*device, 10)
+	var stateMap = make(map[string]*State, 10)
 	for msg := range channelMessage {
 		id := jsoniter.Get(msg, "id").ToInt64()
 		tpe := jsoniter.Get(msg, "type").ToString()
@@ -143,11 +144,17 @@ func callback() {
 					writeToFile("device.json", data)
 				case getEntityListId: // 获取实体数据
 					var data EntityList
+					//var dataTest EntityListTest
 					err := Unmarshal(msg, &data)
 					if err != nil {
 						ava.Errorf("Unmarshal EntityList error: %v", err)
 						break
 					}
+					//err = Unmarshal(msg, &dataTest)
+					//if err != nil {
+					//	ava.Errorf("Unmarshal EntityList error: %v", err)
+					//	break
+					//}
 					var filtered []*Entity
 					for _, e := range data.Result {
 						if strings.Contains(e.OriginalName, "厂家设置") || strings.Contains(e.OriginalName, "厂商") || strings.Contains(e.OriginalName, "恢复出厂设置") {
@@ -164,6 +171,7 @@ func callback() {
 					data.Total = len(filtered)
 					ava.Debugf("total Entity=%d", len(filtered))
 					writeToFile("entity.json", &data)
+					//writeToFile("entity_test.json", &dataTest)
 
 					// 写入短实体
 					shortEntities := FilterEntities(filtered, deviceMap)
@@ -175,16 +183,6 @@ func callback() {
 					writeToFile("entity_short.json", &shortData)
 
 					// 填充entityCategoryMap、entityIdMap和entityAreaMap
-					// 清空旧数据
-					for k := range gHub.entityCategoryMap {
-						delete(gHub.entityCategoryMap, k)
-					}
-					for k := range gHub.entityIdMap {
-						delete(gHub.entityIdMap, k)
-					}
-					for k := range gHub.entityAreaMap {
-						delete(gHub.entityAreaMap, k)
-					}
 					for _, e := range shortEntities {
 						if e.Category != "" {
 							gHub.entityCategoryMap[e.Category] = append(gHub.entityCategoryMap[e.Category], e)
@@ -214,12 +212,13 @@ func callback() {
 						break
 					}
 
-					var filter = make([]interface{}, 0, 1024)
+					var filter = make([]*State, 0, 1024)
 					for _, v := range data.Result {
 						tmp := MustMarshal(v)
 						id := Json.Get(tmp, "entity_id").ToString()
 						if _, ok := entityShortMap[id]; ok {
 							filter = append(filter, v)
+							stateMap[id] = v
 						}
 					}
 					data.Result = nil
@@ -337,7 +336,7 @@ func websocketHaWithCallback(token, url string, onConnect func()) {
 		}
 		if !stateResult.Success {
 			ava.Errorf("host=%s |token=%s |stateResult=%v", url, token, stateResult)
-			return nil, fmt.Errorf("state subscription failed")
+			return nil, fmt.Errorf("State subscription failed")
 		}
 		gHub.conn = nil
 		gHub.conn = conn
@@ -368,7 +367,7 @@ func websocketHaWithCallback(token, url string, onConnect func()) {
 					return
 				}
 
-				ava.Debugf("handshake |state_changed |message=%s", string(message))
+				//ava.Debugf("handshake |state_changed |message=%s", string(message))
 
 				channelMessage <- message
 			}
