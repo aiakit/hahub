@@ -1,12 +1,14 @@
 package main
 
 import (
+	"hahub/hub/core"
 	"hahub/hub/intelligent/automation"
-	"time"
 )
 
 func main() {
-	time.Sleep(time.Second * 5)
+	// 等待 chaos.go 的初始化完成
+	core.WaitForInit()
+
 	automation.Chaos()
 	select {}
 }

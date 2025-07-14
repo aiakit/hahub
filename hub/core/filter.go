@@ -1,4 +1,4 @@
-package internal
+package core
 
 import (
 	"strings"
@@ -12,6 +12,7 @@ const (
 	CategoryVirtualEvent        = "virtual_event"         // 虚拟事件
 	CategorySwitch              = "switch"                // 开关
 	CategoryWiredSwitch         = "switch_wired_switch"   // 有线开关
+	CategoryToggle              = "switch_toggle"         // 切换开关
 	CategoryLight               = "light"                 // 灯
 	CategoryLightGroup          = "light_group"           // 灯组
 	CategoryCurtain             = "curtain"               // 窗帘
@@ -116,6 +117,15 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 					if strings.Contains(st.State, "有线") {
 						switchWiredModel[e.DeviceID] = e
 					}
+				}
+			}
+		}
+
+		// 4.2 切换类开关实体
+		if strings.Contains(name, "开关") && strings.Contains(e.EntityID, "button.") {
+			if v := deviceMap[e.DeviceID]; v != nil {
+				if strings.Contains(v.Model, ".switch.") {
+					category = CategoryToggle
 				}
 			}
 		}

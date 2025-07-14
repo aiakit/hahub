@@ -2,14 +2,14 @@ package automation
 
 import (
 	"errors"
-	"hahub/hub/internal"
+	"hahub/hub/core"
 	"strings"
 
 	"github.com/aiakit/ava"
 )
 
 func walkPresenceSensor(c *ava.Context) {
-	entity, ok := internal.GetEntityCategoryMap()[internal.CategoryHumanPresenceSensor]
+	entity, ok := core.GetEntityCategoryMap()[core.CategoryHumanPresenceSensor]
 	if !ok {
 		return
 	}
@@ -35,25 +35,26 @@ func walkPresenceSensor(c *ava.Context) {
 // 人体存在传感器
 // 人在亮灯,人走灭灯
 // 1.遍历所有和人在传感器区域相同的灯
-func presenceSensorOn(entity *internal.Entity) (*Automation, error) {
+// 2.对客厅、卧室区域，判断光照条件,时间条件
+func presenceSensorOn(entity *core.Entity) (*Automation, error) {
 	var (
 		areaID        = entity.AreaID
-		lights        []*internal.Entity
-		wiredSwitches []*internal.Entity
+		lights        []*core.Entity
+		wiredSwitches []*core.Entity
 	)
 
 	// 查找同区域所有实体
-	entities, ok := internal.GetEntityAreaMap()[areaID]
+	entities, ok := core.GetEntityAreaMap()[areaID]
 	if !ok {
 		return nil, errors.New("entity area not found")
 	}
 	for _, e := range entities {
 		// 灯组:EntityID前缀light.
-		if e.Category == internal.CategoryLight {
+		if e.Category == core.CategoryLight {
 			lights = append(lights, e)
 		}
 		// 有线开关: 名字含“开关”和“有线”，EntityID含switch
-		if e.Category == internal.CategoryWiredSwitch && !strings.HasPrefix(e.EntityID, "button.") {
+		if e.Category == core.CategoryWiredSwitch && !strings.HasPrefix(e.EntityID, "button.") {
 			wiredSwitches = append(wiredSwitches, e)
 		}
 	}
@@ -78,7 +79,7 @@ func presenceSensorOn(entity *internal.Entity) (*Automation, error) {
 		})
 	}
 
-	areaName := internal.SpiltAreaName(entity.AreaName)
+	areaName := core.SpiltAreaName(entity.AreaName)
 	auto := &Automation{
 		Alias:       areaName + "人来亮灯",
 		Description: "当人体传感器检测到有人，自动打开" + areaName + "灯组和有线开关",
@@ -96,25 +97,25 @@ func presenceSensorOn(entity *internal.Entity) (*Automation, error) {
 	return auto, nil
 }
 
-func presenceSensorOff(entity *internal.Entity) (*Automation, error) {
+func presenceSensorOff(entity *core.Entity) (*Automation, error) {
 	var (
 		areaID        = entity.AreaID
-		lights        []*internal.Entity
-		wiredSwitches []*internal.Entity
+		lights        []*core.Entity
+		wiredSwitches []*core.Entity
 	)
 
 	// 查找同区域所有实体
-	entities, ok := internal.GetEntityAreaMap()[areaID]
+	entities, ok := core.GetEntityAreaMap()[areaID]
 	if !ok {
 		return nil, errors.New("entity area not found")
 	}
 	for _, e := range entities {
 		// 灯组:EntityID前缀light.
-		if e.Category == internal.CategoryLight {
+		if e.Category == core.CategoryLight {
 			lights = append(lights, e)
 		}
 		// 有线开关: 名字含“开关”和“有线”，EntityID含switch
-		if e.Category == internal.CategoryWiredSwitch && !strings.HasPrefix(e.EntityID, "button.") {
+		if e.Category == core.CategoryWiredSwitch && !strings.HasPrefix(e.EntityID, "button.") {
 			wiredSwitches = append(wiredSwitches, e)
 		}
 	}
@@ -138,7 +139,7 @@ func presenceSensorOff(entity *internal.Entity) (*Automation, error) {
 		})
 	}
 
-	areaName := internal.SpiltAreaName(entity.AreaName)
+	areaName := core.SpiltAreaName(entity.AreaName)
 
 	auto := &Automation{
 		Alias:       areaName + "人走关灯",

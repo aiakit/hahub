@@ -2,7 +2,7 @@ package automation
 
 import (
 	"fmt"
-	"hahub/hub/internal"
+	"hahub/hub/core"
 	"strings"
 
 	"github.com/aiakit/ava"
@@ -58,7 +58,7 @@ func Chaos() {
 	walkPresenceSensor(c)
 
 	//重新缓存一遍数据
-	internal.CallService()
+	core.CallService()
 }
 
 // 发起自动化创建
@@ -68,8 +68,8 @@ func Chaos() {
 func CreateAutomation(c *ava.Context, automation *Automation, skip, cover bool) {
 	// 自动化名称和实体ID检测，确保唯一
 	alias := automation.Alias
-	entityMap := internal.GetEntityIdMap()
-	baseEntityId := "automation." + internal.ChineseToPinyin(alias)
+	entityMap := core.GetEntityIdMap()
+	baseEntityId := "automation." + core.ChineseToPinyin(alias)
 	conflictCount := 0
 
 	for _, entity := range entityMap {
@@ -102,7 +102,7 @@ func CreateAutomation(c *ava.Context, automation *Automation, skip, cover bool) 
 	}
 
 	var response Response
-	err := internal.Post(c, fmt.Sprintf(prefixUrlCreateAutomation, internal.GetHassUrl(), finalEntityId), internal.GetToken(), automation, &response)
+	err := core.Post(c, fmt.Sprintf(prefixUrlCreateAutomation, core.GetHassUrl(), finalEntityId), core.GetToken(), automation, &response)
 	if err != nil {
 		c.Error(err)
 		return
@@ -117,7 +117,18 @@ func CreateAutomation(c *ava.Context, automation *Automation, skip, cover bool) 
 
 func TurnOnAutomation(c *ava.Context, entityId string) error {
 	var response Response
-	err := internal.Post(c, fmt.Sprintf(prefixUrlTurnOnAutomation, internal.GetHassUrl()), internal.GetToken(), &internal.HttpServiceData{EntityId: entityId}, &response)
+	err := core.Post(c, fmt.Sprintf(prefixUrlTurnOnAutomation, core.GetHassUrl()), core.GetToken(), &core.HttpServiceData{EntityId: entityId}, &response)
+	if err != nil {
+		c.Error(err)
+		return err
+	}
+
+	return nil
+}
+
+func TurnOffAutomation(c *ava.Context, entityId string) error {
+	var response Response
+	err := core.Post(c, fmt.Sprintf(prefixUrlTurnOffAutomation, core.GetHassUrl()), core.GetToken(), &core.HttpServiceData{EntityId: entityId}, &response)
 	if err != nil {
 		c.Error(err)
 		return err

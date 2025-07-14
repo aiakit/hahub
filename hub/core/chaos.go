@@ -1,4 +1,4 @@
-package internal
+package core
 
 import (
 	"fmt"
@@ -17,6 +17,22 @@ import (
 )
 
 var defaultToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIwMTZkZmM2ZDEwMTg0ZTRjYjJkMDBkMDUzMTYwNmFmZSIsImlhdCI6MTc1MTM0ODQyNCwiZXhwIjoyMDY2NzA4NDI0fQ.2W03gIpG2mJaYUPuT0OGST8zFN1paJ40ltFE9WG52Yg"
+
+// 添加初始化完成信号
+var initDone = make(chan struct{})
+
+// 添加初始化状态跟踪
+var (
+	initMutex sync.Mutex
+	initState = struct {
+		areasLoaded    bool
+		devicesLoaded  bool
+		entitiesLoaded bool
+		servicesLoaded bool
+		statesLoaded   bool
+		wsConnected    bool
+	}{}
+)
 
 func GetToken() string {
 	return defaultToken
@@ -83,11 +99,48 @@ func (h *hub) writeJson(data interface{}) {
 
 var channelMessage = make(chan []byte, 1024)
 
+// 添加等待初始化完成的函数
+func WaitForInit() {
+	<-initDone
+}
+
+// 检查初始化是否完成
+func checkInitComplete() {
+	initMutex.Lock()
+	defer initMutex.Unlock()
+
+	// 检查所有必要的数据是否都已加载
+	if initState.areasLoaded && initState.devicesLoaded &&
+		initState.entitiesLoaded && initState.servicesLoaded &&
+		initState.statesLoaded && initState.wsConnected {
+		// 防止重复关闭
+		select {
+		case <-initDone:
+			return
+		default:
+			close(initDone)
+			ava.Debugf("Initialization completed successfully")
+		}
+	}
+}
+
 func init() {
 	newHub()
+
 	go callback()
 	go websocketHaWithInit(defaultToken, getHostAndPath())
-	time.Sleep(time.Second * 3)
+
+	// 设置一个超时机制，防止无限等待
+	go func() {
+		time.Sleep(time.Second * 20) // 20秒超时
+		select {
+		case <-initDone:
+			return // 已经完成
+		default:
+			ava.Warnf("Initialization timeout, proceeding anyway")
+			close(initDone)
+		}
+	}()
 }
 
 // 初始化数据，设备信息-区域信息
@@ -119,6 +172,12 @@ func callback() {
 					}
 					data.Total = len(data.Result)
 					writeToFile("area.json", &data)
+
+					// 标记区域数据已加载
+					initMutex.Lock()
+					initState.areasLoaded = true
+					initMutex.Unlock()
+					checkInitComplete()
 				case getDeviceListId: // 获取设备数据
 					var data deviceList
 					err := Unmarshal(msg, &data)
@@ -142,6 +201,12 @@ func callback() {
 					data.Total = len(filtered)
 					ava.Debugf("total device=%d", len(filtered))
 					writeToFile("device.json", data)
+
+					// 标记设备数据已加载
+					initMutex.Lock()
+					initState.devicesLoaded = true
+					initMutex.Unlock()
+					checkInitComplete()
 				case getEntityListId: // 获取实体数据
 					var data EntityList
 					//var dataTest EntityListTest
@@ -194,6 +259,12 @@ func callback() {
 							gHub.entityAreaMap[e.AreaID] = append(gHub.entityAreaMap[e.AreaID], e)
 						}
 					}
+
+					// 标记实体数据已加载
+					initMutex.Lock()
+					initState.entitiesLoaded = true
+					initMutex.Unlock()
+					checkInitComplete()
 				case getServicesId: // 获取服务数据
 					var data serviceList
 					err := Unmarshal(msg, &data)
@@ -204,6 +275,12 @@ func callback() {
 					data.Total = len(data.Result)
 					ava.Debugf("total services=%d", len(data.Result))
 					writeToFile("services.json", &data)
+
+					// 标记服务数据已加载
+					initMutex.Lock()
+					initState.servicesLoaded = true
+					initMutex.Unlock()
+					checkInitComplete()
 				case getStatesId: // 获取实体详细信息
 					var data stateList
 					err := Unmarshal(msg, &data)
@@ -226,6 +303,12 @@ func callback() {
 					data.Total = len(data.Result)
 					ava.Debugf("total states=%d", len(data.Result))
 					writeToFile("states.json", &data)
+
+					// 标记状态数据已加载
+					initMutex.Lock()
+					initState.statesLoaded = true
+					initMutex.Unlock()
+					checkInitComplete()
 				default:
 					ava.Debugf("no id function |data=%v", BytesToString(msg))
 				}
@@ -340,6 +423,13 @@ func websocketHaWithCallback(token, url string, onConnect func()) {
 		}
 		gHub.conn = nil
 		gHub.conn = conn
+
+		// 标记 WebSocket 连接成功
+		initMutex.Lock()
+		initState.wsConnected = true
+		initMutex.Unlock()
+		checkInitComplete()
+
 		if onConnect != nil {
 			onConnect()
 		}
