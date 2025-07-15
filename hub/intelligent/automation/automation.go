@@ -23,10 +23,10 @@ type Automation struct {
 }
 
 type Triggers struct {
-	Type     string `json:"type"`
-	DeviceID string `json:"device_id"`
+	Type     string `json:"type,omitempty"`
+	DeviceID string `json:"device_id,omitempty"`
 	EntityID string `json:"entity_id"`
-	Domain   string `json:"domain"`
+	Domain   string `json:"domain,omitempty"`
 	Trigger  string `json:"trigger"`
 }
 
@@ -56,6 +56,8 @@ func Chaos() {
 	c := ava.Background()
 	//人体存在传感器
 	walkPresenceSensor(c)
+	//人体传感器
+	walkBodySensor(c)
 
 	//重新缓存一遍数据
 	core.CallService()

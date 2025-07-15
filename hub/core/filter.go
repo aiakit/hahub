@@ -156,10 +156,13 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 		if strings.HasPrefix(id, "plug.") && strings.Contains(name, "插座") && strings.Contains(name, "开关状态") {
 			category = CategorySocket
 		}
-		// 9. 人体传感器
+		// 9. 人体传感器,
 		if (strings.HasPrefix(id, "sensor.") || strings.HasPrefix(id, "event.")) && (strings.Contains(name, "人体传感器") ||
-			(strings.Contains(name, "接近远离") || strings.Contains(name, "感应有人") || strings.Contains(name, "感应无人") ||
+			(strings.Contains(name, "接近远离") || strings.Contains(name, "有人") || strings.Contains(name, "无人") ||
 				strings.Contains(name, "接近") || strings.Contains(name, "远离"))) {
+			if strings.HasPrefix(id, "event.") && !strings.Contains(deviceMap[e.DeviceID].Name, "-") {
+				continue
+			}
 			category = CategoryHumanBodySensor
 		}
 		// 10. 温度/湿度
