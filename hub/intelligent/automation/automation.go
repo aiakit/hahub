@@ -51,13 +51,21 @@ type Response struct {
 	Message string `json:"message"`
 }
 
+var deleteAllAutomationSwitch = true
+
 func Chaos() {
-	//创建自动化
 	c := ava.Background()
-	//人体存在传感器
-	walkPresenceSensor(c)
+
+	//删除所有自动化
+	if deleteAllAutomationSwitch {
+		DeleteAllAutomations(c)
+	}
+
 	//人体传感器
 	walkBodySensor(c)
+
+	//人体存在传感器
+	walkPresenceSensor(c)
 
 	//重新缓存一遍数据
 	core.CallService()
@@ -137,4 +145,22 @@ func TurnOffAutomation(c *ava.Context, entityId string) error {
 	}
 
 	return nil
+}
+
+// 删除所有自动化
+func DeleteAllAutomations(c *ava.Context) {
+	entityMap := core.GetEntityIdMap()
+	for _, entity := range entityMap {
+		if entity == nil {
+			continue
+		}
+		if entity.Category != core.CategoryAutomation {
+			continue
+		}
+		url := fmt.Sprintf(prefixUrlCreateAutomation, core.GetHassUrl(), entity.EntityID)
+		err := core.Del(c, url, core.GetToken(), nil)
+		if err != nil {
+			c.Error(fmt.Errorf("删除自动化 %s 失败: %w", entity.EntityID, err))
+		}
+	}
 }

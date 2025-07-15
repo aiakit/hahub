@@ -36,7 +36,7 @@ func walkPresenceSensor(c *ava.Context) {
 // 人在亮灯,人走灭灯
 // 1.遍历所有和人在传感器区域相同的灯
 // 2.对客厅、卧室区域，判断光照条件,时间条件,是否执行晚安场景
-// 3.晚安模式执行之后，人来灯亮的所有自动化都实效
+// 3.被主动关闭后，人来灯亮的所有自动化都实效，持续到被主动开启,晚安，起床
 func presenceSensorOn(entity *core.Entity) (*Automation, error) {
 	var (
 		areaID        = entity.AreaID

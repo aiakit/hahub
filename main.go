@@ -3,6 +3,8 @@ package main
 import (
 	"hahub/hub/core"
 	"hahub/hub/intelligent/automation"
+
+	"github.com/aiakit/ava"
 )
 
 func main() {
@@ -10,5 +12,6 @@ func main() {
 	core.WaitForInit()
 
 	automation.Chaos()
+	ava.Debugf("Starting Hahub ok!")
 	select {}
 }
