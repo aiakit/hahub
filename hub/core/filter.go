@@ -13,6 +13,7 @@ const (
 	CategorySwitch              = "switch"                // 开关
 	CategoryWiredSwitch         = "switch_wired_switch"   // 有线开关
 	CategoryToggle              = "switch_toggle"         // 切换开关
+	CategorySwitchMode          = "switch_mode"           // 开关模式：判断有线开关和无线开关
 	CategoryLight               = "light"                 // 灯
 	CategoryLightGroup          = "light_group"           // 灯组
 	CategoryCurtain             = "curtain"               // 窗帘
@@ -66,8 +67,6 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 		}
 	}
 
-	var switchWiredModel = make(map[string]*Entity)
-
 	for _, e := range entities {
 		var (
 			name     = e.OriginalName
@@ -98,7 +97,7 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 		}
 
 		// 4. 开关,设备和实体都是开关
-		if strings.Contains(name, "开关") && strings.Contains(e.EntityID, "switch.") {
+		if strings.Contains(e.EntityID, "switch.") {
 			if v := deviceMap[e.DeviceID]; v != nil {
 				if strings.Contains(v.Model, ".switch.") {
 					category = CategorySwitch
@@ -107,7 +106,7 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 		}
 
 		// 4.1 有线开关标记
-		if strings.Contains(e.OriginalName, "开关") && strings.Contains(e.EntityID, "select.") && strings.Contains(e.EntityID, "_mode_") {
+		if strings.Contains(e.EntityID, "select.") && strings.Contains(e.EntityID, "_mode_") {
 			if v := deviceMap[e.DeviceID]; v != nil {
 				if strings.Contains(v.Model, ".switch.") {
 					st, err := GetState(e.EntityID)
@@ -115,7 +114,7 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 						continue
 					}
 					if strings.Contains(st.State, "有线") {
-						switchWiredModel[e.DeviceID] = e
+						category = CategorySwitchMode
 					}
 				}
 			}
@@ -202,10 +201,61 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 
 	}
 
-	for k, e := range filtered {
-		if e.Category == CategorySwitch && switchWiredModel[e.DeviceID] != nil {
-			filtered[k].Category = CategoryWiredSwitch
+	// 先构建 device_id -> []*Entity 的映射，方便查找
+	deviceEntityMap := make(map[string][]*Entity)
+	for _, e := range filtered {
+		if e.Category == CategorySwitch || e.Category == CategorySwitchMode {
+			deviceEntityMap[e.DeviceID] = append(deviceEntityMap[e.DeviceID], e)
 		}
 	}
+
+	// 优化：只遍历 deviceEntityMap，每次只处理同一个 device_id 下的实体
+	for _, entities := range deviceEntityMap {
+		var modeEntities []*Entity
+		var switchEntities []*Entity
+		// 分类
+		for _, e := range entities {
+			if e.Category == CategorySwitchMode {
+				modeEntities = append(modeEntities, e)
+			} else if e.Category == CategorySwitch {
+				switchEntities = append(switchEntities, e)
+			}
+		}
+		// 遍历所有 switch_mode
+		for _, modeEntity := range modeEntities {
+			modeState, err := GetState(modeEntity.EntityID)
+			if err != nil {
+				continue
+			}
+			modeFriendly := modeState.Attributes.FriendlyName
+			modePrefix := getPrefix(modeFriendly)
+			if !strings.Contains(modeState.State, "有线") {
+				continue
+			}
+			// 遍历所有 switch
+			for _, swEntity := range switchEntities {
+				swState, err := GetState(swEntity.EntityID)
+				if err != nil {
+					continue
+				}
+				swFriendly := swState.Attributes.FriendlyName
+				swPrefix := getPrefix(swFriendly)
+				if modePrefix == swPrefix {
+					swEntity.Category = CategoryWiredSwitch
+				}
+			}
+		}
+	}
+
 	return filtered
+}
+
+// getPrefix 用于提取 friendly_name 前缀（去掉最后一个空格及其后内容）
+func getPrefix(name string) string {
+	name = strings.TrimSpace(name)
+	lastSpace := strings.LastIndex(name, " ")
+	if lastSpace == -1 {
+		return name
+	}
+	return name[:lastSpace]
 }

@@ -209,17 +209,17 @@ func callback() {
 					checkInitComplete()
 				case getEntityListId: // 获取实体数据
 					var data EntityList
-					//var dataTest EntityListTest
+					var dataTest EntityListTest
 					err := Unmarshal(msg, &data)
 					if err != nil {
 						ava.Errorf("Unmarshal EntityList error: %v", err)
 						break
 					}
-					//err = Unmarshal(msg, &dataTest)
-					//if err != nil {
-					//	ava.Errorf("Unmarshal EntityList error: %v", err)
-					//	break
-					//}
+					err = Unmarshal(msg, &dataTest)
+					if err != nil {
+						ava.Errorf("Unmarshal EntityList error: %v", err)
+						break
+					}
 					var filtered []*Entity
 					for _, e := range data.Result {
 						if strings.Contains(e.OriginalName, "厂家设置") || strings.Contains(e.OriginalName, "厂商") || strings.Contains(e.OriginalName, "恢复出厂设置") {
@@ -236,7 +236,7 @@ func callback() {
 					data.Total = len(filtered)
 					ava.Debugf("total Entity=%d", len(filtered))
 					writeToFile("entity.json", &data)
-					//writeToFile("entity_test.json", &dataTest)
+					writeToFile("entity_test.json", &dataTest)
 
 					// 写入短实体
 					shortEntities := FilterEntities(filtered, deviceMap)
@@ -291,6 +291,10 @@ func callback() {
 
 					var filter = make([]*State, 0, 1024)
 					for _, v := range data.Result {
+						//if strings.Contains(v.EntityID, "linp_cn_1137815613_qh2db4_mode_p_3_2") {
+						//fmt.Println("---------", MustMarshal2String(v))
+						//os.Exit(1)
+						//}
 						tmp := MustMarshal(v)
 						id := Json.Get(tmp, "entity_id").ToString()
 						if _, ok := entityShortMap[id]; ok {

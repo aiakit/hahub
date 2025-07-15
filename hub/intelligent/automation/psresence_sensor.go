@@ -35,7 +35,8 @@ func walkPresenceSensor(c *ava.Context) {
 // 人体存在传感器
 // 人在亮灯,人走灭灯
 // 1.遍历所有和人在传感器区域相同的灯
-// 2.对客厅、卧室区域，判断光照条件,时间条件
+// 2.对客厅、卧室区域，判断光照条件,时间条件,是否执行晚安场景
+// 3.晚安模式执行之后，人来灯亮的所有自动化都实效
 func presenceSensorOn(entity *core.Entity) (*Automation, error) {
 	var (
 		areaID        = entity.AreaID
@@ -50,7 +51,7 @@ func presenceSensorOn(entity *core.Entity) (*Automation, error) {
 	}
 	for _, e := range entities {
 		// 灯组:EntityID前缀light.
-		if e.Category == core.CategoryLight {
+		if e.Category == core.CategoryLight && !strings.Contains(e.OriginalName, "馨光") {
 			lights = append(lights, e)
 		}
 		// 有线开关: 名字含“开关”和“有线”，EntityID含switch
