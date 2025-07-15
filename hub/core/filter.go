@@ -11,8 +11,8 @@ const (
 	CategoryAirConditioner      = "air_conditioner"       // 空调
 	CategoryVirtualEvent        = "virtual_event"         // 虚拟事件
 	CategorySwitch              = "switch"                // 开关
-	CategoryWiredSwitch         = "switch_wired_switch"   // 有线开关
-	CategoryToggle              = "switch_toggle"         // 切换开关
+	CategoryWiredSwitch         = "wired_switch"          // 有线开关
+	CategoryToggle              = "toggle_switch"         // 切换开关
 	CategorySwitchMode          = "switch_mode"           // 开关模式：判断有线开关和无线开关
 	CategoryLight               = "light"                 // 灯
 	CategoryLightGroup          = "light_group"           // 灯组

@@ -64,19 +64,24 @@ func bodySensorOn(entity *core.Entity) (*Automation, error) {
 
 	var actions []Actions
 	for _, e := range entities {
-		if (e.Category == core.CategoryLight || e.Category == core.CategoryWiredSwitch) && strings.HasPrefix(e.Name, prefix) {
-			act := Actions{
-				Type:     "turn_on",
-				DeviceID: e.DeviceID,
-				EntityID: e.EntityID,
-				Domain:   "light",
-			}
-			if e.Category == core.CategoryLight {
-				act.BrightnessPct = 100
-			} else {
-				act.Domain = "switch"
-			}
+		act := Actions{
+			Type:     "turn_on",
+			DeviceID: e.DeviceID,
+			EntityID: e.EntityID,
+			Domain:   "light",
+		}
+
+		if e.Category == core.CategoryLight && strings.HasPrefix(e.Name, prefix) {
+			act.BrightnessPct = 100
 			actions = append(actions, act)
+			continue
+		}
+
+		if e.Category == core.CategoryWiredSwitch && strings.Contains(e.OriginalName, prefix) {
+			//过滤掉设备名称
+			act.Domain = "switch"
+			actions = append(actions, act)
+			continue
 		}
 	}
 
@@ -137,19 +142,27 @@ func bodySensorOff(entity *core.Entity) (*Automation, error) {
 		prefix = prefix[:idx]
 	}
 
+	//主灯
 	var actions []Actions
 	for _, e := range entities {
-		if (e.Category == core.CategoryLight || e.Category == core.CategoryWiredSwitch) && strings.HasPrefix(e.Name, prefix) {
-			act := Actions{
-				Type:     "turn_off",
-				DeviceID: e.DeviceID,
-				EntityID: e.EntityID,
-				Domain:   "light",
-			}
-			if e.Category == core.CategoryWiredSwitch {
-				act.Domain = "switch"
-			}
+		act := Actions{
+			Type:     "turn_off",
+			DeviceID: e.DeviceID,
+			EntityID: e.EntityID,
+			Domain:   "light",
+		}
+
+		if e.Category == core.CategoryLight && strings.HasPrefix(e.Name, prefix) {
+			act.BrightnessPct = 100
 			actions = append(actions, act)
+			continue
+		}
+
+		if e.Category == core.CategoryWiredSwitch && strings.Contains(e.OriginalName, prefix) {
+			//过滤掉设备名称
+			act.Domain = "switch"
+			actions = append(actions, act)
+			continue
 		}
 	}
 
