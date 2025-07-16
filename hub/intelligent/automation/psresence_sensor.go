@@ -2,6 +2,7 @@ package automation
 
 import (
 	"errors"
+	"fmt"
 	"hahub/hub/core"
 	"strings"
 
@@ -82,7 +83,7 @@ func presenceSensorOn(entity *core.Entity) (*Automation, error) {
 
 	areaName := core.SpiltAreaName(entity.AreaName)
 	auto := &Automation{
-		Alias:       areaName + "人来亮灯",
+		Alias:       areaName + "有人亮灯",
 		Description: "当人体传感器检测到有人，自动打开" + areaName + "灯组和有线开关",
 		Triggers: []Triggers{{
 			Type:     "occupied",
@@ -93,6 +94,16 @@ func presenceSensorOn(entity *core.Entity) (*Automation, error) {
 		}},
 		Actions: actions,
 		Mode:    "single",
+	}
+
+	// 增加光照条件
+	lxConfig := getLxConfig(areaID)
+	if lxConfig != nil {
+		auto.Conditions = append(auto.Conditions, Conditions{
+			Condition: "numeric_state",
+			EntityID:  lxConfig.EntityId,
+			Below:     fmt.Sprintf("%.2f", lxConfig.Lx), // 设置光照阈值
+		})
 	}
 
 	return auto, nil
@@ -143,7 +154,7 @@ func presenceSensorOff(entity *core.Entity) (*Automation, error) {
 	areaName := core.SpiltAreaName(entity.AreaName)
 
 	auto := &Automation{
-		Alias:       areaName + "人走关灯",
+		Alias:       areaName + "无人关灯",
 		Description: "当人体传感器检测到无人，自动关闭" + areaName + "灯组和有线开关",
 		Triggers: []Triggers{{
 			Type:     "not_occupied",

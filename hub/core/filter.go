@@ -4,6 +4,9 @@ import (
 	"strings"
 )
 
+// 区域流明配置
+var LxArea = make(map[string]*Entity)
+
 const (
 	CategoryXiaomiHomeSpeaker   = "xiaomi_home_speaker"   // 小米音箱
 	CategoryXiaomiMiotSpeaker   = "xiaomi_miot_speaker"   // 小米MIOT音箱
@@ -57,6 +60,7 @@ const (
 // 实体过滤函数，按注释规则筛选
 // areaMap: area_id -> area_name
 // deviceMap: device_id -> *device
+
 func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity {
 	var filtered []*Entity
 	// 先处理音箱和apple_tv设备，收集所有相关设备id
@@ -67,6 +71,7 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 		}
 	}
 
+	var entityIdMap = make(map[string]*Entity, 20)
 	for _, e := range entities {
 		var (
 			name     = e.OriginalName
@@ -175,7 +180,14 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 		// 11. 光照
 		if strings.HasPrefix(id, "sensor.") && strings.Contains(name, "光照") {
 			category = CategoryLxSensor
+			if dev, ok := deviceMap[e.DeviceID]; ok && dev != nil {
+				e.AreaID = dev.AreaID
+				e.AreaName = dev.AreaName
+				e.Name = dev.Name
+			}
+			LxArea[e.AreaID] = e
 		}
+
 		// 12. 红外电视
 		if strings.Contains(name, "红外电视") {
 			category = CategoryIrTV
@@ -199,9 +211,9 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 					e.Name = dev.Name // 新增：赋值设备名称
 				}
 			}
+			entityIdMap[e.EntityID] = e
 			filtered = append(filtered, e)
 		}
-
 	}
 
 	// 先构建 device_id -> []*Entity 的映射，方便查找
@@ -237,6 +249,11 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 			}
 			// 遍历所有 switch
 			for _, swEntity := range switchEntities {
+
+				if swEntity.AreaID != entityIdMap[modeEntity.EntityID].AreaID {
+					continue
+				}
+
 				swState, err := GetState(swEntity.EntityID)
 				if err != nil {
 					continue
@@ -245,6 +262,7 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 				swPrefix := getPrefix(swFriendly)
 				if modePrefix == swPrefix {
 					swEntity.Category = CategoryWiredSwitch
+					break
 				}
 			}
 		}

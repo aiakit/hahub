@@ -4,18 +4,21 @@ import (
 	"math"
 	"strings"
 	"time"
+
+	"github.com/aiakit/ava"
 )
 
 //向远程获取方案，将各种方案缓存到本地，本地执行
 
-// 获取区域数据
-const (
-	getAreaInfoId = (math.MaxInt64 - 1000) + iota
-	getDeviceListId
-	getEntityListId
-	getServicesId
-	getStatesId
-)
+var idServiceDefault = math.MaxInt64 - 100000000
+
+func GetServiceIncreaseId() int {
+	gHub.idLock.Lock()
+	idServiceDefault++
+	id := idServiceDefault
+	gHub.idLock.Unlock()
+	return id
+}
 
 type areaInfo struct {
 	AreaId string `json:"area_id"`
@@ -31,13 +34,31 @@ type areaList struct {
 }
 
 func callAreaList() {
-	var to struct {
-		Id   int    `json:"id"`
-		Type string `json:"type"`
+	var to = map[string]interface{}{
+		"type": "config/area_registry/list",
 	}
-	to.Id = getAreaInfoId
-	to.Type = "config/area_registry/list"
-	CallServiceWs(&to)
+
+	sendWsRequest(to, func(msg []byte) {
+		var data areaList
+		err := Unmarshal(msg, &data)
+		if err != nil {
+			ava.Errorf("Unmarshal areaList error: %v", err)
+			return
+		}
+		for _, a := range data.Result {
+			areaMap[a.AreaId] = a.Name
+			gHub.areas = append(gHub.areas, a.AreaId)
+			gHub.areaName[a.AreaId] = a.Name
+		}
+		data.Total = len(data.Result)
+		writeToFile("area.json", &data)
+
+		// 标记区域数据已加载
+		initMutex.Lock()
+		initState.areasLoaded = true
+		initMutex.Unlock()
+		checkInitComplete()
+	})
 }
 
 // 获取区域数据
@@ -72,13 +93,37 @@ type device struct {
 }
 
 func callDeviceList() {
-	var to struct {
-		Id   int    `json:"id"`
-		Type string `json:"type"`
+	var to = map[string]interface{}{
+		"type": "config/device_registry/list",
 	}
-	to.Id = getDeviceListId
-	to.Type = "config/device_registry/list"
-	CallServiceWs(&to)
+
+	sendWsRequest(to, func(msg []byte) {
+		var data deviceList
+		err := Unmarshal(msg, &data)
+		if err != nil {
+			ava.Errorf("Unmarshal deviceList error: %v", err)
+			return
+		}
+		var filtered []*device
+		for _, d := range data.Result {
+			if d.AreaID == "" {
+				continue
+			}
+			if name, ok := areaMap[d.AreaID]; ok {
+				d.AreaName = name
+			}
+			filtered = append(filtered, d)
+			deviceMap[d.ID] = d
+		}
+		data.Result = filtered
+		data.Total = len(filtered)
+		ava.Debugf("total device=%d", len(filtered))
+		writeToFile("device.json", data)
+		initMutex.Lock()
+		initState.devicesLoaded = true
+		initMutex.Unlock()
+		checkInitComplete()
+	})
 }
 
 // 获取全量实体数据
@@ -113,13 +158,67 @@ type Entity struct {
 }
 
 func callEntityList() {
-	var to struct {
-		Id   int    `json:"id"`
-		Type string `json:"type"`
+	var to = map[string]interface{}{
+		"type": "config/entity_registry/list",
 	}
-	to.Id = getEntityListId
-	to.Type = "config/entity_registry/list"
-	CallServiceWs(&to)
+
+	sendWsRequest(to, func(msg []byte) {
+		var data EntityList
+		var dataTest EntityListTest
+		err := Unmarshal(msg, &data)
+		if err != nil {
+			ava.Errorf("Unmarshal EntityList error: %v", err)
+			return
+		}
+		err = Unmarshal(msg, &dataTest)
+		if err != nil {
+			ava.Errorf("Unmarshal EntityListTest error: %v", err)
+			return
+		}
+		var filtered []*Entity
+		for _, e := range data.Result {
+			if strings.Contains(e.OriginalName, "厂家设置") || strings.Contains(e.OriginalName, "厂商") || strings.Contains(e.OriginalName, "恢复出厂设置") {
+				continue
+			}
+			if e.Platform == "hacs" || e.Platform == "hassio" || e.Platform == "sun" || e.Platform == "backup" || e.Platform == "person" ||
+				e.Platform == "shopping_list" || e.Platform == "google_translate" || e.Platform == "met" {
+				continue
+			}
+			filtered = append(filtered, e)
+		}
+		data.Result = filtered
+		data.Total = len(filtered)
+		ava.Debugf("total Entity=%d", len(filtered))
+		writeToFile("entity.json", &data)
+		writeToFile("entity_test.json", &dataTest)
+
+		shortEntities := FilterEntities(filtered, deviceMap)
+		shortData := EntityList{ID: data.ID, Type: data.Type, Success: data.Success, Result: shortEntities}
+		shortData.Total = len(shortEntities)
+		for _, d := range shortEntities {
+			entityShortMap[d.EntityID] = d
+		}
+		writeToFile("entity_short.json", &shortData)
+
+		gHub.lock.Lock()
+		for _, e := range shortEntities {
+			if e.Category != "" {
+				gHub.entityCategoryMap[e.Category] = append(gHub.entityCategoryMap[e.Category], e)
+			}
+			if e.EntityID != "" {
+				gHub.entityIdMap[e.EntityID] = e
+			}
+			if e.AreaID != "" {
+				gHub.entityAreaMap[e.AreaID] = append(gHub.entityAreaMap[e.AreaID], e)
+			}
+		}
+		gHub.lock.Unlock()
+
+		initMutex.Lock()
+		initState.entitiesLoaded = true
+		initMutex.Unlock()
+		checkInitComplete()
+	})
 }
 
 // 获取服务数据
@@ -132,13 +231,25 @@ type serviceList struct {
 }
 
 func callServices() {
-	var to struct {
-		Id   int    `json:"id"`
-		Type string `json:"type"`
+	var to = map[string]interface{}{
+		"type": "get_services",
 	}
-	to.Id = getServicesId
-	to.Type = "get_services"
-	CallServiceWs(&to)
+
+	sendWsRequest(to, func(msg []byte) {
+		var data serviceList
+		err := Unmarshal(msg, &data)
+		if err != nil {
+			ava.Errorf("Unmarshal serviceList error: %v", err)
+			return
+		}
+		data.Total = len(data.Result)
+		ava.Debugf("total services=%d", len(data.Result))
+		writeToFile("services.json", &data)
+		initMutex.Lock()
+		initState.servicesLoaded = true
+		initMutex.Unlock()
+		checkInitComplete()
+	})
 }
 
 // 获取实体详细信息
@@ -170,13 +281,35 @@ type State struct {
 }
 
 func callStates() {
-	var to struct {
-		Id   int    `json:"id"`
-		Type string `json:"type"`
+	var to = map[string]interface{}{
+		"type": "get_states",
 	}
-	to.Id = getStatesId
-	to.Type = "get_states"
-	CallServiceWs(&to)
+
+	sendWsRequest(to, func(msg []byte) {
+		var data stateList
+		err := Unmarshal(msg, &data)
+		if err != nil {
+			ava.Errorf("Unmarshal stateList error: %v", err)
+			return
+		}
+		var filter = make([]*State, 0, 1024)
+		for _, v := range data.Result {
+			tmp := MustMarshal(v)
+			id := Json.Get(tmp, "entity_id").ToString()
+			if _, ok := entityShortMap[id]; ok {
+				filter = append(filter, v)
+				stateMap[id] = v
+			}
+		}
+		data.Result = filter
+		data.Total = len(data.Result)
+		ava.Debugf("total states=%d", len(data.Result))
+		writeToFile("states.json", &data)
+		initMutex.Lock()
+		initState.statesLoaded = true
+		initMutex.Unlock()
+		checkInitComplete()
+	})
 }
 
 func SpiltAreaName(name string) string {

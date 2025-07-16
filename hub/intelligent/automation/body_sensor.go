@@ -2,6 +2,7 @@ package automation
 
 import (
 	"errors"
+	"fmt"
 	"hahub/hub/core"
 	"strings"
 
@@ -11,6 +12,7 @@ import (
 // -符号是人体感应专属
 // 遍历所有人体传感器，生成自动化
 // 名字中带“感应-”的灯也作为感应器
+// 如果相同区域有多个前缀相同的传感器触发器，则要互斥
 func walkBodySensor(c *ava.Context) {
 	// 查询所有实体，找到名字中带有'-'的实体
 	allEntities := core.GetEntityIdMap()
@@ -22,6 +24,7 @@ func walkBodySensor(c *ava.Context) {
 	}
 
 	for _, v := range sensors {
+
 		autoOn, err := bodySensorOn(v)
 		if err != nil {
 			c.Error(err)
@@ -58,7 +61,9 @@ func bodySensorOn(entity *core.Entity) (*Automation, error) {
 
 	// 1. 取entity.Name中'-'前的前缀
 	prefix := entity.Name
+	suffix := ""
 	if idx := strings.Index(prefix, "-"); idx > 0 {
+		suffix = prefix[idx+1:]
 		prefix = prefix[:idx]
 	}
 
@@ -72,6 +77,9 @@ func bodySensorOn(entity *core.Entity) (*Automation, error) {
 		}
 
 		if e.Category == core.CategoryLight && strings.HasPrefix(e.Name, prefix) {
+			if e.EntityID == entity.EntityID {
+				continue
+			}
 			act.BrightnessPct = 100
 			actions = append(actions, act)
 			continue
@@ -109,8 +117,13 @@ func bodySensorOn(entity *core.Entity) (*Automation, error) {
 		sensorPrefixStr = ""
 	}
 
+	suffixStr := suffix
+	if suffixStr != "" {
+		suffixStr = strings.TrimSpace(suffixStr)
+	}
+
 	auto := &Automation{
-		Alias:       areaName + sensorPrefixStr + "人来亮灯",
+		Alias:       areaName + suffixStr + "人来亮灯",
 		Description: "当检测到有人，自动打开" + areaName + "下同名前缀的灯和开关",
 		Triggers: []Triggers{{
 			Type:     triggerType,
@@ -122,6 +135,17 @@ func bodySensorOn(entity *core.Entity) (*Automation, error) {
 		Actions: actions,
 		Mode:    "single",
 	}
+
+	// 增加光照条件
+	lxConfig := getLxConfig(areaID)
+	if lxConfig != nil {
+		auto.Conditions = append(auto.Conditions, Conditions{
+			Condition: "numeric_state",
+			EntityID:  lxConfig.EntityId,
+			Below:     fmt.Sprintf("%.2f", lxConfig.Lx), // 设置光照阈值
+		})
+	}
+
 	return auto, nil
 }
 
@@ -138,7 +162,9 @@ func bodySensorOff(entity *core.Entity) (*Automation, error) {
 	}
 
 	prefix := entity.Name
+	suffix := ""
 	if idx := strings.Index(prefix, "-"); idx > 0 {
+		suffix = prefix[idx+1:]
 		prefix = prefix[:idx]
 	}
 
@@ -153,6 +179,9 @@ func bodySensorOff(entity *core.Entity) (*Automation, error) {
 		}
 
 		if e.Category == core.CategoryLight && strings.HasPrefix(e.Name, prefix) {
+			if e.EntityID == entity.EntityID {
+				continue
+			}
 			act.BrightnessPct = 100
 			actions = append(actions, act)
 			continue
@@ -189,8 +218,13 @@ func bodySensorOff(entity *core.Entity) (*Automation, error) {
 		sensorPrefixStr = ""
 	}
 
+	suffixStr := suffix
+	if suffixStr != "" {
+		suffixStr = strings.TrimSpace(suffixStr)
+	}
+
 	auto := &Automation{
-		Alias:       areaName + sensorPrefixStr + "人走关灯",
+		Alias:       areaName + suffixStr + "人走关灯",
 		Description: "当检测到无人，自动关闭" + areaName + "下同名前缀的灯和开关",
 		Triggers: []Triggers{{
 			Type:     triggerType,

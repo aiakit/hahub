@@ -92,7 +92,7 @@ func ClientInstance() *http.Client {
 				DialContext: (&net.Dialer{
 					Timeout:   30 * time.Second,  // tcp连接超时时间
 					KeepAlive: 600 * time.Second, // 保持长连接的时间
-				}).DialContext,                           // 设置连接的参数
+				}).DialContext, // 设置连接的参数
 				MaxIdleConns:          50,                // 最大空闲连接
 				MaxConnsPerHost:       100,               //每个host建立多少个连接
 				MaxIdleConnsPerHost:   100,               // 每个host保持的空闲连接数

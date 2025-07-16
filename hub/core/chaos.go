@@ -11,8 +11,6 @@ import (
 	"github.com/aiakit/ava"
 	"github.com/gorilla/websocket"
 
-	"strings"
-
 	jsoniter "github.com/json-iterator/go"
 )
 
@@ -57,24 +55,53 @@ type hub struct {
 	lock   *sync.RWMutex
 	idLock *sync.Mutex
 
+	callbackMapFunc map[int]func(data []byte)
+	callbackMapLock *sync.Mutex
+
 	// 实体类型映射和实体ID映射
 	entityCategoryMap map[string][]*Entity // key: 设备类型(Category)，value: []*Entity
 	entityIdMap       map[string]*Entity   // key: 实体ID(EntityID)，value: *Entity
 
 	// 新增：区域ID映射
 	entityAreaMap map[string][]*Entity // key: 区域ID(AreaID)，value: []*Entity
+
+	areas    []string
+	areaName map[string]string
+}
+
+func GetAreaName(areaId string) string {
+	gHub.lock.RLock()
+	data := gHub.areaName[areaId]
+	gHub.lock.RUnlock()
+	return data
+}
+
+func GetEntityAreas() []string {
+	gHub.lock.RLock()
+	data := gHub.areas
+	gHub.lock.RUnlock()
+	return data
 }
 
 func GetEntityAreaMap() map[string][]*Entity {
-	return gHub.entityAreaMap
+	gHub.lock.RLock()
+	data := gHub.entityAreaMap
+	gHub.lock.RUnlock()
+	return data
 }
 
 func GetEntityIdMap() map[string]*Entity {
-	return gHub.entityIdMap
+	gHub.lock.RLock()
+	data := gHub.entityIdMap
+	gHub.lock.RUnlock()
+	return data
 }
 
 func GetEntityCategoryMap() map[string][]*Entity {
-	return gHub.entityCategoryMap
+	gHub.lock.RLock()
+	data := gHub.entityCategoryMap
+	gHub.lock.RUnlock()
+	return data
 }
 
 var gHub *hub
@@ -86,7 +113,20 @@ func newHub() {
 		entityCategoryMap: make(map[string][]*Entity),
 		entityIdMap:       make(map[string]*Entity),
 		entityAreaMap:     make(map[string][]*Entity),
+		areaName:          make(map[string]string),
+		areas:             make([]string, 0, 2),
+		callbackMapFunc:   make(map[int]func(data []byte)),
+		callbackMapLock:   new(sync.Mutex),
 	}
+}
+
+func sendWsRequest(req map[string]interface{}, callback func([]byte)) {
+	id := GetServiceIncreaseId()
+	req["id"] = id
+	gHub.callbackMapLock.Lock()
+	gHub.callbackMapFunc[id] = callback
+	gHub.callbackMapLock.Unlock()
+	gHub.writeJson(req)
 }
 
 func (h *hub) writeJson(data interface{}) {
@@ -145,179 +185,35 @@ func init() {
 
 // 初始化数据，设备信息-区域信息
 // 版本信息，获取版本号，替换缓存数据
+var areaMap = make(map[string]string, 10) // area_id -> name
+var entityShortMap = make(map[string]*Entity, 10)
+var deviceMap = make(map[string]*device, 10)
+var stateMap = make(map[string]*State, 10)
+
 func callback() {
-	var areaMap = make(map[string]string, 10) // area_id -> name
-	var entityShortMap = make(map[string]*Entity, 10)
-	var deviceMap = make(map[string]*device, 10)
-	var stateMap = make(map[string]*State, 10)
 	for msg := range channelMessage {
 		id := jsoniter.Get(msg, "id").ToInt64()
 		tpe := jsoniter.Get(msg, "type").ToString()
 		success := jsoniter.Get(msg, "success").ToBool()
 
-		if tpe == "result" && success == true {
-			func() {
-				gHub.lock.Lock()
-				defer gHub.lock.Unlock()
-				switch id {
-				case getAreaInfoId: // 获取区域数据
-					var data areaList
-					err := Unmarshal(msg, &data)
-					if err != nil {
-						ava.Errorf("Unmarshal areaList error: %v", err)
-						break
-					}
-					for _, a := range data.Result {
-						areaMap[a.AreaId] = a.Name
-					}
-					data.Total = len(data.Result)
-					writeToFile("area.json", &data)
-
-					// 标记区域数据已加载
-					initMutex.Lock()
-					initState.areasLoaded = true
-					initMutex.Unlock()
-					checkInitComplete()
-				case getDeviceListId: // 获取设备数据
-					var data deviceList
-					err := Unmarshal(msg, &data)
-					if err != nil {
-						ava.Errorf("Unmarshal deviceList error: %v", err)
-						break
-					}
-					var filtered []*device
-					for _, d := range data.Result {
-						// area_id 为空则忽略
-						if d.AreaID == "" {
-							continue
-						}
-						if name, ok := areaMap[d.AreaID]; ok {
-							d.AreaName = name
-						}
-						filtered = append(filtered, d)
-						deviceMap[d.ID] = d
-					}
-					data.Result = filtered
-					data.Total = len(filtered)
-					ava.Debugf("total device=%d", len(filtered))
-					writeToFile("device.json", data)
-
-					// 标记设备数据已加载
-					initMutex.Lock()
-					initState.devicesLoaded = true
-					initMutex.Unlock()
-					checkInitComplete()
-				case getEntityListId: // 获取实体数据
-					var data EntityList
-					var dataTest EntityListTest
-					err := Unmarshal(msg, &data)
-					if err != nil {
-						ava.Errorf("Unmarshal EntityList error: %v", err)
-						break
-					}
-					err = Unmarshal(msg, &dataTest)
-					if err != nil {
-						ava.Errorf("Unmarshal EntityList error: %v", err)
-						break
-					}
-					var filtered []*Entity
-					for _, e := range data.Result {
-						if strings.Contains(e.OriginalName, "厂家设置") || strings.Contains(e.OriginalName, "厂商") || strings.Contains(e.OriginalName, "恢复出厂设置") {
-							continue
-						}
-						if e.Platform == "hacs" || e.Platform == "hassio" || e.Platform == "sun" || e.Platform == "backup" || e.Platform == "person" ||
-							e.Platform == "shopping_list" || e.Platform == "google_translate" || e.Platform == "met" {
-							continue
-						}
-
-						filtered = append(filtered, e)
-					}
-					data.Result = filtered
-					data.Total = len(filtered)
-					ava.Debugf("total Entity=%d", len(filtered))
-					writeToFile("entity.json", &data)
-					writeToFile("entity_test.json", &dataTest)
-
-					// 写入短实体
-					shortEntities := FilterEntities(filtered, deviceMap)
-					shortData := EntityList{ID: data.ID, Type: data.Type, Success: data.Success, Result: shortEntities}
-					shortData.Total = len(shortEntities)
-					for _, d := range shortEntities {
-						entityShortMap[d.EntityID] = d
-					}
-					writeToFile("entity_short.json", &shortData)
-
-					// 填充entityCategoryMap、entityIdMap和entityAreaMap
-					for _, e := range shortEntities {
-						if e.Category != "" {
-							gHub.entityCategoryMap[e.Category] = append(gHub.entityCategoryMap[e.Category], e)
-						}
-						if e.EntityID != "" {
-							gHub.entityIdMap[e.EntityID] = e
-						}
-						if e.AreaID != "" {
-							gHub.entityAreaMap[e.AreaID] = append(gHub.entityAreaMap[e.AreaID], e)
-						}
-					}
-
-					// 标记实体数据已加载
-					initMutex.Lock()
-					initState.entitiesLoaded = true
-					initMutex.Unlock()
-					checkInitComplete()
-				case getServicesId: // 获取服务数据
-					var data serviceList
-					err := Unmarshal(msg, &data)
-					if err != nil {
-						ava.Errorf("Unmarshal serviceList error: %v", err)
-						break
-					}
-					data.Total = len(data.Result)
-					ava.Debugf("total services=%d", len(data.Result))
-					writeToFile("services.json", &data)
-
-					// 标记服务数据已加载
-					initMutex.Lock()
-					initState.servicesLoaded = true
-					initMutex.Unlock()
-					checkInitComplete()
-				case getStatesId: // 获取实体详细信息
-					var data stateList
-					err := Unmarshal(msg, &data)
-					if err != nil {
-						ava.Errorf("Unmarshal stateList error: %v", err)
-						break
-					}
-
-					var filter = make([]*State, 0, 1024)
-					for _, v := range data.Result {
-						//if strings.Contains(v.EntityID, "linp_cn_1137815613_qh2db4_mode_p_3_2") {
-						//fmt.Println("---------", MustMarshal2String(v))
-						//os.Exit(1)
-						//}
-						tmp := MustMarshal(v)
-						id := Json.Get(tmp, "entity_id").ToString()
-						if _, ok := entityShortMap[id]; ok {
-							filter = append(filter, v)
-							stateMap[id] = v
-						}
-					}
-					data.Result = nil
-					data.Result = filter
-					data.Total = len(data.Result)
-					ava.Debugf("total states=%d", len(data.Result))
-					writeToFile("states.json", &data)
-
-					// 标记状态数据已加载
-					initMutex.Lock()
-					initState.statesLoaded = true
-					initMutex.Unlock()
-					checkInitComplete()
-				default:
-					ava.Debugf("no id function |data=%v", BytesToString(msg))
-				}
-			}()
+		if tpe == "result" && !success {
+			ava.Errorf("%s", string(msg))
 		}
+
+		if tpe == "result" && success {
+			gHub.callbackMapLock.Lock()
+			cb, ok := gHub.callbackMapFunc[int(id)]
+			if ok {
+				delete(gHub.callbackMapFunc, int(id))
+			}
+			gHub.callbackMapLock.Unlock()
+			if ok {
+				cb(msg)
+				continue
+			}
+			ava.Debugf("No callback registered for id=%d", id)
+		}
+
 		if tpe == "event" {
 			handleData(msg)
 		}
