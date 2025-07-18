@@ -151,7 +151,7 @@ func presenceSensorOnKeting(entity, lumen *core.Entity, lxMin, lxMax float64, du
 		actions = append(actions, &ActionLight{
 			Action: "light.turn_on",
 			Data: &actionLightData{
-				ColorTempKelvin: 3000,
+				ColorTempKelvin: kelvin,
 				BrightnessPct:   100,
 			},
 			Target: &targetLightData{DeviceId: l.DeviceID},
@@ -204,7 +204,7 @@ func presenceSensorOnKeting(entity, lumen *core.Entity, lxMin, lxMax float64, du
 			actions = append(actions, &ActionLight{
 				Action: "light.turn_on",
 				Data: &actionLightData{
-					ColorTempKelvin: 3000,
+					ColorTempKelvin: kelvin,
 					BrightnessPct:   30,
 				},
 				Target: &targetLightData{DeviceId: l.DeviceID},
@@ -214,7 +214,7 @@ func presenceSensorOnKeting(entity, lumen *core.Entity, lxMin, lxMax float64, du
 		actions = append(actions, &ActionLight{
 			Action: "light.turn_on",
 			Data: &actionLightData{
-				ColorTempKelvin: 3000,
+				ColorTempKelvin: kelvin,
 				BrightnessPct:   80,
 			},
 			Target: &targetLightData{DeviceId: l.DeviceID},
