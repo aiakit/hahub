@@ -32,6 +32,9 @@ func Post(c *ava.Context, uri, token string, data, v interface{}) error {
 	}
 
 	c.Debugf("latency=%v秒 |uri=%s |TO=%v |FROM=%v", time.Now().Sub(now).Seconds(), uri, string(body), string(b))
+	if v == nil {
+		return nil
+	}
 
 	return Unmarshal(b, v)
 }

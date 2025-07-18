@@ -76,7 +76,7 @@ func GetAreaName(areaId string) string {
 	return data
 }
 
-func GetEntityAreas() []string {
+func GetAreas() []string {
 	gHub.lock.RLock()
 	data := gHub.areas
 	gHub.lock.RUnlock()
@@ -130,6 +130,8 @@ func sendWsRequest(req map[string]interface{}, callback func([]byte)) {
 }
 
 func (h *hub) writeJson(data interface{}) {
+	h.lock.RLock() // 添加读锁
+	defer h.lock.RUnlock()
 	if h.conn == nil {
 		ava.Errorf("websocket connection is nil, cannot write")
 		return
@@ -197,7 +199,8 @@ func callback() {
 		success := jsoniter.Get(msg, "success").ToBool()
 
 		if tpe == "result" && !success {
-			ava.Errorf("%s", string(msg))
+			ava.Errorf("some error occurred |data=%s", string(msg))
+			continue
 		}
 
 		if tpe == "result" && success {
@@ -215,7 +218,14 @@ func callback() {
 		}
 
 		if tpe == "event" {
-			handleData(msg)
+			//ava.Debugf("--------%s", string(msg))
+			var eventData StateChanged
+			err := Unmarshal(msg, &eventData)
+			if err != nil {
+				ava.Error(err)
+				continue
+			}
+			handleData(&eventData, msg)
 		}
 	}
 }
@@ -229,8 +239,52 @@ func writeToFile(filename string, data interface{}) {
 	_, _ = file.Write(MustMarshal(data))
 }
 
-func handleData(data []byte) {
+func writeBytesToFile(filename string, data []byte) {
+	file, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0777)
+	if err != nil {
+		return
+	}
+	defer file.Close()
+	_, _ = file.Write(data)
+}
 
+// 添加数据处理函数映射表
+var (
+	dataHandlers = make(map[int]func(*StateChanged, []byte)) // key: handler ID, value: data handling function
+	handlerID    = 1                                         // 自增的 handler ID
+)
+
+// 注册数据处理函数
+func RegisterDataHandler(handler func(*StateChanged, []byte)) int {
+	gHub.lock.Lock()
+	defer gHub.lock.Unlock()
+
+	// 分配一个新的 handler ID 并保存到映射表中
+	currentID := handlerID
+	dataHandlers[currentID] = handler
+	handlerID++
+
+	return currentID
+}
+
+// 删除数据处理函数
+func UnregisterDataHandler(id int) {
+	gHub.lock.Lock()
+	defer gHub.lock.Unlock()
+
+	delete(dataHandlers, id)
+}
+
+// 修改 handleData 函数以支持多处理器调用
+func handleData(event *StateChanged, data []byte) {
+	gHub.lock.RLock()
+	defer gHub.lock.RUnlock()
+
+	// 遍历所有注册的处理器并执行
+	for id, handler := range dataHandlers {
+		handler(event, data)
+		UnregisterDataHandler(id)
+	}
 }
 
 func CallService() {
@@ -321,8 +375,11 @@ func websocketHaWithCallback(token, url string, onConnect func()) {
 			ava.Errorf("host=%s |token=%s |stateResult=%v", url, token, stateResult)
 			return nil, fmt.Errorf("State subscription failed")
 		}
+
+		gHub.lock.Lock() // 添加写锁
 		gHub.conn = nil
-		gHub.conn = conn
+		gHub.conn = conn // 受保护赋值
+		gHub.lock.Unlock()
 
 		// 标记 WebSocket 连接成功
 		initMutex.Lock()

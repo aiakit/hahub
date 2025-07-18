@@ -2,32 +2,75 @@ package automation
 
 import (
 	"errors"
+	"fmt"
 	"hahub/hub/core"
 	"strings"
 
 	"github.com/aiakit/ava"
 )
 
-func walkPresenceSensor(c *ava.Context) {
+func walkPresenceSensorKeting(c *ava.Context) {
 	entity, ok := core.GetEntityCategoryMap()[core.CategoryHumanPresenceSensor]
 	if !ok {
 		return
 	}
 
+	entityLx, ok := core.GetEntityCategoryMap()[core.CategoryLxSensor]
+	if !ok {
+		return
+	}
+
+	var l *core.Entity
+	for _, lx := range entityLx {
+		if strings.Contains(lx.AreaName, "客厅") {
+			l = lx
+		}
+	}
+
+	if l == nil {
+		return
+	}
+
 	for _, v := range entity {
-		if strings.Contains(v.AreaName, "客厅") {
+		if !strings.Contains(v.AreaName, "客厅") {
 			continue
 		}
 
-		autoOn, err := presenceSensorOn(v)
-		if err != nil {
-			c.Errorf("entity=%s |err=%v", core.MustMarshal2String(v), err)
-			continue
-		}
+		func() {
+			autoOn, err := presenceSensorOnKeting(v, l, 200, 999, []string{""})
+			if err != nil {
+				c.Errorf("entity=%s |err=%v", core.MustMarshal2String(v), err)
+				return
+			}
+			CreateAutomation(c, autoOn, false, true)
+		}()
 
-		CreateAutomation(c, autoOn, false, true)
+		func() {
+			autoOn, err := presenceSensorOnKeting(v, l, 150, 200, []string{"次灯"})
+			if err != nil {
+				c.Errorf("entity=%s |err=%v", core.MustMarshal2String(v), err)
+				return
+			}
+			CreateAutomation(c, autoOn, false, true)
+		}()
+		func() {
+			autoOn, err := presenceSensorOnKeting(v, l, 80, 150, []string{"次灯", "主灯"})
+			if err != nil {
+				c.Errorf("entity=%s |err=%v", core.MustMarshal2String(v), err)
+				return
+			}
+			CreateAutomation(c, autoOn, false, true)
+		}()
+		func() {
+			autoOn, err := presenceSensorOnKeting(v, l, 0, 80, []string{"所有"})
+			if err != nil {
+				c.Errorf("entity=%s |err=%v", core.MustMarshal2String(v), err)
+				return
+			}
+			CreateAutomation(c, autoOn, false, true)
+		}()
 
-		autoOff, err := presenceSensorOff(v)
+		autoOff, err := presenceSensorOffKeting(v)
 		if err != nil {
 			c.Error(err)
 			continue
@@ -43,7 +86,7 @@ func walkPresenceSensor(c *ava.Context) {
 // 1.遍历所有和人在传感器区域相同的灯
 // 2.对客厅、卧室区域，判断光照条件,时间条件,是否执行晚安场景
 // 3.被主动关闭后，人来灯亮的所有自动化都实效，持续到被主动开启,晚安，起床
-func presenceSensorOn(entity *core.Entity) (*Automation, error) {
+func presenceSensorOnKeting(entity, lumen *core.Entity, lxMin, lxMax float64, during []string) (*Automation, error) {
 	var (
 		areaID             = entity.AreaID
 		atmosphereSwitches []*core.Entity
@@ -52,6 +95,7 @@ func presenceSensorOn(entity *core.Entity) (*Automation, error) {
 		normalLights       []*core.Entity
 	)
 
+	var duringName string
 	// 查找同区域所有实体
 	entities, ok := core.GetEntityAreaMap()[areaID]
 	if !ok {
@@ -63,16 +107,42 @@ func presenceSensorOn(entity *core.Entity) (*Automation, error) {
 			if strings.Contains(e.Name, "氛围") {
 				atmosphereSwitches = append(atmosphereSwitches, e)
 			} else {
-				normalSwitches = append(normalSwitches, e)
+				var exist bool
+				for k, d := range during {
+					if (strings.Contains(e.Name, d) || d == "所有") && !strings.Contains(e.Name, "氛围") {
+						exist = true
+					}
+					if k == len(during)-1 {
+						duringName = d
+					}
+				}
+				if exist {
+					normalSwitches = append(normalSwitches, e)
+				}
 			}
 		}
 		if e.Category == core.CategoryLight {
 			if strings.Contains(e.Name, "氛围") {
 				atmosphereLights = append(atmosphereLights, e)
 			} else {
-				normalLights = append(normalLights, e)
+				var exist bool
+				for k, d := range during {
+					if (strings.Contains(e.Name, d) || d == "所有") && !strings.Contains(e.Name, "氛围") {
+						exist = true
+					}
+					if k == len(during)-1 {
+						duringName = d
+					}
+				}
+				if exist {
+					normalLights = append(normalLights, e)
+				}
 			}
 		}
+	}
+
+	if duringName == "" {
+		duringName = "氛围"
 	}
 
 	var actions []interface{}
@@ -144,8 +214,8 @@ func presenceSensorOn(entity *core.Entity) (*Automation, error) {
 
 	areaName := core.SpiltAreaName(entity.AreaName)
 	auto := &Automation{
-		Alias:       areaName + "有人亮灯",
-		Description: "当人体传感器检测到有人，自动打开" + areaName + "灯组和有线开关",
+		Alias:       areaName + "光感自动化" + duringName,
+		Description: fmt.Sprintf("当光照条件为大于%.2f小于%.2f,且人体传感器检测到有人，自动开灯", lxMin, lxMax),
 		Triggers: []Triggers{{
 			Type:     "occupied",
 			DeviceID: entity.DeviceID,
@@ -157,20 +227,17 @@ func presenceSensorOn(entity *core.Entity) (*Automation, error) {
 		Mode:    "single",
 	}
 
-	// 增加光照条件
-	lxConfig := getLxConfig(areaID)
-	if lxConfig != nil {
-		auto.Conditions = append(auto.Conditions, Conditions{
-			Condition: "numeric_state",
-			EntityID:  lxConfig.EntityId,
-			Below:     lxConfig.Lx, // 设置光照阈值
-		})
-	}
+	auto.Conditions = append(auto.Conditions, Conditions{
+		Condition: "numeric_state",
+		EntityID:  lumen.EntityID,
+		Above:     lxMin,
+		Below:     lxMax,
+	})
 
 	return auto, nil
 }
 
-func presenceSensorOff(entity *core.Entity) (*Automation, error) {
+func presenceSensorOffKeting(entity *core.Entity) (*Automation, error) {
 	var (
 		areaID             = entity.AreaID
 		atmosphereSwitches []*core.Entity
@@ -259,6 +326,11 @@ func presenceSensorOff(entity *core.Entity) (*Automation, error) {
 			EntityID: entity.EntityID,
 			Domain:   "binary_sensor",
 			Trigger:  "device",
+			For: &For{
+				Hours:   0,
+				Minutes: 30,
+				Seconds: 0,
+			},
 		}},
 		Actions: actions,
 		Mode:    "single",

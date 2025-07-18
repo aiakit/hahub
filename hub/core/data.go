@@ -33,6 +33,7 @@ type areaList struct {
 	Result  []*areaInfo `json:"result"`
 }
 
+// todo 小米的ha插件有 bug,当删除房间之后，websocket返回的数据还是有删除的房间，后期检查
 func callAreaList() {
 	var to = map[string]interface{}{
 		"type": "config/area_registry/list",
@@ -45,11 +46,40 @@ func callAreaList() {
 			ava.Errorf("Unmarshal areaList error: %v", err)
 			return
 		}
+		var prefixMap = make(map[string]int)
 		for _, a := range data.Result {
+			s := strings.Split(a.Name, " ")
+			if len(s) == 0 {
+				continue
+			}
+
+			if len(s) > 1 {
+				prefixMap[s[0]]++
+			}
+		}
+
+		var prefix string
+		var flag int
+		for k, v := range prefixMap {
+			if flag > v {
+				prefix = k
+				break
+			}
+			flag = v
+		}
+
+		for _, a := range data.Result {
+			s := strings.Split(a.Name, " ")
+
+			if len(s) == 1 && s[0] != prefix {
+				continue
+			}
+
 			areaMap[a.AreaId] = a.Name
 			gHub.areas = append(gHub.areas, a.AreaId)
 			gHub.areaName[a.AreaId] = a.Name
 		}
+
 		data.Total = len(data.Result)
 		writeToFile("area.json", &data)
 
@@ -305,6 +335,7 @@ func callStates() {
 		data.Total = len(data.Result)
 		ava.Debugf("total states=%d", len(data.Result))
 		writeToFile("states.json", &data)
+		//writeBytesToFile("states_native.json", msg)
 		initMutex.Lock()
 		initState.statesLoaded = true
 		initMutex.Unlock()
@@ -323,4 +354,28 @@ func SpiltAreaName(name string) string {
 
 type HttpServiceData struct {
 	EntityId string `json:"entity_id"`
+}
+type StateChanged struct {
+	Type  string `json:"type"`
+	Event struct {
+		EventType string `json:"event_type"`
+		Data      struct {
+			EntityID string `json:"entity_id"`
+		} `json:"data"`
+		NewState struct {
+			EntityID   string `json:"entity_id"`
+			State      string `json:"state"`
+			Attributes struct {
+				StateClass        string `json:"state_class"`
+				UnitOfMeasurement string `json:"unit_of_measurement"`
+				DeviceClass       string `json:"device_class"`
+				FriendlyName      string `json:"friendly_name"`
+			} `json:"attributes"`
+			LastChanged  time.Time `json:"last_changed"`
+			LastReported time.Time `json:"last_reported"`
+			LastUpdated  time.Time `json:"last_updated"`
+		} `json:"new_state"`
+		TimeFired time.Time `json:"time_fired"`
+	} `json:"event"`
+	ID int `json:"id"`
 }
