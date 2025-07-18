@@ -78,14 +78,20 @@ func presenceSensorOn(entity *core.Entity) (*Automation, error) {
 	var actions []interface{}
 	// 1. 先开氛围灯
 	for _, l := range atmosphereLights {
-		actions = append(actions, &ActionLight{
+		act := &ActionLight{
 			Action: "light.turn_on",
 			Data: &actionLightData{
 				ColorTempKelvin: 3000,
 				BrightnessPct:   100,
 			},
 			Target: &targetLightData{DeviceId: l.DeviceID},
-		})
+		}
+
+		if strings.Contains(l.Name, "彩") {
+			act.Data = &actionLightData{}
+		}
+
+		actions = append(actions, act)
 	}
 	// 2. 先开氛围开关
 	for _, s := range atmosphereSwitches {
@@ -107,8 +113,32 @@ func presenceSensorOn(entity *core.Entity) (*Automation, error) {
 	}
 	// 4. 再开非氛围灯
 	for _, l := range normalLights {
+		//馨光灯带只打开不调整
+
+		if strings.Contains(l.Name, "馨光") && !strings.Contains(l.Name, "主机") {
+			//改为静态模式
+			actions = append(actions, &ActionLight{
+				DeviceID: l.DeviceID,
+				Domain:   "select",
+				EntityID: core.GetXinGuang(l.DeviceID),
+				Type:     "select_option",
+				Option:   "静态模式",
+			})
+
+			//修改颜色
+			actions = append(actions, &ActionLight{
+				Action: "light.turn_on",
+				Data: &actionLightData{
+					BrightnessPct: 80,
+					RgbColor:      GetRgbColor(3000),
+				},
+				Target: &targetLightData{DeviceId: l.DeviceID},
+			})
+			continue
+		}
+
 		// 护眼灯特殊逻辑
-		if strings.Contains(l.Name, "护眼") {
+		if strings.Contains(l.Name, "护眼") || strings.Contains(l.Name, "夜灯") {
 			actions = append(actions, &ActionLight{
 				Action: "light.turn_on",
 				Data: &actionLightData{
@@ -264,5 +294,24 @@ func presenceSensorOff(entity *core.Entity) (*Automation, error) {
 		Mode:    "single",
 	}
 
+	if strings.Contains(entity.AreaName, "卧室") {
+	}
+
 	return auto, nil
+}
+
+// 根据色温选颜色
+func GetRgbColor(kelvin int) []int {
+	if 2000 < kelvin && kelvin < 3500 {
+		return []int{255, 195, 17}
+	}
+	if 3500 <= kelvin && kelvin < 4800 {
+		return []int{0, 255, 55}
+	}
+
+	if 4800 <= kelvin {
+		return []int{20, 255, 47}
+	}
+
+	return []int{255, 195, 17}
 }

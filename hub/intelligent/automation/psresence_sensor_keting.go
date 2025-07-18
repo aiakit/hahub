@@ -37,7 +37,7 @@ func walkPresenceSensorKeting(c *ava.Context) {
 		}
 
 		func() {
-			autoOn, err := presenceSensorOnKeting(v, l, 200, 999, []string{""})
+			autoOn, err := presenceSensorOnKeting(v, l, 200, 999, []string{""}, 3000)
 			if err != nil {
 				c.Errorf("entity=%s |err=%v", core.MustMarshal2String(v), err)
 				return
@@ -46,7 +46,7 @@ func walkPresenceSensorKeting(c *ava.Context) {
 		}()
 
 		func() {
-			autoOn, err := presenceSensorOnKeting(v, l, 150, 200, []string{"次灯"})
+			autoOn, err := presenceSensorOnKeting(v, l, 150, 200, []string{"次灯"}, 4000)
 			if err != nil {
 				c.Errorf("entity=%s |err=%v", core.MustMarshal2String(v), err)
 				return
@@ -54,7 +54,7 @@ func walkPresenceSensorKeting(c *ava.Context) {
 			CreateAutomation(c, autoOn, false, true)
 		}()
 		func() {
-			autoOn, err := presenceSensorOnKeting(v, l, 80, 150, []string{"次灯", "主灯"})
+			autoOn, err := presenceSensorOnKeting(v, l, 80, 150, []string{"次灯", "主灯"}, 4500)
 			if err != nil {
 				c.Errorf("entity=%s |err=%v", core.MustMarshal2String(v), err)
 				return
@@ -62,7 +62,7 @@ func walkPresenceSensorKeting(c *ava.Context) {
 			CreateAutomation(c, autoOn, false, true)
 		}()
 		func() {
-			autoOn, err := presenceSensorOnKeting(v, l, 0, 80, []string{"所有"})
+			autoOn, err := presenceSensorOnKeting(v, l, 0, 80, []string{"所有"}, 5000)
 			if err != nil {
 				c.Errorf("entity=%s |err=%v", core.MustMarshal2String(v), err)
 				return
@@ -86,7 +86,7 @@ func walkPresenceSensorKeting(c *ava.Context) {
 // 1.遍历所有和人在传感器区域相同的灯
 // 2.对客厅、卧室区域，判断光照条件,时间条件,是否执行晚安场景
 // 3.被主动关闭后，人来灯亮的所有自动化都实效，持续到被主动开启,晚安，起床
-func presenceSensorOnKeting(entity, lumen *core.Entity, lxMin, lxMax float64, during []string) (*Automation, error) {
+func presenceSensorOnKeting(entity, lumen *core.Entity, lxMin, lxMax float64, during []string, kelvin int) (*Automation, error) {
 	var (
 		areaID             = entity.AreaID
 		atmosphereSwitches []*core.Entity
@@ -177,8 +177,30 @@ func presenceSensorOnKeting(entity, lumen *core.Entity, lxMin, lxMax float64, du
 	}
 	// 4. 再开非氛围灯
 	for _, l := range normalLights {
+		if strings.Contains(l.Name, "馨光") && !strings.Contains(l.Name, "主机") {
+			//改为静态模式
+			actions = append(actions, &ActionLight{
+				DeviceID: l.DeviceID,
+				Domain:   "select",
+				EntityID: core.GetXinGuang(l.DeviceID),
+				Type:     "select_option",
+				Option:   "静态模式",
+			})
+
+			//修改颜色
+			actions = append(actions, &ActionLight{
+				Action: "light.turn_on",
+				Data: &actionLightData{
+					BrightnessPct: 80,
+					RgbColor:      GetRgbColor(kelvin),
+				},
+				Target: &targetLightData{DeviceId: l.DeviceID},
+			})
+			continue
+		}
+
 		// 护眼灯特殊逻辑
-		if strings.Contains(l.Name, "护眼") {
+		if strings.Contains(l.Name, "护眼") || strings.Contains(l.Name, "夜灯") {
 			actions = append(actions, &ActionLight{
 				Action: "light.turn_on",
 				Data: &actionLightData{
@@ -328,7 +350,7 @@ func presenceSensorOffKeting(entity *core.Entity) (*Automation, error) {
 			Trigger:  "device",
 			For: &For{
 				Hours:   0,
-				Minutes: 30,
+				Minutes: 5,
 				Seconds: 0,
 			},
 		}},

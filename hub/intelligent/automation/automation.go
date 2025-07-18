@@ -200,11 +200,13 @@ type ActionLight struct {
 	BrightnessPct float64          `json:"brightness_pct,omitempty"`
 	Data          *actionLightData `json:"data,omitempty"`
 	Target        *targetLightData `json:"target,omitempty"`
+	Option        string           `json:"option,omitempty"`
 }
 
 type actionLightData struct {
 	ColorTempKelvin int     `json:"color_temp_kelvin,omitempty"`
 	BrightnessPct   float64 `json:"brightness_pct,omitempty"`
+	RgbColor        []int   `json:"rgb_color,omitempty"`
 }
 
 type targetLightData struct {

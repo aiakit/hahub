@@ -67,6 +67,15 @@ type hub struct {
 
 	areas    []string
 	areaName map[string]string
+
+	xinguang map[string]string //key:deviceId,value:id
+}
+
+func GetXinGuang(deviceId string) string {
+	gHub.lock.RLock()
+	data := gHub.xinguang[deviceId]
+	gHub.lock.RUnlock()
+	return data
 }
 
 func GetAreaName(areaId string) string {
@@ -115,6 +124,7 @@ func newHub() {
 		entityAreaMap:     make(map[string][]*Entity),
 		areaName:          make(map[string]string),
 		areas:             make([]string, 0, 2),
+		xinguang:          make(map[string]string),
 		callbackMapFunc:   make(map[int]func(data []byte)),
 		callbackMapLock:   new(sync.Mutex),
 	}

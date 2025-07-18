@@ -201,6 +201,15 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 			category = CategoryScene
 		}
 
+		//15.馨光设备id，找到设置灯光模式的id,而不是entityid
+		if strings.Contains(name, "LED运行模式") {
+			if dev, ok := deviceMap[e.DeviceID]; ok && dev != nil {
+				if strings.Contains(dev.Name, "馨光") {
+					gHub.xinguang[e.DeviceID] = e.ID
+				}
+			}
+		}
+
 		if category != "" {
 			// 赋值区域信息
 			e.Category = category

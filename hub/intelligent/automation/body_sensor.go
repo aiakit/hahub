@@ -65,6 +65,7 @@ func bodySensorOn(entity *core.Entity) (*Automation, error) {
 		normalLights       []*core.Entity
 	)
 
+	//优化逻辑：除了卧室只开夜灯，其他区域打开所有灯
 	for _, e := range entities {
 		if e.Category == core.CategoryWiredSwitch && strings.Contains(e.OriginalName, prefix) {
 			if strings.Contains(e.Name, "氛围") {
@@ -85,14 +86,20 @@ func bodySensorOn(entity *core.Entity) (*Automation, error) {
 	// 开灯逻辑
 	// 1. 先开氛围灯
 	for _, e := range atmosphereLights {
-		actions = append(actions, &ActionLight{
+		act := &ActionLight{
 			Action: "light.turn_on",
 			Data: &actionLightData{
 				ColorTempKelvin: 3000,
 				BrightnessPct:   100,
 			},
 			Target: &targetLightData{DeviceId: e.DeviceID},
-		})
+		}
+
+		if strings.Contains(e.Name, "彩") {
+			act.Data = &actionLightData{}
+		}
+
+		actions = append(actions, act)
 	}
 	// 2. 先开氛围开关
 	for _, e := range atmosphereSwitches {
