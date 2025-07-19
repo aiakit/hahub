@@ -29,6 +29,9 @@ const (
 	CategoryIrTV                = "ir_tv"                 // 红外电视
 	CategoryAutomation          = "automation"            // 自动化
 	CategoryScene               = "scene"                 // 场景
+	CategoryGas                 = "gas"                   // 天然气
+	CategoryWater               = "water"                 // 水侵
+	CategoryFire                = "fire"                  // 火灾
 )
 
 //过滤实体,并在实体中增加字段标注设备类型，设备数据中也加上，在实体数据中加上设备id,区域id，区域名称
@@ -66,8 +69,12 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 	// 先处理音箱和apple_tv设备，收集所有相关设备id
 	speakerDeviceIDs := make(map[string]*device) // device_id -> category
 	for _, dev := range deviceMap {
-		if strings.Contains(dev.Name, "音箱") {
+		if strings.Contains(dev.Model, ".wifispeaker.") {
 			speakerDeviceIDs[dev.ID] = dev
+			//跟dev有关，xiaomi iot三方插件没有写入名字
+			if dev.AreaName != "" {
+				gHub.speakersXiaomiHome = append(gHub.speakersXiaomiHome, dev.ID)
+			}
 		}
 	}
 
@@ -208,6 +215,21 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 					gHub.xinguang[e.DeviceID] = e.ID
 				}
 			}
+		}
+
+		//16.天然气报警
+		if strings.Contains(name, "天然气浓度") {
+			category = CategoryGas
+		}
+
+		//17.烟雾
+		if strings.Contains(name, "检测到高浓度烟雾") {
+			category = CategoryFire
+		}
+
+		//18.水
+		if strings.Contains(name, "检测到") && strings.Contains(name, "水") {
+			category = CategoryWater
 		}
 
 		if category != "" {

@@ -253,11 +253,11 @@ func callEntityList() {
 
 // 获取服务数据
 type serviceList struct {
-	ID      int64          `json:"id"`
-	Type    string         `json:"type"`
-	Success bool           `json:"success"`
-	Total   int            `json:"total"`
-	Result  map[string]any `json:"result"`
+	ID      int64                  `json:"id"`
+	Type    string                 `json:"type"`
+	Success bool                   `json:"success"`
+	Total   int                    `json:"total"`
+	Result  map[string]interface{} `json:"result"`
 }
 
 func callServices() {
@@ -275,6 +275,20 @@ func callServices() {
 		data.Total = len(data.Result)
 		ava.Debugf("total services=%d", len(data.Result))
 		writeToFile("services.json", &data)
+
+		for k, v := range data.Result {
+			if k == "notify" {
+				v1, ok := v.(map[string]interface{})
+				if ok {
+					for key, _ := range v1 {
+						if strings.HasPrefix(key, "mobile_") {
+							gHub.notifyPhone = append(gHub.notifyPhone, key)
+						}
+					}
+				}
+
+			}
+		}
 		initMutex.Lock()
 		initState.servicesLoaded = true
 		initMutex.Unlock()

@@ -220,7 +220,15 @@ type ActionSwitch struct {
 	Domain   string `json:"domain,omitempty"`
 }
 
-type ActionWaitForTrigger struct {
+type ActionNotify struct {
+	Action string `json:"action,omitempty"`
+	Data   struct {
+		Message string `json:"message,omitempty"`
+		Title   string `json:"title,omitempty"`
+	} `json:"data,omitempty"`
+	Target struct {
+		DeviceID string `json:"device_id,omitempty"`
+	} `json:"target,omitempty"`
 }
 
 type ActionTimerDelay struct {
@@ -257,6 +265,9 @@ func Chaos() {
 	walkPresenceSensor(c)
 	walkPresenceSensorKeting(c)
 
+	//警报
+	attention(c)
+
 	//重新缓存一遍数据
 	core.CallService()
 
@@ -266,9 +277,9 @@ func Chaos() {
 
 // 发起自动化创建
 // 在所有homeassistant自动化名称中，不能出现名称一样的自动化
-// var skipExistAutomation = false //是否跳过相同名称自动化
-// var coverExistAutomation = true //是否覆盖名称相关自动化
-func CreateAutomation(c *ava.Context, automation *Automation, skip, cover bool) {
+var skipExistAutomation = false //是否跳过相同名称自动化
+var coverExistAutomation = true //是否覆盖名称相关自动化
+func CreateAutomation(c *ava.Context, automation *Automation) {
 	// 自动化名称和实体ID检测，确保唯一
 	alias := automation.Alias
 	entityMap := core.GetEntityIdMap()
@@ -283,13 +294,13 @@ func CreateAutomation(c *ava.Context, automation *Automation, skip, cover bool) 
 			continue
 		}
 
-		if entity.OriginalName == alias && skip { //名称相同则不创建
+		if entity.OriginalName == alias && skipExistAutomation { //名称相同则不创建
 			return
 		}
 
 		// 名称冲突
 		if entity.OriginalName == alias || entity.EntityID == baseEntityId {
-			if cover { //直接覆盖
+			if coverExistAutomation { //直接覆盖
 				continue
 			}
 			conflictCount++ //重新建一个

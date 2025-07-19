@@ -25,7 +25,7 @@ func walkPresenceSensor(c *ava.Context) {
 			continue
 		}
 
-		CreateAutomation(c, autoOn, false, true)
+		CreateAutomation(c, autoOn)
 
 		autoOff, err := presenceSensorOff(v)
 		if err != nil {
@@ -33,7 +33,7 @@ func walkPresenceSensor(c *ava.Context) {
 			continue
 		}
 		if autoOff != nil {
-			CreateAutomation(c, autoOff, false, true)
+			CreateAutomation(c, autoOff)
 		}
 	}
 }
@@ -113,8 +113,11 @@ func presenceSensorOn(entity *core.Entity) (*Automation, error) {
 	}
 	// 4. 再开非氛围灯
 	for _, l := range normalLights {
-		//馨光灯带只打开不调整
+		if strings.Contains(l.Name, "馨光") && strings.Contains(l.Name, "主机") {
+			continue
+		}
 
+		//馨光灯带只打开不调整
 		if strings.Contains(l.Name, "馨光") && !strings.Contains(l.Name, "主机") {
 			//改为静态模式
 			actions = append(actions, &ActionLight{

@@ -42,7 +42,7 @@ func walkPresenceSensorKeting(c *ava.Context) {
 				c.Errorf("entity=%s |err=%v", core.MustMarshal2String(v), err)
 				return
 			}
-			CreateAutomation(c, autoOn, false, true)
+			CreateAutomation(c, autoOn)
 		}()
 
 		func() {
@@ -51,7 +51,7 @@ func walkPresenceSensorKeting(c *ava.Context) {
 				c.Errorf("entity=%s |err=%v", core.MustMarshal2String(v), err)
 				return
 			}
-			CreateAutomation(c, autoOn, false, true)
+			CreateAutomation(c, autoOn)
 		}()
 		func() {
 			autoOn, err := presenceSensorOnKeting(v, l, 80, 150, []string{"次灯", "主灯"}, 4500)
@@ -59,7 +59,7 @@ func walkPresenceSensorKeting(c *ava.Context) {
 				c.Errorf("entity=%s |err=%v", core.MustMarshal2String(v), err)
 				return
 			}
-			CreateAutomation(c, autoOn, false, true)
+			CreateAutomation(c, autoOn)
 		}()
 		func() {
 			autoOn, err := presenceSensorOnKeting(v, l, 0, 80, []string{"所有"}, 5000)
@@ -67,7 +67,7 @@ func walkPresenceSensorKeting(c *ava.Context) {
 				c.Errorf("entity=%s |err=%v", core.MustMarshal2String(v), err)
 				return
 			}
-			CreateAutomation(c, autoOn, false, true)
+			CreateAutomation(c, autoOn)
 		}()
 
 		autoOff, err := presenceSensorOffKeting(v)
@@ -76,7 +76,7 @@ func walkPresenceSensorKeting(c *ava.Context) {
 			continue
 		}
 		if autoOff != nil {
-			CreateAutomation(c, autoOff, false, true)
+			CreateAutomation(c, autoOff)
 		}
 	}
 }
@@ -177,6 +177,12 @@ func presenceSensorOnKeting(entity, lumen *core.Entity, lxMin, lxMax float64, du
 	}
 	// 4. 再开非氛围灯
 	for _, l := range normalLights {
+
+		//不打开主机
+		if strings.Contains(l.Name, "馨光") && strings.Contains(l.Name, "主机") {
+			continue
+		}
+
 		if strings.Contains(l.Name, "馨光") && !strings.Contains(l.Name, "主机") {
 			//改为静态模式
 			actions = append(actions, &ActionLight{
