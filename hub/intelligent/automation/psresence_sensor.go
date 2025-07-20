@@ -200,6 +200,15 @@ func presenceSensorOn(entity *core.Entity) (*Automation, error) {
 		})
 	}
 
+	//时间条件
+	if strings.Contains(entity.AreaName, "卧室") {
+		auto.Conditions = append(auto.Conditions, Conditions{
+			After:   "23:00:00",
+			Before:  "07:00:00",
+			Weekday: []string{"mon", "tue", "wed", "thu", "fri", "sat", "sun"},
+		})
+	}
+
 	return auto, nil
 }
 

@@ -92,7 +92,6 @@ func registerLightGradientTime(entity *core.Entity) {
 		}
 	}
 
-	//4540997
 	if strings.Contains(entity.OriginalName, "默认状态 渐变时间设置，字节[0]开灯渐变时间，字节[1]关灯渐变时间，字节[2]模式渐变时间") {
 		lightGradientTime.Entities[entity.EntityID] = map[string]interface{}{
 			"step":          step,

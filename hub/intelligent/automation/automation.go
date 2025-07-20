@@ -175,14 +175,17 @@ type Triggers struct {
 }
 
 type Conditions struct {
-	Condition string  `json:"condition"`
-	Type      string  `json:"type,omitempty"`
-	DeviceID  string  `json:"device_id,omitempty"`
-	EntityID  string  `json:"entity_id,omitempty"`
-	Domain    string  `json:"domain,omitempty"`
-	Above     float64 `json:"above,omitempty"` //大于
-	Below     float64 `json:"below,omitempty"` //小于
-	For       *For    `json:"for,omitempty"`
+	Condition string   `json:"condition"`
+	Type      string   `json:"type,omitempty"`
+	DeviceID  string   `json:"device_id,omitempty"`
+	EntityID  string   `json:"entity_id,omitempty"`
+	Domain    string   `json:"domain,omitempty"`
+	Above     float64  `json:"above,omitempty"` //大于
+	Below     float64  `json:"below,omitempty"` //小于
+	For       *For     `json:"for,omitempty"`
+	After     string   `json:"after,omitempty"`
+	Before    string   `json:"before,omitempty"`
+	Weekday   []string `json:"weekday,omitempty"`
 }
 
 type For struct {
