@@ -8,30 +8,32 @@ import (
 var LxArea = make(map[string]*Entity)
 
 const (
-	CategoryXiaomiHomeSpeaker   = "xiaomi_home_speaker"   // 小米音箱
-	CategoryXiaomiMiotSpeaker   = "xiaomi_miot_speaker"   // 小米MIOT音箱
-	CategoryAppleTV             = "apple_tv"              // Apple TV
-	CategoryAirConditioner      = "air_conditioner"       // 空调
-	CategoryVirtualEvent        = "virtual_event"         // 虚拟事件
-	CategorySwitch              = "switch"                // 开关
-	CategoryWiredSwitch         = "wired_switch"          // 有线开关
-	CategoryToggle              = "toggle_switch"         // 切换开关
-	CategorySwitchMode          = "switch_mode"           // 开关模式：判断有线开关和无线开关
-	CategoryLight               = "light"                 // 灯
-	CategoryLightGroup          = "light_group"           // 灯组
-	CategoryCurtain             = "curtain"               // 窗帘
-	CategoryHumanPresenceSensor = "human_presence_sensor" // 存在传感器
-	CategorySocket              = "socket"                // 插座
-	CategoryHumanBodySensor     = "human_body_sensor"     // 人体传感器
-	CategoryTemperatureSensor   = "temperature_sensor"    // 温度传感器
-	CategoryHumiditySensor      = "humidity_sensor"       // 湿度传感器
-	CategoryLxSensor            = "lx_sensor"             // 光照传感器
-	CategoryIrTV                = "ir_tv"                 // 红外电视
-	CategoryAutomation          = "automation"            // 自动化
-	CategoryScene               = "scene"                 // 场景
-	CategoryGas                 = "gas"                   // 天然气
-	CategoryWater               = "water"                 // 水侵
-	CategoryFire                = "fire"                  // 火灾
+	CategoryXiaomiHomeSpeaker   = "xiaomi_home_speaker"     // 小米音箱
+	CategoryXiaomiMiotSpeaker   = "xiaomi_miot_speaker"     // 小米MIOT音箱
+	CategoryAppleTV             = "apple_tv"                // Apple TV
+	CategoryAirConditioner      = "air_conditioner"         // 空调
+	CategoryVirtualEvent        = "virtual_event"           // 虚拟事件
+	CategorySwitch              = "switch"                  // 开关
+	CategoryWiredSwitch         = "wired_switch"            // 有线开关
+	CategoryToggle              = "toggle_switch"           // 切换开关
+	CategorySwitchMode          = "switch_mode"             // 开关模式：判断有线开关和无线开关
+	CategoryLight               = "light"                   // 灯
+	CategoryLightGroup          = "light_group"             // 灯组
+	CategoryCurtain             = "curtain"                 // 窗帘
+	CategoryHumanPresenceSensor = "human_presence_sensor"   // 存在传感器
+	CategorySocket              = "socket"                  // 插座
+	CategoryHumanBodySensor     = "human_body_sensor"       // 人体传感器
+	CategoryTemperatureSensor   = "temperature_sensor"      // 温度传感器
+	CategoryHumiditySensor      = "humidity_sensor"         // 湿度传感器
+	CategoryLxSensor            = "lx_sensor"               // 光照传感器
+	CategoryIrTV                = "ir_tv"                   // 红外电视
+	CategoryAutomation          = "automation"              // 自动化
+	CategoryScene               = "scene"                   // 场景
+	CategoryGas                 = "gas"                     // 天然气
+	CategoryWater               = "water"                   // 水侵
+	CategoryFire                = "fire"                    // 火灾
+	CategoryLightLowest         = "light_lowest_brightness" //灯-最低亮度设置实体
+
 )
 
 //过滤实体,并在实体中增加字段标注设备类型，设备数据中也加上，在实体数据中加上设备id,区域id，区域名称
@@ -230,6 +232,11 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 		//18.水
 		if strings.Contains(name, "检测到") && strings.Contains(name, "水") {
 			category = CategoryWater
+		}
+
+		//19.灯-最低亮度
+		if strings.Contains(name, "最低亮度") && strings.HasPrefix(id, "number.") {
+			category = CategoryLightLowest
 		}
 
 		if category != "" {

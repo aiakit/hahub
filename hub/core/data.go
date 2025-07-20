@@ -187,6 +187,18 @@ type Entity struct {
 	Name     string `json:"name"`      //设备名称（从设备数据获取）
 }
 
+var callbackEntityMap = make([]func(e *Entity), 0)
+
+func RegisterEntityCallback(callback func(e *Entity)) {
+	callbackEntityMap = append(callbackEntityMap, callback)
+}
+
+func callbackEntity(entity *Entity) {
+	for _, callback := range callbackEntityMap {
+		callback(entity)
+	}
+}
+
 func callEntityList() {
 	var to = map[string]interface{}{
 		"type": "config/entity_registry/list",
@@ -207,6 +219,8 @@ func callEntityList() {
 		}
 		var filtered []*Entity
 		for _, e := range data.Result {
+			callbackEntity(e)
+
 			if strings.Contains(e.OriginalName, "厂家设置") || strings.Contains(e.OriginalName, "厂商") || strings.Contains(e.OriginalName, "恢复出厂设置") {
 				continue
 			}
