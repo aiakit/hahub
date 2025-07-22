@@ -54,7 +54,7 @@ func walkPresenceSensorKeting(c *ava.Context) {
 			CreateAutomation(c, autoOn)
 		}()
 		func() {
-			autoOn, err := presenceSensorOnKeting(v, l, 80, 150, []string{"次灯", "主灯"}, 4500)
+			autoOn, err := presenceSensorOnKeting(v, l, 80, 150, []string{"次灯", "主灯"}, 4700)
 			if err != nil {
 				c.Errorf("entity=%s |err=%v", core.MustMarshal2String(v), err)
 				return
@@ -62,7 +62,7 @@ func walkPresenceSensorKeting(c *ava.Context) {
 			CreateAutomation(c, autoOn)
 		}()
 		func() {
-			autoOn, err := presenceSensorOnKeting(v, l, 0, 80, []string{"所有"}, 5000)
+			autoOn, err := presenceSensorOnKeting(v, l, 0, 80, []string{"所有"}, 6000)
 			if err != nil {
 				c.Errorf("entity=%s |err=%v", core.MustMarshal2String(v), err)
 				return
@@ -202,7 +202,7 @@ func presenceSensorOnKeting(entity, lumen *core.Entity, lxMin, lxMax float64, du
 			parallel2["parallel"] = append(parallel2["parallel"], &ActionLight{
 				Action: "light.turn_on",
 				Data: &actionLightData{
-					BrightnessPct: 80,
+					BrightnessPct: 100,
 					RgbColor:      GetRgbColor(kelvin),
 				},
 				Target: &targetLightData{DeviceId: l.DeviceID},
@@ -226,7 +226,7 @@ func presenceSensorOnKeting(entity, lumen *core.Entity, lxMin, lxMax float64, du
 			Action: "light.turn_on",
 			Data: &actionLightData{
 				ColorTempKelvin: kelvin,
-				BrightnessPct:   80,
+				BrightnessPct:   100,
 			},
 			Target: &targetLightData{DeviceId: l.DeviceID},
 		})
@@ -372,7 +372,7 @@ func presenceSensorOffKeting(entity *core.Entity) (*Automation, error) {
 			Trigger:  "device",
 			For: &For{
 				Hours:   0,
-				Minutes: 20,
+				Minutes: 5,
 				Seconds: 0,
 			},
 		}},

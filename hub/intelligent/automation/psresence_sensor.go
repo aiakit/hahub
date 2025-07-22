@@ -50,6 +50,8 @@ func presenceSensorOn(entity *core.Entity) (*Automation, error) {
 		normalSwitches     []*core.Entity
 		atmosphereLights   []*core.Entity
 		normalLights       []*core.Entity
+		ColorTempKelvin            = 3000
+		BrightnessPct      float64 = 100
 	)
 
 	// 查找同区域所有实体
@@ -82,8 +84,8 @@ func presenceSensorOn(entity *core.Entity) (*Automation, error) {
 		act := &ActionLight{
 			Action: "light.turn_on",
 			Data: &actionLightData{
-				ColorTempKelvin: 3000,
-				BrightnessPct:   100,
+				ColorTempKelvin: ColorTempKelvin,
+				BrightnessPct:   BrightnessPct,
 			},
 			Target: &targetLightData{DeviceId: l.DeviceID},
 		}
@@ -136,7 +138,7 @@ func presenceSensorOn(entity *core.Entity) (*Automation, error) {
 			parallel2["parallel"] = append(parallel2["parallel"], &ActionLight{
 				Action: "light.turn_on",
 				Data: &actionLightData{
-					BrightnessPct: 80,
+					BrightnessPct: BrightnessPct,
 					RgbColor:      GetRgbColor(3000),
 				},
 				Target: &targetLightData{DeviceId: l.DeviceID},
@@ -149,21 +151,33 @@ func presenceSensorOn(entity *core.Entity) (*Automation, error) {
 			parallel2["parallel"] = append(parallel2["parallel"], &ActionLight{
 				Action: "light.turn_on",
 				Data: &actionLightData{
-					ColorTempKelvin: 3000,
-					BrightnessPct:   30,
+					ColorTempKelvin: ColorTempKelvin,
+					BrightnessPct:   20,
 				},
 				Target: &targetLightData{DeviceId: l.DeviceID},
 			})
 			continue
 		}
-		parallel2["parallel"] = append(parallel2["parallel"], &ActionLight{
-			Action: "light.turn_on",
-			Data: &actionLightData{
-				ColorTempKelvin: 3000,
-				BrightnessPct:   80,
-			},
-			Target: &targetLightData{DeviceId: l.DeviceID},
-		})
+		if strings.Contains(l.AreaName, "厨房") || strings.Contains(l.AreaName, "餐厅") {
+			parallel2["parallel"] = append(parallel2["parallel"], &ActionLight{
+				Action: "light.turn_on",
+				Data: &actionLightData{
+					ColorTempKelvin: 6000,
+					BrightnessPct:   BrightnessPct,
+				},
+				Target: &targetLightData{DeviceId: l.DeviceID},
+			})
+		} else {
+			parallel2["parallel"] = append(parallel2["parallel"], &ActionLight{
+				Action: "light.turn_on",
+				Data: &actionLightData{
+					ColorTempKelvin: ColorTempKelvin,
+					BrightnessPct:   BrightnessPct,
+				},
+				Target: &targetLightData{DeviceId: l.DeviceID},
+			})
+		}
+
 	}
 	// 5. 再开非氛围开关
 	for _, s := range normalSwitches {
@@ -310,6 +324,15 @@ func presenceSensorOff(entity *core.Entity) (*Automation, error) {
 
 	areaName := core.SpiltAreaName(entity.AreaName)
 
+	var f *For
+	if strings.Contains(areaName, "卧室") {
+		f = &For{
+			Hours:   0,
+			Minutes: 20,
+			Seconds: 0,
+		}
+	}
+
 	auto := &Automation{
 		Alias:       areaName + "无人关灯",
 		Description: "当人体传感器检测到无人，自动关闭" + areaName + "灯组和有线开关",
@@ -319,11 +342,7 @@ func presenceSensorOff(entity *core.Entity) (*Automation, error) {
 			EntityID: entity.EntityID,
 			Domain:   "binary_sensor",
 			Trigger:  "device",
-			For: &For{
-				Hours:   0,
-				Minutes: 20,
-				Seconds: 0,
-			},
+			For:      f,
 		}},
 		Actions: actions,
 		Mode:    "single",

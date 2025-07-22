@@ -8,17 +8,17 @@ import (
 var LxArea = make(map[string]*Entity)
 
 const (
-	CategoryXiaomiHomeSpeaker   = "xiaomi_home_speaker"     // 小米音箱
-	CategoryXiaomiMiotSpeaker   = "xiaomi_miot_speaker"     // 小米MIOT音箱
-	CategoryAppleTV             = "apple_tv"                // Apple TV
-	CategoryAirConditioner      = "air_conditioner"         // 空调
-	CategoryVirtualEvent        = "virtual_event"           // 虚拟事件
-	CategorySwitch              = "switch"                  // 开关
-	CategoryWiredSwitch         = "wired_switch"            // 有线开关
-	CategoryToggle              = "toggle_switch"           // 切换开关
-	CategorySwitchMode          = "switch_mode"             // 开关模式：判断有线开关和无线开关
-	CategoryLight               = "light"                   // 灯
-	CategoryLightGroup          = "light_group"             // 灯组
+	CategoryXiaomiHomeSpeaker = "xiaomi_home_speaker" // 小米音箱
+	CategoryXiaomiMiotSpeaker = "xiaomi_miot_speaker" // 小米MIOT音箱
+	CategoryAppleTV           = "apple_tv"            // Apple TV
+	CategoryAirConditioner    = "air_conditioner"     // 空调
+	CategoryVirtualEvent      = "virtual_event"       // 虚拟事件
+	CategorySwitch            = "switch"              // 开关
+	CategoryWiredSwitch       = "wired_switch"        // 有线开关
+	CategoryToggle            = "toggle_switch"       // 切换开关
+	CategorySwitchMode        = "switch_mode"         // 开关模式：判断有线开关和无线开关
+	CategoryLight             = "light"               // 灯
+	//CategoryLightGroup          = "light_group"             // 灯组
 	CategoryCurtain             = "curtain"                 // 窗帘
 	CategoryHumanPresenceSensor = "human_presence_sensor"   // 存在传感器
 	CategorySocket              = "socket"                  // 插座
@@ -154,24 +154,26 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 		//}
 
 		// 5. 灯
-		if strings.HasPrefix(id, "light.") && !strings.Contains(e.EntityID, "_group_") {
+		if strings.HasPrefix(id, "light.") && !strings.Contains(e.EntityID, "_group_") && !strings.Contains(e.OriginalName, "指示灯") {
 			category = CategoryLight
 		}
 
-		//5.1 灯组
-		if strings.HasPrefix(id, "light.") && strings.Contains(e.EntityID, "_group_") {
-			category = CategoryLightGroup
-		}
+		////5.1 灯组
+		//if strings.HasPrefix(id, "light.") && strings.Contains(e.EntityID, "_group_") {
+		//	category = CategoryLightGroup
+		//}
 
 		// 6. 窗帘
 		if strings.Contains(name, "窗帘") && strings.HasPrefix(id, "cover.") {
 			category = CategoryCurtain
 		}
 
+		// 7. 存在传感器
 		if v, ok := deviceMap[e.DeviceID]; ok {
-			// 7. 存在传感器
-			if strings.Contains(v.Name, "存在传感器") && strings.Contains(id, "sensor.") {
-				category = CategoryHumanPresenceSensor
+			if strings.Contains(v.Name, "存在传感器") {
+				if strings.Contains(id, "sensor.") && (strings.Contains(e.OriginalName, "人在") || strings.Contains(e.OriginalName, "有人无人")) {
+					category = CategoryHumanPresenceSensor
+				}
 			}
 		}
 

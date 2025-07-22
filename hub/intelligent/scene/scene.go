@@ -84,7 +84,7 @@ func CreateScene(c *ava.Context, scene *Scene) {
 	}
 }
 
-// 删除所有自动化
+// 删除所有场景
 func DeleteAllScenes(c *ava.Context) {
 	entityMap := core.GetEntityIdMap()
 	for _, entity := range entityMap {

@@ -170,7 +170,7 @@ func bodySensorOn(entity *core.Entity) (*Automation, error) {
 			Action: "light.turn_on",
 			Data: &actionLightData{
 				ColorTempKelvin: 3000,
-				BrightnessPct:   80,
+				BrightnessPct:   100,
 			},
 			Target: &targetLightData{DeviceId: e.DeviceID},
 		})

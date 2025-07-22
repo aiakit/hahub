@@ -59,6 +59,7 @@ func lowestBrightness(entities []*core.Entity) *Scene {
 
 // 灯光时间设置
 func registerLightGradientTime(entity *core.Entity) {
+	//判断区域，带流动
 	var step = 1
 	//柜子灯带
 	if (strings.Contains(entity.OriginalName, "开灯渐变时长(单位ms)") || strings.Contains(entity.OriginalName, "灯光调光时长(单位ms)") || strings.Contains(entity.OriginalName, "关灯渐变时长(单位ms)")) && strings.Contains(entity.ID, "number.") {
@@ -66,7 +67,7 @@ func registerLightGradientTime(entity *core.Entity) {
 			"step":          step,
 			"mode":          "auto",
 			"friendly_name": entity.OriginalName,
-			"state":         "3000"}
+			"state":         "10000"} //10秒
 		lightGradientTime.Metadata[entity.EntityID] = map[string]interface{}{
 			"entity_only": true,
 		}
@@ -97,7 +98,8 @@ func registerLightGradientTime(entity *core.Entity) {
 			"step":          step,
 			"mode":          "auto",
 			"friendly_name": entity.OriginalName,
-			"state":         "4540997"}
+			//"state":         "4540997"} //5秒，10秒，5秒
+			"state": "21056069"} //5秒，10秒，1秒
 		lightGradientTime.Metadata[entity.EntityID] = map[string]interface{}{
 			"entity_only": true,
 		}
@@ -106,7 +108,8 @@ func registerLightGradientTime(entity *core.Entity) {
 				"step":          step,
 				"mode":          "auto",
 				"friendly_name": entity.OriginalName,
-				"state":         "21318213"}
+				//"state":         "21318213"}//5,10,5秒
+				"state": "4278853"} //5,10,1秒
 		}
 	}
 
