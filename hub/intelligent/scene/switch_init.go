@@ -20,7 +20,7 @@ func InitSwitch(c *ava.Context) {
 
 func switchMode(entities []*core.Entity) *Scene {
 	var s = &Scene{
-		Name: "初始化开关模式",
+		Name: "初始化开关模式-慎用",
 	}
 
 	var en = make(map[string]interface{})

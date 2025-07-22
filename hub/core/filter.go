@@ -80,6 +80,11 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 		}
 	}
 
+	var areaLxStruct = map[string]struct {
+		lx string
+		e  *Entity
+	}{}
+
 	var entityIdMap = make(map[string]*Entity, 20)
 	for _, e := range entities {
 		var (
@@ -162,10 +167,14 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 		if strings.Contains(name, "窗帘") && strings.HasPrefix(id, "cover.") {
 			category = CategoryCurtain
 		}
-		// 7. 存在传感器
-		if strings.Contains(name, "存在传感器") && strings.HasPrefix(id, "binary_sensor.") {
-			category = CategoryHumanPresenceSensor
+
+		if v, ok := deviceMap[e.DeviceID]; ok {
+			// 7. 存在传感器
+			if strings.Contains(v.Name, "存在传感器") && strings.Contains(id, "sensor.") {
+				category = CategoryHumanPresenceSensor
+			}
 		}
+
 		// 8. 插座
 		if strings.HasPrefix(id, "plug.") && strings.Contains(name, "插座") && strings.Contains(name, "开关状态") {
 			category = CategorySocket
@@ -174,10 +183,13 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 		if (strings.HasPrefix(id, "sensor.") || strings.HasPrefix(id, "event.")) && (strings.Contains(name, "人体传感器") ||
 			(strings.Contains(name, "接近远离") || strings.Contains(name, "有人") || strings.Contains(name, "无人") ||
 				strings.Contains(name, "接近") || strings.Contains(name, "远离"))) {
-			if strings.HasPrefix(id, "event.") && !strings.Contains(deviceMap[e.DeviceID].Name, "-") {
-				continue
+			if strings.HasPrefix(id, "event.") {
+				if v, ok := deviceMap[e.DeviceID]; ok {
+					if strings.Contains(v.Name, "-") {
+						category = CategoryHumanBodySensor
+					}
+				}
 			}
-			category = CategoryHumanBodySensor
 		}
 		// 10. 温度/湿度
 		if strings.HasPrefix(id, "sensor.") && strings.Contains(name, "温度") {
@@ -186,15 +198,26 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 		if strings.HasPrefix(id, "sensor.") && strings.Contains(name, "湿度") {
 			category = CategoryHumiditySensor
 		}
-		// 11. 光照
+		// 11. 光照,如果一个房间有多个，取当前光照值最高的那个
 		if strings.HasPrefix(id, "sensor.") && strings.Contains(name, "光照") {
-			category = CategoryLxSensor
-			if dev, ok := deviceMap[e.DeviceID]; ok && dev != nil {
-				e.AreaID = dev.AreaID
-				e.AreaName = dev.AreaName
-				e.Name = dev.Name
+			s, err := GetState(id)
+			if deviceMap != nil && err == nil {
+				if dev, okDevice := deviceMap[e.DeviceID]; okDevice && dev != nil {
+					if v, ok := areaLxStruct[dev.AreaID]; ok {
+						if strings.Compare(s.State, v.lx) > 0 {
+							areaLxStruct[dev.AreaID] = struct {
+								lx string
+								e  *Entity
+							}{lx: s.State, e: e}
+						}
+					} else {
+						areaLxStruct[dev.AreaID] = struct {
+							lx string
+							e  *Entity
+						}{lx: s.State, e: e}
+					}
+				}
 			}
-			LxArea[e.AreaID] = e
 		}
 
 		// 12. 红外电视
@@ -252,6 +275,20 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 			entityIdMap[e.EntityID] = e
 			filtered = append(filtered, e)
 		}
+	}
+
+	for _, e := range areaLxStruct {
+		e.e.Category = CategoryLxSensor
+		if deviceMap != nil {
+			if dev, ok := deviceMap[e.e.DeviceID]; ok && dev != nil {
+				e.e.AreaID = dev.AreaID
+				e.e.AreaName = dev.AreaName
+				e.e.Name = dev.Name // 新增：赋值设备名称
+			}
+		}
+		entityIdMap[e.e.EntityID] = e.e
+		filtered = append(filtered, e.e)
+		LxArea[e.e.AreaID] = e.e
 	}
 
 	// 先构建 device_id -> []*Entity 的映射，方便查找

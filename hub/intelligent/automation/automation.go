@@ -75,12 +75,12 @@ var (
 
 // 自动化配置
 type Automation struct {
-	Alias       string        `json:"alias"`       //自动化名称
-	Description string        `json:"description"` //自动化描述
-	Triggers    []Triggers    `json:"triggers"`    //触发条件
-	Conditions  []Conditions  `json:"conditions"`  //限制条件
-	Actions     []interface{} `json:"actions"`     //执行动作
-	Mode        string        `json:"mode"`        //执行模式
+	Alias       string        `json:"alias"`             //自动化名称
+	Description string        `json:"description"`       //自动化描述
+	Triggers    []Triggers    `json:"triggers"`          //触发条件
+	Conditions  []Conditions  `json:"conditions"`        //限制条件
+	Actions     []interface{} `json:"actions,omitempty"` //执行动作
+	Mode        string        `json:"mode"`              //执行模式
 }
 
 // 获取 lxByAreaId 中的值，使用读锁

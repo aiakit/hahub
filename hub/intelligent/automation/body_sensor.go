@@ -83,6 +83,9 @@ func bodySensorOn(entity *core.Entity) (*Automation, error) {
 		}
 	}
 
+	var condition = make([]Conditions, 0, 2)
+
+	var parallel1 = make(map[string][]interface{})
 	// 开灯逻辑
 	// 1. 先开氛围灯
 	for _, e := range atmosphereLights {
@@ -98,18 +101,35 @@ func bodySensorOn(entity *core.Entity) (*Automation, error) {
 		if strings.Contains(e.Name, "彩") {
 			act.Data = &actionLightData{}
 		}
-
-		actions = append(actions, act)
+		condition = append(condition, Conditions{
+			Condition: "device",
+			Type:      "is_off",
+			DeviceID:  e.DeviceID,
+			EntityID:  e.EntityID,
+			Domain:    "light",
+		})
+		parallel1["parallel"] = append(parallel1["parallel"], act)
 	}
 	// 2. 先开氛围开关
 	for _, e := range atmosphereSwitches {
-		actions = append(actions, &ActionSwitch{
+		parallel1["parallel"] = append(parallel1["parallel"], &ActionSwitch{
 			Type:     "turn_on",
 			DeviceID: e.DeviceID,
 			EntityID: e.EntityID,
 			Domain:   "switch",
 		})
+		condition = append(condition, Conditions{
+			Condition: "device",
+			Type:      "is_off",
+			DeviceID:  e.DeviceID,
+			EntityID:  e.EntityID,
+			Domain:    "switch",
+		})
 	}
+	if len(parallel1) > 0 {
+		actions = append(actions, parallel1)
+	}
+
 	// 3. 延迟3秒
 	if len(atmosphereLights) > 0 || len(atmosphereSwitches) > 0 {
 		actions = append(actions, ActionTimerDelay{Delay: struct {
@@ -119,6 +139,8 @@ func bodySensorOn(entity *core.Entity) (*Automation, error) {
 			Milliseconds int `json:"milliseconds"`
 		}{Hours: 0, Minutes: 0, Seconds: 3, Milliseconds: 0}})
 	}
+
+	var parallel2 = make(map[string][]interface{})
 	// 4. 再开非氛围灯
 	for _, e := range normalLights {
 		if e.EntityID == entity.EntityID {
@@ -126,17 +148,25 @@ func bodySensorOn(entity *core.Entity) (*Automation, error) {
 		}
 		// 夜灯/护眼灯特殊逻辑
 		if strings.Contains(e.Name, "夜灯") || strings.Contains(e.Name, "护眼") {
-			actions = append(actions, &ActionLight{
+			parallel2["parallel"] = append(parallel2["parallel"], &ActionLight{
 				Action: "light.turn_on",
 				Data: &actionLightData{
 					ColorTempKelvin: 3000,
-					BrightnessPct:   30,
+					BrightnessPct:   10,
 				},
 				Target: &targetLightData{DeviceId: e.DeviceID},
 			})
 			continue
 		}
-		actions = append(actions, &ActionLight{
+		condition = append(condition, Conditions{
+			Condition: "device",
+			Type:      "is_off",
+			DeviceID:  e.DeviceID,
+			EntityID:  e.EntityID,
+			Domain:    "light",
+		})
+
+		parallel2["parallel"] = append(parallel2["parallel"], &ActionLight{
 			Action: "light.turn_on",
 			Data: &actionLightData{
 				ColorTempKelvin: 3000,
@@ -147,12 +177,23 @@ func bodySensorOn(entity *core.Entity) (*Automation, error) {
 	}
 	// 5. 再开非氛围开关
 	for _, e := range normalSwitches {
-		actions = append(actions, &ActionSwitch{
+		parallel2["parallel"] = append(parallel2["parallel"], &ActionSwitch{
 			Type:     "turn_on",
 			DeviceID: e.DeviceID,
 			EntityID: e.EntityID,
 			Domain:   "switch",
 		})
+		condition = append(condition, Conditions{
+			Condition: "device",
+			Type:      "is_off",
+			DeviceID:  e.DeviceID,
+			EntityID:  e.EntityID,
+			Domain:    "switch",
+		})
+	}
+
+	if len(parallel2) > 0 {
+		actions = append(actions, parallel2)
 	}
 
 	if len(actions) == 0 {
@@ -166,10 +207,11 @@ func bodySensorOn(entity *core.Entity) (*Automation, error) {
 		Seconds      int `json:"seconds"`
 		Milliseconds int `json:"milliseconds"`
 	}{Hours: 0, Minutes: 0, Seconds: 30, Milliseconds: 0}})
+	var parallel3 = make(map[string][]interface{})
 
 	// 关灯逻辑，先关非氛围灯、非氛围开关，延迟3秒再关氛围灯、氛围开关
 	for _, e := range normalLights {
-		actions = append(actions, &ActionLight{
+		parallel3["parallel"] = append(parallel3["parallel"], &ActionLight{
 			Type:     "turn_off",
 			DeviceID: e.DeviceID,
 			EntityID: e.EntityID,
@@ -177,7 +219,7 @@ func bodySensorOn(entity *core.Entity) (*Automation, error) {
 		})
 	}
 	for _, e := range normalSwitches {
-		actions = append(actions, &ActionSwitch{
+		parallel3["parallel"] = append(parallel3["parallel"], &ActionSwitch{
 			Type:     "turn_off",
 			DeviceID: e.DeviceID,
 			EntityID: e.EntityID,
@@ -185,7 +227,7 @@ func bodySensorOn(entity *core.Entity) (*Automation, error) {
 		})
 	}
 	if len(atmosphereLights) > 0 || len(atmosphereSwitches) > 0 {
-		actions = append(actions, ActionTimerDelay{Delay: struct {
+		parallel3["parallel"] = append(parallel3["parallel"], ActionTimerDelay{Delay: struct {
 			Hours        int `json:"hours"`
 			Minutes      int `json:"minutes"`
 			Seconds      int `json:"seconds"`
@@ -193,7 +235,7 @@ func bodySensorOn(entity *core.Entity) (*Automation, error) {
 		}{Hours: 0, Minutes: 0, Seconds: 3, Milliseconds: 0}})
 	}
 	for _, e := range atmosphereLights {
-		actions = append(actions, &ActionLight{
+		parallel3["parallel"] = append(parallel3["parallel"], &ActionLight{
 			Type:     "turn_off",
 			DeviceID: e.DeviceID,
 			EntityID: e.EntityID,
@@ -201,12 +243,16 @@ func bodySensorOn(entity *core.Entity) (*Automation, error) {
 		})
 	}
 	for _, e := range atmosphereSwitches {
-		actions = append(actions, &ActionSwitch{
+		parallel3["parallel"] = append(parallel3["parallel"], &ActionSwitch{
 			Type:     "turn_off",
 			DeviceID: e.DeviceID,
 			EntityID: e.EntityID,
 			Domain:   "switch",
 		})
+	}
+
+	if len(parallel3) > 0 {
+		actions = append(actions, parallel3)
 	}
 
 	areaName := core.SpiltAreaName(entity.AreaName)
@@ -239,7 +285,7 @@ func bodySensorOn(entity *core.Entity) (*Automation, error) {
 	}
 
 	auto := &Automation{
-		Alias:       areaName + suffixStr + "人来亮灯",
+		Alias:       areaName + prefix + suffixStr + "人来亮灯",
 		Description: "当检测到有人，自动打开" + areaName + "下同名前缀的灯和开关",
 		Triggers: []Triggers{{
 			Type:     triggerType,
@@ -251,6 +297,7 @@ func bodySensorOn(entity *core.Entity) (*Automation, error) {
 		Actions: actions,
 		Mode:    "single",
 	}
+	auto.Actions = actions
 
 	// 增加光照条件
 	lxConfig := getLxConfig(areaID)
@@ -261,6 +308,7 @@ func bodySensorOn(entity *core.Entity) (*Automation, error) {
 			Below:     lxConfig.Lx, // 设置光照阈值
 		})
 	}
+	auto.Conditions = append(auto.Conditions, condition...)
 
 	return auto, nil
 }

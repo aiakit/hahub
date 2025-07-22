@@ -146,9 +146,10 @@ func presenceSensorOnKeting(entity, lumen *core.Entity, lxMin, lxMax float64, du
 	}
 
 	var actions []interface{}
+	var parallel1 = make(map[string][]interface{})
 	// 1. 先开氛围灯
 	for _, l := range atmosphereLights {
-		actions = append(actions, &ActionLight{
+		parallel1["parallel"] = append(parallel1["parallel"], &ActionLight{
 			Action: "light.turn_on",
 			Data: &actionLightData{
 				ColorTempKelvin: kelvin,
@@ -159,12 +160,15 @@ func presenceSensorOnKeting(entity, lumen *core.Entity, lxMin, lxMax float64, du
 	}
 	// 2. 先开氛围开关
 	for _, s := range atmosphereSwitches {
-		actions = append(actions, &ActionSwitch{
+		parallel1["parallel"] = append(parallel1["parallel"], &ActionSwitch{
 			Type:     "turn_on",
 			DeviceID: s.DeviceID,
 			EntityID: s.EntityID,
 			Domain:   "switch",
 		})
+	}
+	if len(parallel1) > 0 {
+		actions = append(actions, parallel1)
 	}
 	// 3. 延迟3秒
 	if len(atmosphereLights) > 0 || len(atmosphereSwitches) > 0 {
@@ -175,6 +179,7 @@ func presenceSensorOnKeting(entity, lumen *core.Entity, lxMin, lxMax float64, du
 			Milliseconds int `json:"milliseconds"`
 		}{Hours: 0, Minutes: 0, Seconds: 3, Milliseconds: 0}})
 	}
+	var parallel2 = make(map[string][]interface{})
 	// 4. 再开非氛围灯
 	for _, l := range normalLights {
 
@@ -185,7 +190,7 @@ func presenceSensorOnKeting(entity, lumen *core.Entity, lxMin, lxMax float64, du
 
 		if strings.Contains(l.Name, "馨光") && !strings.Contains(l.Name, "主机") {
 			//改为静态模式
-			actions = append(actions, &ActionLight{
+			parallel2["parallel"] = append(parallel2["parallel"], &ActionLight{
 				DeviceID: l.DeviceID,
 				Domain:   "select",
 				EntityID: core.GetXinGuang(l.DeviceID),
@@ -194,7 +199,7 @@ func presenceSensorOnKeting(entity, lumen *core.Entity, lxMin, lxMax float64, du
 			})
 
 			//修改颜色
-			actions = append(actions, &ActionLight{
+			parallel2["parallel"] = append(parallel2["parallel"], &ActionLight{
 				Action: "light.turn_on",
 				Data: &actionLightData{
 					BrightnessPct: 80,
@@ -207,7 +212,7 @@ func presenceSensorOnKeting(entity, lumen *core.Entity, lxMin, lxMax float64, du
 
 		// 护眼灯特殊逻辑
 		if strings.Contains(l.Name, "护眼") || strings.Contains(l.Name, "夜灯") {
-			actions = append(actions, &ActionLight{
+			parallel2["parallel"] = append(parallel2["parallel"], &ActionLight{
 				Action: "light.turn_on",
 				Data: &actionLightData{
 					ColorTempKelvin: kelvin,
@@ -217,7 +222,7 @@ func presenceSensorOnKeting(entity, lumen *core.Entity, lxMin, lxMax float64, du
 			})
 			continue
 		}
-		actions = append(actions, &ActionLight{
+		parallel2["parallel"] = append(parallel2["parallel"], &ActionLight{
 			Action: "light.turn_on",
 			Data: &actionLightData{
 				ColorTempKelvin: kelvin,
@@ -228,12 +233,15 @@ func presenceSensorOnKeting(entity, lumen *core.Entity, lxMin, lxMax float64, du
 	}
 	// 5. 再开非氛围开关
 	for _, s := range normalSwitches {
-		actions = append(actions, &ActionSwitch{
+		parallel2["parallel"] = append(parallel2["parallel"], &ActionSwitch{
 			Type:     "turn_on",
 			DeviceID: s.DeviceID,
 			EntityID: s.EntityID,
 			Domain:   "switch",
 		})
+	}
+	if len(parallel2) > 0 {
+		actions = append(actions, parallel2)
 	}
 
 	if len(actions) == 0 {
@@ -297,9 +305,10 @@ func presenceSensorOffKeting(entity *core.Entity) (*Automation, error) {
 	}
 
 	var actions []interface{}
+	var parallel1 = make(map[string][]interface{})
 	// 先关非氛围灯
 	for _, l := range normalLights {
-		actions = append(actions, &ActionLight{
+		parallel1["parallel"] = append(parallel1["parallel"], &ActionLight{
 			Type:     "turn_off",
 			DeviceID: l.DeviceID,
 			EntityID: l.EntityID,
@@ -308,12 +317,15 @@ func presenceSensorOffKeting(entity *core.Entity) (*Automation, error) {
 	}
 	// 先关非氛围开关
 	for _, s := range normalSwitches {
-		actions = append(actions, &ActionSwitch{
+		parallel1["parallel"] = append(parallel1["parallel"], &ActionSwitch{
 			Type:     "turn_off",
 			DeviceID: s.DeviceID,
 			EntityID: s.EntityID,
 			Domain:   "switch",
 		})
+	}
+	if len(parallel1) > 0 {
+		actions = append(actions, parallel1)
 	}
 	// 延迟3秒
 	if len(atmosphereLights) > 0 || len(atmosphereSwitches) > 0 {
@@ -324,9 +336,10 @@ func presenceSensorOffKeting(entity *core.Entity) (*Automation, error) {
 			Milliseconds int `json:"milliseconds"`
 		}{Hours: 0, Minutes: 0, Seconds: 3, Milliseconds: 0}})
 	}
+	var parallel2 = make(map[string][]interface{})
 	// 再关氛围灯
 	for _, l := range atmosphereLights {
-		actions = append(actions, &ActionLight{
+		parallel2["parallel"] = append(parallel2["parallel"], &ActionLight{
 			Type:     "turn_off",
 			DeviceID: l.DeviceID,
 			EntityID: l.EntityID,
@@ -335,12 +348,15 @@ func presenceSensorOffKeting(entity *core.Entity) (*Automation, error) {
 	}
 	// 再关氛围开关
 	for _, s := range atmosphereSwitches {
-		actions = append(actions, &ActionSwitch{
+		parallel2["parallel"] = append(parallel2["parallel"], &ActionSwitch{
 			Type:     "turn_off",
 			DeviceID: s.DeviceID,
 			EntityID: s.EntityID,
 			Domain:   "switch",
 		})
+	}
+	if len(parallel2) > 0 {
+		actions = append(actions, parallel2)
 	}
 
 	areaName := core.SpiltAreaName(entity.AreaName)
@@ -356,7 +372,7 @@ func presenceSensorOffKeting(entity *core.Entity) (*Automation, error) {
 			Trigger:  "device",
 			For: &For{
 				Hours:   0,
-				Minutes: 5,
+				Minutes: 20,
 				Seconds: 0,
 			},
 		}},

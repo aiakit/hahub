@@ -15,6 +15,7 @@ func Chaos() {
 	c := ava.Background()
 
 	//删除所有场景
+	DeleteAllScenes(c)
 
 	InitLight(c)
 	InitSwitch(c)
@@ -80,5 +81,25 @@ func CreateScene(c *ava.Context, scene *Scene) {
 	if response.Result != "ok" {
 		c.Error("result=", response)
 		c.Errorf("data=%v", core.MustMarshal2String(scene))
+	}
+}
+
+// 删除所有自动化
+func DeleteAllScenes(c *ava.Context) {
+	entityMap := core.GetEntityIdMap()
+	for _, entity := range entityMap {
+		if entity == nil {
+			continue
+		}
+		if entity.Category != core.CategoryScene {
+			continue
+		}
+		url := fmt.Sprintf(prefixUrlCreateScene, core.GetHassUrl(), entity.UniqueID)
+		var response Response
+		err := core.Del(c, url, core.GetToken(), &response)
+		if response.Result != "ok" || err != nil {
+			c.Debugf("delete scene |response=%v |id=%s |err=%v", &response, core.MustMarshal2String(entity), err)
+			continue
+		}
 	}
 }

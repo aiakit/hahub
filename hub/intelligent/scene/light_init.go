@@ -8,7 +8,7 @@ import (
 )
 
 var lightGradientTime = &Scene{
-	Name:     "初始化灯光模式设置",
+	Name:     "初始化灯光模式设置-慎用",
 	Entities: make(map[string]interface{}),
 	Metadata: make(map[string]interface{}),
 }
@@ -34,7 +34,7 @@ func InitLight(c *ava.Context) {
 // 最低亮度设置
 func lowestBrightness(entities []*core.Entity) *Scene {
 	var s = &Scene{
-		Name: "初始化最低亮度设置",
+		Name: "初始化最低亮度设置-慎用",
 	}
 
 	var en = make(map[string]interface{})
@@ -132,6 +132,16 @@ func registerLightGradientTime(entity *core.Entity) {
 		lightGradientTime.Entities[entity.EntityID] = map[string]interface{}{
 			"friendly_name": entity.OriginalName,
 			"state":         "OFF"}
+		lightGradientTime.Metadata[entity.EntityID] = map[string]interface{}{
+			"entity_only": true,
+		}
+	}
+
+	//馨光灯带，关灯断电
+	if strings.Contains(entity.OriginalName, "关灯断电") && strings.HasPrefix(entity.ID, "select.") {
+		lightGradientTime.Entities[entity.EntityID] = map[string]interface{}{
+			"friendly_name": entity.OriginalName,
+			"state":         "断电"}
 		lightGradientTime.Metadata[entity.EntityID] = map[string]interface{}{
 			"entity_only": true,
 		}
