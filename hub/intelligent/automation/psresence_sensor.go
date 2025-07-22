@@ -125,8 +125,8 @@ func presenceSensorOn(entity *core.Entity) (*Automation, error) {
 		}
 
 		if strings.Contains(l.Name, "馨光") && !strings.Contains(l.Name, "主机") {
-			//改为静态模式
-			parallel2["parallel"] = append(parallel2["parallel"], &ActionLight{
+			//改为静态模式,不能并行执行，必须优先执行
+			actions = append(actions, &ActionLight{
 				DeviceID: l.DeviceID,
 				Domain:   "select",
 				EntityID: core.GetXinGuang(l.DeviceID),

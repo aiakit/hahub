@@ -190,7 +190,7 @@ func presenceSensorOnKeting(entity, lumen *core.Entity, lxMin, lxMax float64, du
 
 		if strings.Contains(l.Name, "馨光") && !strings.Contains(l.Name, "主机") {
 			//改为静态模式
-			parallel2["parallel"] = append(parallel2["parallel"], &ActionLight{
+			actions = append(actions, &ActionLight{
 				DeviceID: l.DeviceID,
 				Domain:   "select",
 				EntityID: core.GetXinGuang(l.DeviceID),

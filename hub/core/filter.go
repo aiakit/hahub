@@ -18,6 +18,7 @@ const (
 	CategoryToggle            = "toggle_switch"       // 切换开关
 	CategorySwitchMode        = "switch_mode"         // 开关模式：判断有线开关和无线开关
 	CategoryLight             = "light"               // 灯
+	CategoryXinGuang          = "xinguang"            // 灯
 	//CategoryLightGroup          = "light_group"             // 灯组
 	CategoryCurtain             = "curtain"                 // 窗帘
 	CategoryHumanPresenceSensor = "human_presence_sensor"   // 存在传感器
@@ -235,12 +236,19 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 			category = CategoryScene
 		}
 
-		//15.馨光设备id，找到设置灯光模式的id,而不是entityid
+		//15.在自动化设置中，馨光设备id，找到设置灯光模式的id,而不是entityid
 		if strings.Contains(name, "LED运行模式") {
 			if dev, ok := deviceMap[e.DeviceID]; ok && dev != nil {
 				if strings.Contains(dev.Name, "馨光") {
 					gHub.xinguang[e.DeviceID] = e.ID
 				}
+			}
+		}
+
+		//15.馨光类型,场景设置中需要实体id
+		if dev, ok := deviceMap[e.DeviceID]; ok && dev != nil {
+			if strings.Contains(dev.Name, "馨光") {
+				category = CategoryXinGuang
 			}
 		}
 

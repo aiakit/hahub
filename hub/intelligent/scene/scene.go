@@ -20,6 +20,7 @@ func Chaos() {
 	InitLight(c)
 	InitSwitch(c)
 
+	InitXinGuang(c)
 }
 
 type Scene struct {
