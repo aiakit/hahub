@@ -95,6 +95,10 @@ func DeleteAllScenes(c *ava.Context) {
 		if entity.Category != core.CategoryScene {
 			continue
 		}
+		if core.IsAllDigits(entity.EntityID) {
+			continue
+		}
+
 		url := fmt.Sprintf(prefixUrlCreateScene, core.GetHassUrl(), entity.UniqueID)
 		var response Response
 		err := core.Del(c, url, core.GetToken(), &response)

@@ -15,7 +15,8 @@ const (
 	CategoryVirtualEvent      = "virtual_event"       // 虚拟事件
 	CategorySwitch            = "switch"              // 开关
 	CategoryWiredSwitch       = "wired_switch"        // 有线开关
-	CategoryToggle            = "toggle_switch"       // 切换开关
+	CategorySwitchSenorSingle = "senor_switch"        // 开关传感器
+	CategorySwitchToggle      = "toggle_switch"       // 开关切换
 	CategorySwitchMode        = "switch_mode"         // 开关模式：判断有线开关和无线开关
 	CategoryLight             = "light"               // 灯
 	CategoryXinGuang          = "xinguang"            // 灯
@@ -34,7 +35,7 @@ const (
 	CategoryWater               = "water"                   // 水侵
 	CategoryFire                = "fire"                    // 火灾
 	CategoryLightLowest         = "light_lowest_brightness" //灯-最低亮度设置实体
-
+	CategoryWaterHeater         = "water_heater"            //热水器
 )
 
 //过滤实体,并在实体中增加字段标注设备类型，设备数据中也加上，在实体数据中加上设备id,区域id，区域名称
@@ -85,6 +86,8 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 		lx string
 		e  *Entity
 	}{}
+
+	var waterHeater = make([]*Entity, 0)
 
 	var entityIdMap = make(map[string]*Entity, 20)
 	for _, e := range entities {
@@ -141,18 +144,18 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 		}
 
 		// 4.2 切换类开关实体
-		if strings.Contains(name, "开关") && strings.Contains(e.EntityID, "button.") {
+		if strings.Contains(name, "开关传感器 单击") && strings.Contains(e.EntityID, "event.") {
 			if v := deviceMap[e.DeviceID]; v != nil {
 				if strings.Contains(v.Model, ".switch.") {
-					category = CategoryToggle
+					category = CategorySwitchSenorSingle
 				}
 			}
 		}
 
-		//// 4.2开关切换
-		//if strings.Contains(name, "开关") && strings.Contains(e.EntityID, "button.") && strings.Contains(e.EntityID, "_toggle_") {
-		//	category = CategorySwitch
-		//}
+		// 4.2开关切换
+		if strings.Contains(name, "开关状态切换") && strings.Contains(e.EntityID, "button.") && strings.Contains(e.EntityID, "_toggle_") {
+			category = CategorySwitchToggle
+		}
 
 		// 5. 灯
 		if strings.HasPrefix(id, "light.") && !strings.Contains(e.EntityID, "_group_") && !strings.Contains(e.OriginalName, "指示灯") {
@@ -165,7 +168,7 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 		//}
 
 		// 6. 窗帘
-		if strings.Contains(name, "窗帘") && strings.HasPrefix(id, "cover.") {
+		if strings.Contains(name, "帘") && strings.HasPrefix(id, "cover.") && (strings.Contains(e.OriginalName, "关闭") || strings.Contains(e.OriginalName, "打开")) {
 			category = CategoryCurtain
 		}
 
@@ -272,6 +275,13 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 			category = CategoryLightLowest
 		}
 
+		//20.热水器
+		if dev, ok := deviceMap[e.DeviceID]; ok && dev != nil {
+			if strings.Contains(dev.Name, "热水器") {
+				waterHeater = append(waterHeater, e)
+			}
+		}
+
 		if category != "" {
 			// 赋值区域信息
 			e.Category = category
@@ -299,6 +309,19 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 		entityIdMap[e.e.EntityID] = e.e
 		filtered = append(filtered, e.e)
 		LxArea[e.e.AreaID] = e.e
+	}
+
+	for _, e := range waterHeater {
+		e.Category = CategoryWaterHeater
+		if deviceMap != nil {
+			if dev, ok := deviceMap[e.DeviceID]; ok && dev != nil {
+				e.AreaID = dev.AreaID
+				e.AreaName = dev.AreaName
+				e.Name = dev.Name // 新增：赋值设备名称
+			}
+		}
+		entityIdMap[e.EntityID] = e
+		filtered = append(filtered, e)
 	}
 
 	// 先构建 device_id -> []*Entity 的映射，方便查找

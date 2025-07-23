@@ -169,3 +169,9 @@ func filterNonAlphaNumeric(s string) string {
 	}
 	return sb.String()
 }
+
+func IsAllDigits(str string) bool {
+	return strings.IndexFunc(str, func(r rune) bool {
+		return !unicode.IsDigit(r)
+	}) == -1
+}

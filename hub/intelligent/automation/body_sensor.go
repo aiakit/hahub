@@ -112,7 +112,7 @@ func bodySensorOn(entity *core.Entity) (*Automation, error) {
 	}
 	// 2. 先开氛围开关
 	for _, e := range atmosphereSwitches {
-		parallel1["parallel"] = append(parallel1["parallel"], &ActionSwitch{
+		parallel1["parallel"] = append(parallel1["parallel"], &ActionCommon{
 			Type:     "turn_on",
 			DeviceID: e.DeviceID,
 			EntityID: e.EntityID,
@@ -177,7 +177,7 @@ func bodySensorOn(entity *core.Entity) (*Automation, error) {
 	}
 	// 5. 再开非氛围开关
 	for _, e := range normalSwitches {
-		parallel2["parallel"] = append(parallel2["parallel"], &ActionSwitch{
+		parallel2["parallel"] = append(parallel2["parallel"], &ActionCommon{
 			Type:     "turn_on",
 			DeviceID: e.DeviceID,
 			EntityID: e.EntityID,
@@ -219,7 +219,7 @@ func bodySensorOn(entity *core.Entity) (*Automation, error) {
 		})
 	}
 	for _, e := range normalSwitches {
-		parallel3["parallel"] = append(parallel3["parallel"], &ActionSwitch{
+		parallel3["parallel"] = append(parallel3["parallel"], &ActionCommon{
 			Type:     "turn_off",
 			DeviceID: e.DeviceID,
 			EntityID: e.EntityID,
@@ -243,7 +243,7 @@ func bodySensorOn(entity *core.Entity) (*Automation, error) {
 		})
 	}
 	for _, e := range atmosphereSwitches {
-		parallel3["parallel"] = append(parallel3["parallel"], &ActionSwitch{
+		parallel3["parallel"] = append(parallel3["parallel"], &ActionCommon{
 			Type:     "turn_off",
 			DeviceID: e.DeviceID,
 			EntityID: e.EntityID,

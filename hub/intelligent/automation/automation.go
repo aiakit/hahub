@@ -175,17 +175,19 @@ type Triggers struct {
 }
 
 type Conditions struct {
-	Condition string   `json:"condition"`
-	Type      string   `json:"type,omitempty"`
-	DeviceID  string   `json:"device_id,omitempty"`
-	EntityID  string   `json:"entity_id,omitempty"`
-	Domain    string   `json:"domain,omitempty"`
-	Above     float64  `json:"above,omitempty"` //大于
-	Below     float64  `json:"below,omitempty"` //小于
-	For       *For     `json:"for,omitempty"`
-	After     string   `json:"after,omitempty"`
-	Before    string   `json:"before,omitempty"`
-	Weekday   []string `json:"weekday,omitempty"`
+	Condition      string        `json:"condition,omitempty"`
+	Type           string        `json:"type,omitempty"`
+	DeviceID       string        `json:"device_id,omitempty"`
+	EntityID       string        `json:"entity_id,omitempty"`
+	Domain         string        `json:"domain,omitempty"`
+	Above          float64       `json:"above,omitempty"` //大于
+	Below          float64       `json:"below,omitempty"` //小于
+	For            *For          `json:"for,omitempty"`
+	After          string        `json:"after,omitempty"`
+	Before         string        `json:"before,omitempty"`
+	Weekday        []string      `json:"weekday,omitempty"`
+	ConditionChild []interface{} `json:"conditions,omitempty"`
+	State          string        `json:"state,omitempty"`
 }
 
 type For struct {
@@ -216,11 +218,19 @@ type targetLightData struct {
 	DeviceId string `json:"device_id"`
 }
 
-type ActionSwitch struct {
+type ActionCommon struct {
 	Type     string `json:"type,omitempty"`
 	DeviceID string `json:"device_id,omitempty"`
 	EntityID string `json:"entity_id,omitempty"`
 	Domain   string `json:"domain,omitempty"`
+}
+
+type ActionService struct {
+	Action string                 `json:"action"`
+	Data   map[string]interface{} `json:"data"`
+	Target struct {
+		EntityId string `json:"entity_id"`
+	} `json:"target"`
 }
 
 type ActionNotify struct {
@@ -268,8 +278,14 @@ func Chaos() {
 	walkPresenceSensor(c)
 	walkPresenceSensorKeting(c)
 
+	//布防
+	arm(c)
+
 	//警报
 	attention(c)
+
+	//回家
+	initHoming(c)
 
 	//重新缓存一遍数据
 	core.CallService()
@@ -366,6 +382,9 @@ func DeleteAllAutomations(c *ava.Context) {
 			continue
 		}
 		if entity.Category != core.CategoryAutomation {
+			continue
+		}
+		if core.IsAllDigits(entity.EntityID) {
 			continue
 		}
 		//url := fmt.Sprintf(prefixUrlCreateAutomation, core.GetHassUrl(), entity.EntityID)，ha这个id生成规则有bug

@@ -2,6 +2,7 @@ package automation
 
 import (
 	"hahub/hub/core"
+	"strings"
 
 	"github.com/aiakit/ava"
 )
@@ -133,8 +134,15 @@ func doNotify(title, message string, auto *Automation) {
 		}{message, title},
 	})
 
-	speakers := core.GetSpeakersXiaomiHome()
+	speakers, ok := core.GetEntityCategoryMap()[core.CategoryXiaomiHomeSpeaker]
+	if !ok {
+		return
+	}
+
 	for _, v := range speakers {
+		if !strings.Contains(v.OriginalName, "播放文本") {
+			continue
+		}
 		auto.Actions = append(auto.Actions, &ActionNotify{
 			Action: "notify.send_message",
 			Data: struct {
@@ -143,7 +151,7 @@ func doNotify(title, message string, auto *Automation) {
 			}{message, title},
 			Target: struct {
 				DeviceID string `json:"device_id,omitempty"`
-			}{DeviceID: v},
+			}{DeviceID: v.DeviceID},
 		})
 	}
 

@@ -160,7 +160,7 @@ func presenceSensorOnKeting(entity, lumen *core.Entity, lxMin, lxMax float64, du
 	}
 	// 2. 先开氛围开关
 	for _, s := range atmosphereSwitches {
-		parallel1["parallel"] = append(parallel1["parallel"], &ActionSwitch{
+		parallel1["parallel"] = append(parallel1["parallel"], &ActionCommon{
 			Type:     "turn_on",
 			DeviceID: s.DeviceID,
 			EntityID: s.EntityID,
@@ -233,7 +233,7 @@ func presenceSensorOnKeting(entity, lumen *core.Entity, lxMin, lxMax float64, du
 	}
 	// 5. 再开非氛围开关
 	for _, s := range normalSwitches {
-		parallel2["parallel"] = append(parallel2["parallel"], &ActionSwitch{
+		parallel2["parallel"] = append(parallel2["parallel"], &ActionCommon{
 			Type:     "turn_on",
 			DeviceID: s.DeviceID,
 			EntityID: s.EntityID,
@@ -317,7 +317,7 @@ func presenceSensorOffKeting(entity *core.Entity) (*Automation, error) {
 	}
 	// 先关非氛围开关
 	for _, s := range normalSwitches {
-		parallel1["parallel"] = append(parallel1["parallel"], &ActionSwitch{
+		parallel1["parallel"] = append(parallel1["parallel"], &ActionCommon{
 			Type:     "turn_off",
 			DeviceID: s.DeviceID,
 			EntityID: s.EntityID,
@@ -348,7 +348,7 @@ func presenceSensorOffKeting(entity *core.Entity) (*Automation, error) {
 	}
 	// 再关氛围开关
 	for _, s := range atmosphereSwitches {
-		parallel2["parallel"] = append(parallel2["parallel"], &ActionSwitch{
+		parallel2["parallel"] = append(parallel2["parallel"], &ActionCommon{
 			Type:     "turn_off",
 			DeviceID: s.DeviceID,
 			EntityID: s.EntityID,
