@@ -68,11 +68,17 @@ func presenceSensorOn(entity *core.Entity) (*Automation, error) {
 				normalSwitches = append(normalSwitches, e)
 			}
 		}
-		if e.Category == core.CategoryLight {
+		if e.Category == core.CategoryLightGroup {
 			if strings.Contains(e.Name, "氛围") {
 				atmosphereLights = append(atmosphereLights, e)
 			} else {
 				normalLights = append(normalLights, e)
+			}
+		}
+
+		if e.Category == core.CategoryLight {
+			if strings.Contains(e.Name, "彩") || strings.Contains(e.Name, "夜灯") {
+				atmosphereLights = append(atmosphereLights, e)
 			}
 		}
 	}
@@ -146,8 +152,8 @@ func presenceSensorOn(entity *core.Entity) (*Automation, error) {
 			continue
 		}
 
-		// 护眼灯特殊逻辑
-		if strings.Contains(l.Name, "护眼") || strings.Contains(l.Name, "夜灯") {
+		// 夜灯特殊逻辑
+		if strings.Contains(l.Name, "夜灯") {
 			parallel2["parallel"] = append(parallel2["parallel"], &ActionLight{
 				Action: "light.turn_on",
 				Data: &actionLightData{
@@ -257,11 +263,17 @@ func presenceSensorOff(entity *core.Entity) (*Automation, error) {
 				normalSwitches = append(normalSwitches, e)
 			}
 		}
-		if e.Category == core.CategoryLight {
+		if e.Category == core.CategoryLightGroup {
 			if strings.Contains(e.Name, "氛围") {
 				atmosphereLights = append(atmosphereLights, e)
 			} else {
 				normalLights = append(normalLights, e)
+			}
+		}
+
+		if e.Category == core.CategoryLight {
+			if strings.Contains(e.Name, "彩") || strings.Contains(e.Name, "夜灯") {
+				atmosphereLights = append(atmosphereLights, e)
 			}
 		}
 	}

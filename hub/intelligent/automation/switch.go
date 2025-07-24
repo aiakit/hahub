@@ -11,7 +11,7 @@ import (
 var lightMap = make(map[string][]*core.Entity)
 
 func switchRule() {
-	light, ok := core.GetEntityCategoryMap()[core.CategoryLight]
+	light, ok := core.GetEntityCategoryMap()[core.CategoryLightGroup]
 	if !ok {
 		return
 	}
@@ -66,7 +66,7 @@ func SwitchOff() {
 
 		var count int
 		for _, l := range lights {
-			if strings.Contains(l.OriginalName, "氛围") || strings.Contains(l.OriginalName, "台灯") || strings.Contains(l.OriginalName, "护眼") {
+			if strings.Contains(l.OriginalName, "氛围") || strings.Contains(l.OriginalName, "台灯") {
 				continue
 			}
 

@@ -175,3 +175,12 @@ func IsAllDigits(str string) bool {
 		return !unicode.IsDigit(r)
 	}) == -1
 }
+func ConvertBrightnessToPercentage(brightness int) int {
+	if brightness <= 0 {
+		return 0
+	} else if brightness >= 255 {
+		return 100
+	}
+
+	return int(float64(brightness)/255.0*100.0 + 0.5)
+}

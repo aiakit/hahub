@@ -20,45 +20,30 @@ type lxConfig struct {
 }
 
 // 区域流明配置
-//var lxAreaConfig = []lxConfig{
-//	{"卫生间", 60, nil},
-//	{"浴室", 61, nil},
-//	{"洗手盆", 49, nil},
-//	{"厨房", 99, nil},
-//	{"餐厅", 98, nil},
-//	{"书房", 97, nil},
-//	{"电竞房", 96, nil},
-//	{"办公室", 95, nil},
-//	{"工作", 94, nil},
-//	{"玄关", 92, nil},
-//	{"茶室", 100, nil},
-//	{"招待", 101, nil},
-//	{"会客", 102, nil},
-//	{"阳台", 91, nil},
-//	{"客厅", 93, nil},
-//	{"卧室", 103, nil},
-//	{"主卧", 104, nil},
-//	{"次卧", 105, nil},
-//	{"小孩房", 106, nil},
-//	{"老人房", 107, nil},
-//	{"客房", 108, nil},
-//	{"厢房", 109, nil},
-//	{"儿童房", 110, nil},
-//}
-
 var lxAreaConfig = []lxConfig{
-	{"卫生", 60, nil},
+	{"卫生间", 60, nil},
+	{"浴室", 61, nil},
+	{"洗手盆", 49, nil},
 	{"厨房", 99, nil},
 	{"餐厅", 98, nil},
-	{"生活", 99, nil},
-	{"休闲", 96, nil},
+	{"书房", 97, nil},
+	{"电竞房", 96, nil},
 	{"办公室", 95, nil},
 	{"工作", 94, nil},
 	{"玄关", 92, nil},
+	{"茶室", 100, nil},
+	{"招待", 101, nil},
+	{"会客", 102, nil},
 	{"阳台", 91, nil},
 	{"客厅", 93, nil},
-	{"公区", 93, nil},
 	{"卧室", 103, nil},
+	{"主卧", 104, nil},
+	{"次卧", 105, nil},
+	{"小孩房", 106, nil},
+	{"老人房", 107, nil},
+	{"客房", 108, nil},
+	{"厢房", 109, nil},
+	{"儿童房", 110, nil},
 }
 
 type lx struct {
@@ -75,12 +60,12 @@ var (
 
 // 自动化配置
 type Automation struct {
-	Alias       string        `json:"alias"`             //自动化名称
-	Description string        `json:"description"`       //自动化描述
-	Triggers    []Triggers    `json:"triggers"`          //触发条件
-	Conditions  []Conditions  `json:"conditions"`        //限制条件
-	Actions     []interface{} `json:"actions,omitempty"` //执行动作
-	Mode        string        `json:"mode"`              //执行模式
+	Alias       string        `json:"alias"`                //自动化名称
+	Description string        `json:"description"`          //自动化描述
+	Triggers    []Triggers    `json:"triggers"`             //触发条件
+	Conditions  []Conditions  `json:"conditions,omitempty"` //限制条件
+	Actions     []interface{} `json:"actions,omitempty"`    //执行动作
+	Mode        string        `json:"mode"`                 //执行模式
 }
 
 // 获取 lxByAreaId 中的值，使用读锁
@@ -227,10 +212,10 @@ type ActionCommon struct {
 
 type ActionService struct {
 	Action string                 `json:"action"`
-	Data   map[string]interface{} `json:"data"`
-	Target struct {
+	Data   map[string]interface{} `json:"data,omitempty"`
+	Target *struct {
 		EntityId string `json:"entity_id"`
-	} `json:"target"`
+	} `json:"target,omitempty"`
 }
 
 type ActionNotify struct {
@@ -286,6 +271,9 @@ func Chaos() {
 
 	//回家
 	initHoming(c)
+
+	//灯光控制
+	lightControl(c)
 
 	//重新缓存一遍数据
 	core.CallService()
@@ -343,6 +331,10 @@ func CreateAutomation(c *ava.Context, automation *Automation) {
 
 	if response.Result != "ok" {
 		c.Errorf("data=%v", core.MustMarshal2String(automation))
+	}
+
+	if strings.Contains(automation.Alias, "布防") || strings.Contains(automation.Alias, "撤防") {
+		return
 	}
 
 	err = TurnOnAutomation(c, finalEntityId)

@@ -21,6 +21,9 @@ func Chaos() {
 	InitSwitch(c)
 
 	InitXinGuang(c)
+
+	//灯光设置
+	lightSceneSetting(c)
 }
 
 type Scene struct {
@@ -36,7 +39,7 @@ type Response struct {
 
 var skipExistAutomation = false //是否跳过相同名称自动化
 var coverExistAutomation = true //是否覆盖名称相关自动化
-func CreateScene(c *ava.Context, scene *Scene) {
+func CreateScene(c *ava.Context, scene *Scene) string {
 	// 自动化名称和实体ID检测，确保唯一
 	alias := scene.Name
 	entityMap := core.GetEntityIdMap()
@@ -52,7 +55,7 @@ func CreateScene(c *ava.Context, scene *Scene) {
 		}
 
 		if entity.OriginalName == alias && skipExistAutomation { //名称相同则不创建
-			return
+			return ""
 		}
 
 		// 名称冲突
@@ -76,13 +79,15 @@ func CreateScene(c *ava.Context, scene *Scene) {
 	err := core.Post(c, fmt.Sprintf(prefixUrlCreateScene, core.GetHassUrl(), finalEntityId), core.GetToken(), scene, &response)
 	if err != nil {
 		c.Error(err)
-		return
+		return ""
 	}
 
 	if response.Result != "ok" {
 		c.Error("result=", response)
 		c.Errorf("data=%v", core.MustMarshal2String(scene))
 	}
+
+	return finalEntityId
 }
 
 // 删除所有场景

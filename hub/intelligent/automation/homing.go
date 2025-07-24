@@ -22,11 +22,10 @@ func homing() *Automation {
 		Description: "门锁打开/或者开关按键触发用或条件，判断客厅所有灯是否打开，存在传感器是否检车到人",
 		Mode:        "single",
 	}
-	//触发条件
 
 	//检查全屋灯是否打开
 	func() {
-		entities, ok := core.GetEntityCategoryMap()[core.CategoryLight]
+		entities, ok := core.GetEntityCategoryMap()[core.CategoryLightGroup]
 		if ok {
 			for _, e := range entities {
 				automation.Conditions = append(automation.Conditions, Conditions{
@@ -133,7 +132,7 @@ func homing() *Automation {
 	func() {
 		var parallel = make(map[string][]interface{})
 
-		entities, ok := core.GetEntityCategoryMap()[core.CategoryLight]
+		entities, ok := core.GetEntityCategoryMap()[core.CategoryLightGroup]
 		if ok {
 			//先开氛围灯
 			for _, v := range entities {
@@ -341,7 +340,7 @@ func homing() *Automation {
 		automation.Actions = append(automation.Actions, &ActionService{
 			Action: "automation.turn_off",
 			Data:   map[string]interface{}{"stop_actions": true},
-			Target: struct {
+			Target: &struct {
 				EntityId string `json:"entity_id"`
 			}{EntityId: "automation.li_jia_bu_fang"},
 		})

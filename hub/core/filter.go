@@ -8,19 +8,19 @@ import (
 var LxArea = make(map[string]*Entity)
 
 const (
-	CategoryXiaomiHomeSpeaker = "xiaomi_home_speaker" // 小米音箱
-	CategoryXiaomiMiotSpeaker = "xiaomi_miot_speaker" // 小米MIOT音箱
-	CategoryAppleTV           = "apple_tv"            // Apple TV
-	CategoryAirConditioner    = "air_conditioner"     // 空调
-	CategoryVirtualEvent      = "virtual_event"       // 虚拟事件
-	CategorySwitch            = "switch"              // 开关
-	CategoryWiredSwitch       = "wired_switch"        // 有线开关
-	CategorySwitchSenorSingle = "senor_switch"        // 开关传感器
-	CategorySwitchToggle      = "toggle_switch"       // 开关切换
-	CategorySwitchMode        = "switch_mode"         // 开关模式：判断有线开关和无线开关
-	CategoryLight             = "light"               // 灯
-	CategoryXinGuang          = "xinguang"            // 灯
-	//CategoryLightGroup          = "light_group"             // 灯组
+	CategoryXiaomiHomeSpeaker   = "xiaomi_home_speaker"     // 小米音箱
+	CategoryXiaomiMiotSpeaker   = "xiaomi_miot_speaker"     // 小米MIOT音箱
+	CategoryAppleTV             = "apple_tv"                // Apple TV
+	CategoryAirConditioner      = "air_conditioner"         // 空调
+	CategoryVirtualEvent        = "virtual_event"           // 虚拟事件
+	CategorySwitch              = "switch"                  // 开关
+	CategoryWiredSwitch         = "wired_switch"            // 有线开关
+	CategorySwitchSenorSingle   = "senor_switch"            // 开关传感器
+	CategorySwitchToggle        = "toggle_switch"           // 开关切换
+	CategorySwitchMode          = "switch_mode"             // 开关模式：判断有线开关和无线开关
+	CategoryLight               = "light"                   // 灯
+	CategoryXinGuang            = "xinguang"                // 灯
+	CategoryLightGroup          = "light_group"             // 灯组
 	CategoryCurtain             = "curtain"                 // 窗帘
 	CategoryHumanPresenceSensor = "human_presence_sensor"   // 存在传感器
 	CategorySocket              = "socket"                  // 插座
@@ -154,7 +154,11 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 
 		// 4.2开关切换
 		if strings.Contains(name, "开关状态切换") && strings.Contains(e.EntityID, "button.") && strings.Contains(e.EntityID, "_toggle_") {
-			category = CategorySwitchToggle
+			if v := deviceMap[e.DeviceID]; v != nil {
+				if strings.Contains(v.Model, ".switch.") {
+					category = CategorySwitchToggle
+				}
+			}
 		}
 
 		// 5. 灯
@@ -163,9 +167,9 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 		}
 
 		////5.1 灯组
-		//if strings.HasPrefix(id, "light.") && strings.Contains(e.EntityID, "_group_") {
-		//	category = CategoryLightGroup
-		//}
+		if strings.HasPrefix(id, "light.") && strings.Contains(e.EntityID, "_group_") {
+			category = CategoryLightGroup
+		}
 
 		// 6. 窗帘
 		if strings.Contains(name, "帘") && strings.HasPrefix(id, "cover.") && (strings.Contains(e.OriginalName, "关闭") || strings.Contains(e.OriginalName, "打开")) {
