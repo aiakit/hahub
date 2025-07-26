@@ -56,21 +56,21 @@ func homing() *Automation {
 			}
 		}
 	}()
-	//开关状态切换
-	func() {
-		entities, ok := core.GetEntityCategoryMap()[core.CategorySwitchToggle]
-		if ok {
-			for _, e := range entities {
-				if strings.Contains(e.OriginalName, "回家") {
-					automation.Triggers = append(automation.Triggers, Triggers{
-						EntityID: e.EntityID,
-						Trigger:  "state",
-					})
-				}
-			}
-		}
-
-	}()
+	//开关状态切换,转无线模式下不能触发
+	//func() {
+	//	entities, ok := core.GetEntityCategoryMap()[core.CategorySwitchToggle]
+	//	if ok {
+	//		for _, e := range entities {
+	//			if strings.Contains(e.OriginalName, "回家") {
+	//				automation.Triggers = append(automation.Triggers, Triggers{
+	//					EntityID: e.EntityID,
+	//					Trigger:  "state",
+	//				})
+	//			}
+	//		}
+	//	}
+	//
+	//}()
 
 	//条件：名字中带有“回家”的开关按键被按下,这个是单击事件，缺点是自动化不能作为动作
 	/*
@@ -85,48 +85,37 @@ func homing() *Automation {
 		    attribute: 按键类型
 		    state: 3
 	*/
-	//func() {
-	//	entitiesSenor, ok1 := core.GetEntityCategoryMap()[core.CategorySwitchSenorSingle]
-	//	entitiesSwitch, ok2 := core.GetEntityCategoryMap()[core.CategorySwitch]
-	//	if ok1 && ok2 {
-	//		for _, e := range entitiesSwitch {
-	//
-	//			if strings.Contains(e.OriginalName, "回家") {
-	//				var entityId string
-	//				var seqButton int
-	//
-	//				for _, e1 := range entitiesSenor {
-	//					if e1.DeviceID == e.DeviceID {
-	//						entityId = e1.EntityID
-	//						switch {
-	//						case strings.Contains(e1.OriginalName, "按键1"):
-	//							seqButton = 1
-	//						case strings.Contains(e1.OriginalName, "按键2"):
-	//							seqButton = 2
-	//						case strings.Contains(e1.OriginalName, "按键3"):
-	//							seqButton = 3
-	//						case strings.Contains(e1.OriginalName, "按键4"):
-	//							seqButton = 4
-	//						default:
-	//							break
-	//						}
-	//					}
-	//				}
-	//
-	//				if seqButton > 0 {
-	//					//找到按键
-	//					automation.Triggers = append(automation.Triggers, Triggers{
-	//						EntityID: entityId,
-	//						DeviceID: e.DeviceID,
-	//						Domain:   "button",
-	//						Trigger:  "device",
-	//						Type:     "pressed",
-	//					})
-	//				}
-	//			}
-	//		}
-	//	}
-	//}()
+	//开关单击事件是否有这个场景
+	func() {
+		entitiesSenor, ok1 := core.GetEntityCategoryMap()[core.CategorySwitchScene]
+		if ok1 {
+			for _, e := range entitiesSenor {
+				if strings.Contains(e.OriginalName, "回家") {
+					//找到按键
+					automation.Triggers = append(automation.Triggers, Triggers{
+						EntityID: e.EntityID,
+						Trigger:  "state",
+					})
+				}
+			}
+		}
+	}()
+
+	//场景按键是否有这个场景
+	func() {
+		entities, ok := core.GetEntityCategoryMap()[core.CategoryScene]
+		if ok {
+			for _, e := range entities {
+				if strings.Contains(e.OriginalName, "回家") {
+					automation.Triggers = append(automation.Triggers, Triggers{
+						EntityID: e.EntityID,
+						Trigger:  "state",
+					})
+				}
+			}
+		}
+
+	}()
 
 	//打开客厅所有灯
 	func() {
@@ -137,7 +126,7 @@ func homing() *Automation {
 			//先开氛围灯
 			for _, v := range entities {
 				if strings.Contains(v.AreaName, "客厅") {
-					if strings.Contains(v.Name, "氛围") {
+					if strings.Contains(v.DeviceName, "氛围") {
 						parallel["parallel"] = append(parallel["parallel"], &ActionLight{
 							Action: "light.turn_on",
 							Data: &actionLightData{
@@ -153,7 +142,7 @@ func homing() *Automation {
 
 			for _, v := range entities {
 				if strings.Contains(v.AreaName, "客厅") {
-					if !strings.Contains(v.Name, "氛围") {
+					if !strings.Contains(v.DeviceName, "氛围") {
 						parallel["parallel"] = append(parallel["parallel"], &ActionLight{
 							Action: "light.turn_on",
 							Data: &actionLightData{

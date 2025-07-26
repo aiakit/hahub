@@ -62,14 +62,14 @@ func presenceSensorOn(entity *core.Entity) (*Automation, error) {
 
 	for _, e := range entities {
 		if e.Category == core.CategoryWiredSwitch && !strings.HasPrefix(e.EntityID, "button.") {
-			if strings.Contains(e.Name, "氛围") {
+			if strings.Contains(e.DeviceName, "氛围") {
 				atmosphereSwitches = append(atmosphereSwitches, e)
 			} else {
 				normalSwitches = append(normalSwitches, e)
 			}
 		}
 		if e.Category == core.CategoryLightGroup {
-			if strings.Contains(e.Name, "氛围") {
+			if strings.Contains(e.DeviceName, "氛围") {
 				atmosphereLights = append(atmosphereLights, e)
 			} else {
 				normalLights = append(normalLights, e)
@@ -77,7 +77,7 @@ func presenceSensorOn(entity *core.Entity) (*Automation, error) {
 		}
 
 		if e.Category == core.CategoryLight {
-			if strings.Contains(e.Name, "彩") || strings.Contains(e.Name, "夜灯") {
+			if strings.Contains(e.DeviceName, "彩") || strings.Contains(e.DeviceName, "夜灯") {
 				atmosphereLights = append(atmosphereLights, e)
 			}
 		}
@@ -96,7 +96,7 @@ func presenceSensorOn(entity *core.Entity) (*Automation, error) {
 			Target: &targetLightData{DeviceId: l.DeviceID},
 		}
 
-		if strings.Contains(l.Name, "彩") {
+		if strings.Contains(l.DeviceName, "彩") {
 			act.Data = &actionLightData{}
 		}
 
@@ -126,11 +126,11 @@ func presenceSensorOn(entity *core.Entity) (*Automation, error) {
 	var parallel2 = make(map[string][]interface{})
 	// 4. 再开非氛围灯
 	for _, l := range normalLights {
-		if strings.Contains(l.Name, "馨光") && strings.Contains(l.Name, "主机") {
+		if strings.Contains(l.DeviceName, "馨光") && strings.Contains(l.DeviceName, "主机") {
 			continue
 		}
 
-		if strings.Contains(l.Name, "馨光") && !strings.Contains(l.Name, "主机") {
+		if strings.Contains(l.DeviceName, "馨光") && !strings.Contains(l.DeviceName, "主机") {
 			//改为静态模式,不能并行执行，必须优先执行
 			actions = append(actions, &ActionLight{
 				DeviceID: l.DeviceID,
@@ -153,7 +153,7 @@ func presenceSensorOn(entity *core.Entity) (*Automation, error) {
 		}
 
 		// 夜灯特殊逻辑
-		if strings.Contains(l.Name, "夜灯") {
+		if strings.Contains(l.DeviceName, "夜灯") {
 			parallel2["parallel"] = append(parallel2["parallel"], &ActionLight{
 				Action: "light.turn_on",
 				Data: &actionLightData{
@@ -257,14 +257,14 @@ func presenceSensorOff(entity *core.Entity) (*Automation, error) {
 	}
 	for _, e := range entities {
 		if e.Category == core.CategoryWiredSwitch && !strings.HasPrefix(e.EntityID, "button.") {
-			if strings.Contains(e.Name, "氛围") {
+			if strings.Contains(e.DeviceName, "氛围") {
 				atmosphereSwitches = append(atmosphereSwitches, e)
 			} else {
 				normalSwitches = append(normalSwitches, e)
 			}
 		}
 		if e.Category == core.CategoryLightGroup {
-			if strings.Contains(e.Name, "氛围") {
+			if strings.Contains(e.DeviceName, "氛围") {
 				atmosphereLights = append(atmosphereLights, e)
 			} else {
 				normalLights = append(normalLights, e)
@@ -272,7 +272,7 @@ func presenceSensorOff(entity *core.Entity) (*Automation, error) {
 		}
 
 		if e.Category == core.CategoryLight {
-			if strings.Contains(e.Name, "彩") || strings.Contains(e.Name, "夜灯") {
+			if strings.Contains(e.DeviceName, "彩") || strings.Contains(e.DeviceName, "夜灯") {
 				atmosphereLights = append(atmosphereLights, e)
 			}
 		}

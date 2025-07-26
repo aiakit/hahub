@@ -28,10 +28,10 @@ func switchMode(entities []*core.Entity) *Scene {
 
 	for _, v := range entities {
 		option := "有线和无线开关"
-		if !strings.Contains(v.Name, "#") {
+		if !strings.Contains(v.DeviceName, "#") {
 			option = "无线开关"
 		}
-		if strings.Contains(v.Name, "#") {
+		if strings.Contains(v.DeviceName, "#") {
 			option = "有线和无线开关"
 		}
 		en[v.EntityID] = map[string]interface{}{

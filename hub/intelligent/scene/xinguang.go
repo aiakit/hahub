@@ -79,7 +79,7 @@ func InitModeOne(c *ava.Context) *Scene {
 	var meta = make(map[string]interface{})
 
 	for _, e := range entities {
-		if !strings.Contains(e.Name, "主机") {
+		if !strings.Contains(e.DeviceName, "主机") {
 			continue
 		}
 		var enTmp = make(map[string]interface{})
@@ -118,7 +118,7 @@ func InitModeOne(c *ava.Context) *Scene {
 
 	//灯带设置
 	for _, e := range entities {
-		if strings.Contains(e.Name, "主机") {
+		if strings.Contains(e.DeviceName, "主机") {
 			continue
 		}
 
@@ -182,7 +182,7 @@ func InitModeTwo(c *ava.Context) *Scene {
 	var meta = make(map[string]interface{})
 
 	for _, e := range entities {
-		if !strings.Contains(e.Name, "主机") {
+		if !strings.Contains(e.DeviceName, "主机") {
 			continue
 		}
 
@@ -226,7 +226,7 @@ func InitModeTwo(c *ava.Context) *Scene {
 
 	//灯带设置
 	for _, e := range entities {
-		if strings.Contains(e.Name, "主机") {
+		if strings.Contains(e.DeviceName, "主机") {
 			continue
 		}
 
@@ -289,7 +289,7 @@ func InitModeThree(c *ava.Context) *Scene {
 	var meta = make(map[string]interface{})
 
 	for _, e := range entities {
-		if !strings.Contains(e.Name, "主机") {
+		if !strings.Contains(e.DeviceName, "主机") {
 			continue
 		}
 		var enTmp = make(map[string]interface{})
@@ -322,7 +322,7 @@ func InitModeThree(c *ava.Context) *Scene {
 
 	//灯带设置
 	for _, e := range entities {
-		if strings.Contains(e.Name, "主机") {
+		if strings.Contains(e.DeviceName, "主机") {
 			continue
 		}
 
@@ -373,14 +373,14 @@ func InitModeThree(c *ava.Context) *Scene {
 //	}
 //
 //	var s = &Scene{
-//		Name: "馨光彩光模式",
+//		DeviceName: "馨光彩光模式",
 //	}
 //
 //	var en = make(map[string]interface{})
 //	var meta = make(map[string]interface{})
 //
 //	for _, e := range entities {
-//		if !strings.Contains(e.Name, "主机") {
+//		if !strings.Contains(e.DeviceName, "主机") {
 //			continue
 //		}
 //		var enTmp = make(map[string]interface{})
@@ -418,7 +418,7 @@ func InitModeThree(c *ava.Context) *Scene {
 //
 //	//灯带设置
 //	for _, e := range entities {
-//		if strings.Contains(e.Name, "主机") {
+//		if strings.Contains(e.DeviceName, "主机") {
 //			continue
 //		}
 //

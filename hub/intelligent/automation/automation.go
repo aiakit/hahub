@@ -68,6 +68,17 @@ type Automation struct {
 	Mode        string        `json:"mode"`                 //执行模式
 }
 
+type IfThenELSEAction struct {
+	If   []ifCondition `json:"if"`
+	Then []interface{} `json:"then"`
+	Else []interface{} `json:"else,omitempty"`
+}
+
+type ifCondition struct {
+	Condition  string        `json:"condition"`
+	Conditions []interface{} `json:"conditions"`
+}
+
 // 获取 lxByAreaId 中的值，使用读锁
 func getLxConfig(areaId string) *lx {
 	lxLock.RLock()
@@ -149,17 +160,21 @@ func initEntityIdByLx(c *ava.Context) {
 }
 
 type Triggers struct {
-	Type     string  `json:"type,omitempty"`
-	DeviceID string  `json:"device_id,omitempty"`
-	EntityID string  `json:"entity_id"`
-	Domain   string  `json:"domain,omitempty"`
-	Trigger  string  `json:"trigger"`
-	Above    float64 `json:"above,omitempty"`
-	Below    float64 `json:"below,omitempty"`
-	For      *For    `json:"for,omitempty"`
+	Condition string      `json:"condition,omitempty"`
+	Type      string      `json:"type,omitempty"`
+	DeviceID  string      `json:"device_id,omitempty"`
+	EntityID  string      `json:"entity_id,omitempty"`
+	State     interface{} `json:"state,omitempty"`
+	Domain    string      `json:"domain,omitempty"`
+	Trigger   string      `json:"trigger,omitempty"`
+	Attribute string      `json:"attribute,omitempty"`
+	Above     float64     `json:"above,omitempty"`
+	Below     float64     `json:"below,omitempty"`
+	For       *For        `json:"for,omitempty"`
 }
 
 type Conditions struct {
+	Attribute      string        `json:"attribute,omitempty"`
 	Condition      string        `json:"condition,omitempty"`
 	Type           string        `json:"type,omitempty"`
 	DeviceID       string        `json:"device_id,omitempty"`
@@ -172,7 +187,7 @@ type Conditions struct {
 	Before         string        `json:"before,omitempty"`
 	Weekday        []string      `json:"weekday,omitempty"`
 	ConditionChild []interface{} `json:"conditions,omitempty"`
-	State          string        `json:"state,omitempty"`
+	State          interface{}   `json:"state,omitempty"`
 }
 
 type For struct {

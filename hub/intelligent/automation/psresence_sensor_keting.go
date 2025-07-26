@@ -104,12 +104,12 @@ func presenceSensorOnKeting(entity, lumen *core.Entity, lxMin, lxMax float64, du
 
 	for _, e := range entities {
 		if e.Category == core.CategoryWiredSwitch && !strings.HasPrefix(e.EntityID, "button.") {
-			if strings.Contains(e.Name, "氛围") {
+			if strings.Contains(e.DeviceName, "氛围") {
 				atmosphereSwitches = append(atmosphereSwitches, e)
 			} else {
 				var exist bool
 				for k, d := range during {
-					if (strings.Contains(e.Name, d) || d == "所有") && !strings.Contains(e.Name, "氛围") {
+					if (strings.Contains(e.DeviceName, d) || d == "所有") && !strings.Contains(e.DeviceName, "氛围") {
 						exist = true
 					}
 					if k == len(during)-1 {
@@ -122,12 +122,12 @@ func presenceSensorOnKeting(entity, lumen *core.Entity, lxMin, lxMax float64, du
 			}
 		}
 		if e.Category == core.CategoryLightGroup {
-			if strings.Contains(e.Name, "氛围") {
+			if strings.Contains(e.DeviceName, "氛围") {
 				atmosphereLights = append(atmosphereLights, e)
 			} else {
 				var exist bool
 				for k, d := range during {
-					if (strings.Contains(e.Name, d) || d == "所有") && !strings.Contains(e.Name, "氛围") {
+					if (strings.Contains(e.DeviceName, d) || d == "所有") && !strings.Contains(e.DeviceName, "氛围") {
 						exist = true
 					}
 					if k == len(during)-1 {
@@ -141,7 +141,7 @@ func presenceSensorOnKeting(entity, lumen *core.Entity, lxMin, lxMax float64, du
 		}
 
 		if e.Category == core.CategoryLight {
-			if strings.Contains(e.Name, "彩") || strings.Contains(e.Name, "夜灯") {
+			if strings.Contains(e.DeviceName, "彩") || strings.Contains(e.DeviceName, "夜灯") {
 				atmosphereLights = append(atmosphereLights, e)
 			}
 		}
@@ -190,11 +190,11 @@ func presenceSensorOnKeting(entity, lumen *core.Entity, lxMin, lxMax float64, du
 	for _, l := range normalLights {
 
 		//不打开主机
-		if strings.Contains(l.Name, "馨光") && strings.Contains(l.Name, "主机") {
+		if strings.Contains(l.DeviceName, "馨光") && strings.Contains(l.DeviceName, "主机") {
 			continue
 		}
 
-		if strings.Contains(l.Name, "馨光") && !strings.Contains(l.Name, "主机") {
+		if strings.Contains(l.DeviceName, "馨光") && !strings.Contains(l.DeviceName, "主机") {
 			//改为静态模式
 			actions = append(actions, &ActionLight{
 				DeviceID: l.DeviceID,
@@ -216,7 +216,7 @@ func presenceSensorOnKeting(entity, lumen *core.Entity, lxMin, lxMax float64, du
 			continue
 		}
 
-		if strings.Contains(l.Name, "夜灯") {
+		if strings.Contains(l.DeviceName, "夜灯") {
 			parallel2["parallel"] = append(parallel2["parallel"], &ActionLight{
 				Action: "light.turn_on",
 				Data: &actionLightData{
@@ -294,14 +294,14 @@ func presenceSensorOffKeting(entity *core.Entity) (*Automation, error) {
 	}
 	for _, e := range entities {
 		if e.Category == core.CategoryWiredSwitch && !strings.HasPrefix(e.EntityID, "button.") {
-			if strings.Contains(e.Name, "氛围") {
+			if strings.Contains(e.DeviceName, "氛围") {
 				atmosphereSwitches = append(atmosphereSwitches, e)
 			} else {
 				normalSwitches = append(normalSwitches, e)
 			}
 		}
 		if e.Category == core.CategoryLightGroup {
-			if strings.Contains(e.Name, "氛围") {
+			if strings.Contains(e.DeviceName, "氛围") {
 				atmosphereLights = append(atmosphereLights, e)
 			} else {
 				normalLights = append(normalLights, e)
@@ -309,7 +309,7 @@ func presenceSensorOffKeting(entity *core.Entity) (*Automation, error) {
 		}
 
 		if e.Category == core.CategoryLight {
-			if strings.Contains(e.Name, "彩") || strings.Contains(e.Name, "夜灯") {
+			if strings.Contains(e.DeviceName, "彩") || strings.Contains(e.DeviceName, "夜灯") {
 				atmosphereLights = append(atmosphereLights, e)
 			}
 		}

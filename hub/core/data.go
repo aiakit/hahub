@@ -181,10 +181,11 @@ type Entity struct {
 	Platform     string `json:"platform"`      //产自什么平台
 	UniqueID     string `json:"unique_id"`     //唯一id
 
-	Category string `json:"category"`  //设备类型
-	AreaID   string `json:"area_id"`   //区域id
-	AreaName string `json:"area_name"` //区域名称
-	Name     string `json:"name"`      //设备名称（从设备数据获取）
+	Category   string `json:"category"`    //设备类型
+	AreaID     string `json:"area_id"`     //区域id
+	AreaName   string `json:"area_name"`   //区域名称
+	DeviceName string `json:"device_name"` //设备名称（从设备数据获取）
+	Name       string `json:"name"`        //修改名称之后，ha会用这个字段表示名称,ha修改OriginalName
 }
 
 var callbackEntityMap = make([]func(e *Entity), 0)

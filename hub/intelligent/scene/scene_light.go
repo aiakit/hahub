@@ -44,16 +44,16 @@ func lightScene(c *ava.Context, simpleName string, brightness, kelvin int) {
 
 	for areaId, v := range entities {
 		areaName := core.SpiltAreaName(core.GetAreaName(areaId))
-		
+
 		// 检查是否是客厅区域或者卧室区域
 		isLivingRoom := strings.Contains(areaName, "客厅")
 		isBedroom := strings.Contains(areaName, "卧室")
-		
+
 		// 如果不是客厅也不是卧室，则跳过
 		if !isLivingRoom && !isBedroom {
 			continue
 		}
-		
+
 		// 检查当前区域是否有灯组，如果没有则不创建场景
 		hasLightGroup := false
 		for _, e := range v {
@@ -62,12 +62,12 @@ func lightScene(c *ava.Context, simpleName string, brightness, kelvin int) {
 				break
 			}
 		}
-		
+
 		// 如果没有灯组，则不创建任何场景
 		if !hasLightGroup {
 			continue
 		}
-		
+
 		// 如果是卧室区域，检查是否是限定的场景
 		if isBedroom {
 			if !bedroomScenes[simpleName] {
@@ -80,13 +80,16 @@ func lightScene(c *ava.Context, simpleName string, brightness, kelvin int) {
 		var meta = make(map[string]interface{})
 		var switchEntityId string
 		var scene = &Scene{}
-		
+
 		//先找开关按键名称
 		for _, e := range v {
 			//判断当前区域是否有开关命名中带有simpleName的
-			if e.Category == core.CategorySwitchToggle && strings.Contains(e.OriginalName, simpleName) {
-				switchEntityId = e.EntityID
-				break
+			if e.Category == core.CategorySwitchScene {
+				if strings.Contains(e.OriginalName, simpleName) {
+					switchEntityId = e.EntityID
+					break
+				}
+
 			}
 		}
 
@@ -104,17 +107,29 @@ func lightScene(c *ava.Context, simpleName string, brightness, kelvin int) {
 			}
 
 			if e1.Category == core.CategoryLight {
-				if strings.Contains(e1.Name, "彩") || strings.Contains(e1.Name, "夜灯") {
+				if strings.Contains(e1.DeviceName, "彩") {
 					en[e1.EntityID] = map[string]interface{}{
-						"state":      "on",
-						"brightness": core.ConvertBrightnessToPercentage(brightness),
-						//"color_temp_kelvin": kelvin,
+						"state":         "on",
+						"brightness":    core.ConvertBrightnessToPercentage(brightness),
 						"friendly_name": e1.OriginalName,
 					}
 					meta[e1.EntityID] = map[string]interface{}{
 						"entity_only": true,
 					}
 				}
+
+				if strings.Contains(e1.DeviceName, "夜灯") {
+					en[e1.EntityID] = map[string]interface{}{
+						"state":             "on",
+						"brightness":        core.ConvertBrightnessToPercentage(brightness),
+						"color_temp_kelvin": kelvin,
+						"friendly_name":     e1.OriginalName,
+					}
+					meta[e1.EntityID] = map[string]interface{}{
+						"entity_only": true,
+					}
+				}
+
 			}
 		}
 
