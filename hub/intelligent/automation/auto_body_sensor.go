@@ -261,7 +261,6 @@ func bodySensorOn(entity *core.Entity) (*Automation, error) {
 	areaName := core.SpiltAreaName(entity.AreaName)
 	sensorPrefixStr := prefix
 
-	//todo 需要买一个人体传感器才能测试occupied
 	triggerType := "occupied"
 	triggerDomain := "binary_sensor"
 	triggerTrigger := "device"
