@@ -15,7 +15,7 @@ const (
 	CategoryVirtualEvent      = "virtual_event"       // 虚拟事件
 	CategorySwitch            = "switch"              // 开关
 	CategoryWiredSwitch       = "wired_switch"        // 有线开关
-	CategorySwitchSenorSingle = "senor_switch"        // 开关传感器
+	CategorySwitchClickOnce   = "click_once_switch"   // 开关传感器,单击事件
 	CategorySwitchScene       = "scene_switch"        // 开关场景按键
 	//CategorySwitchToggle        = "toggle_switch"           // 开关切换
 	CategorySwitchMode          = "switch_mode"             // 开关模式：判断有线开关和无线开关
@@ -148,7 +148,7 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 		if strings.Contains(orgName, "开关传感器 单击") && strings.Contains(e.EntityID, "event.") {
 			if v := deviceMap[e.DeviceID]; v != nil {
 				if strings.Contains(v.Model, ".switch.") {
-					category = CategorySwitchSenorSingle
+					category = CategorySwitchClickOnce
 				}
 			}
 		}
@@ -183,7 +183,7 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 		}
 
 		// 6. 窗帘
-		if strings.Contains(orgName, "帘") && strings.HasPrefix(id, "cover.") && (strings.Contains(e.OriginalName, "关闭") || strings.Contains(e.OriginalName, "打开")) {
+		if strings.Contains(orgName, "窗帘") && strings.HasPrefix(id, "cover.") {
 			category = CategoryCurtain
 		}
 

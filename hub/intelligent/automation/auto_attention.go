@@ -19,14 +19,15 @@ func attention(c *ava.Context) {
 			CreateAutomation(c, auto)
 		}
 
-		if entity.Category == core.CategoryFire {
-			auto, err := fire(entity)
-			if err != nil {
-				c.Error(err)
-				continue
-			}
-			CreateAutomation(c, auto)
-		}
+		//todo 每次启动会播放，先暂停使
+		//if entity.Category == core.CategoryFire {
+		//	auto, err := fire(entity)
+		//	if err != nil {
+		//		c.Error(err)
+		//		continue
+		//	}
+		//	CreateAutomation(c, auto)
+		//}
 
 		if entity.Category == core.CategoryWater {
 			auto, err := water(entity)

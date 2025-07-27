@@ -100,3 +100,89 @@ func SwitchOff() {
 		}
 	}
 }
+
+// var switchSelectSceneSwitchMap = make(map[string][]*switchSelect) //key:areaID
+// var switchSelectClickOneMap = make(map[string][]*switchSelect)    //key:areaID
+var switchSelectSameName = make(map[string][]*switchSelect) //key:click once button name or scene button name
+
+// 开关选择:场景按键，开关按键
+type switchSelect struct {
+	ButtonName string `json:"button_name"`
+	Category   string `json:"category"`
+	EntityID   string `json:"entity_id"`
+	DeviceID   string `json:"device_id"`
+	SeqButton  int    `json:"seq_button"`
+	AreaID     string `json:"area_id"`
+	AreaName   string `json:"area_name"`
+	Attribute  string `json:"attribute"`
+}
+
+func InitSwitchSelect(c *ava.Context) {
+
+	entities := core.GetEntityAreaMap()
+	for areaID, v := range entities {
+		for _, e := range v {
+			if e.Category != core.CategorySwitchScene && e.Category != core.CategorySwitchClickOnce {
+				continue
+			}
+
+			areaName := core.SpiltAreaName(core.GetAreaName(areaID))
+			bn := strings.Trim(e.Name, " ")
+
+			//如果是场景开关
+			if e.Category == core.CategorySwitchScene {
+				var ss = &switchSelect{
+					ButtonName: bn,
+					Category:   core.CategorySwitchScene,
+					EntityID:   e.EntityID,
+					DeviceID:   e.DeviceID,
+					SeqButton:  0,
+					AreaID:     areaID,
+					AreaName:   areaName,
+				}
+				key := areaID + "_" + bn
+				switchSelectSameName[key] = append(switchSelectSameName[key], ss)
+			}
+
+			//如果是开关按键
+			if e.Category == core.CategorySwitchClickOnce {
+				name := strings.Split(e.OriginalName, " ")
+				var ss = &switchSelect{
+					Category: core.CategorySwitchClickOnce,
+					EntityID: e.EntityID,
+					DeviceID: e.EntityID,
+					AreaID:   areaID,
+					AreaName: areaName,
+				}
+
+				for _, v1 := range name {
+					if v1 != " " && v1 != "" {
+						ss.ButtonName = v1
+						break
+					}
+				}
+
+				switch {
+				case strings.Contains(e.OriginalName, "按键1"):
+					ss.SeqButton = 1
+				case strings.Contains(e.OriginalName, "按键2"):
+					ss.SeqButton = 2
+				case strings.Contains(e.OriginalName, "按键3"):
+					ss.SeqButton = 3
+				case strings.Contains(e.OriginalName, "按键4"):
+					ss.SeqButton = 4
+				default:
+					break
+				}
+
+				if ss.SeqButton > 0 {
+					ss.Attribute = "按键类型"
+				}
+
+				key := areaID + "_" + ss.ButtonName
+
+				switchSelectSameName[key] = append(switchSelectSameName[key], ss)
+			}
+		}
+	}
+}

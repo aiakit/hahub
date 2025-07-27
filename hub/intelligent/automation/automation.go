@@ -142,7 +142,7 @@ func initEntityIdByLx(c *ava.Context) {
 					lxByAreaId[areaId] = &lx{
 						EntityId: currentConfig.l.EntityId,
 						Lx:       lux,
-						AreaName: core.GetAreaName(areaId),
+						AreaName: core.SpiltAreaName(core.GetAreaName(areaId)),
 						ByArea:   currentConfig.l.AreaName,
 					}
 					break
@@ -209,13 +209,15 @@ type ActionLight struct {
 }
 
 type actionLightData struct {
-	ColorTempKelvin int     `json:"color_temp_kelvin,omitempty"`
-	BrightnessPct   float64 `json:"brightness_pct,omitempty"`
-	RgbColor        []int   `json:"rgb_color,omitempty"`
+	ColorTempKelvin int         `json:"color_temp_kelvin,omitempty"`
+	BrightnessPct   float64     `json:"brightness_pct,omitempty"`
+	RgbColor        []int       `json:"rgb_color,omitempty"`
+	State           interface{} `json:"state,omitempty"`
 }
 
 type targetLightData struct {
-	DeviceId string `json:"device_id"`
+	DeviceId string `json:"device_id,omitempty"`
+	EntityId string `json:"entity_id,omitempty"`
 }
 
 type ActionCommon struct {
@@ -223,6 +225,7 @@ type ActionCommon struct {
 	DeviceID string `json:"device_id,omitempty"`
 	EntityID string `json:"entity_id,omitempty"`
 	Domain   string `json:"domain,omitempty"`
+	//Action   string `json:"action,omitempty"`
 }
 
 type ActionService struct {
@@ -279,13 +282,10 @@ func Chaos() {
 	walkPresenceSensorKeting(c)
 
 	//布防
-	arm(c)
+	defense(c)
 
 	//警报
 	attention(c)
-
-	//回家
-	initHoming(c)
 
 	//灯光控制
 	lightControl(c)
@@ -345,7 +345,7 @@ func CreateAutomation(c *ava.Context, automation *Automation) {
 	}
 
 	if response.Result != "ok" {
-		c.Errorf("data=%v", core.MustMarshal2String(automation))
+		c.Errorf("data=%v |data=%s", core.MustMarshal2String(automation), core.MustMarshal2String(&response))
 	}
 
 	if strings.Contains(automation.Alias, "布防") || strings.Contains(automation.Alias, "撤防") {
