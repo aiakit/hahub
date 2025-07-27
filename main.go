@@ -16,8 +16,7 @@ func main() {
 	//必须先创建脚本再创建自动化
 	automation.ScriptChaos()
 
-	//scene.Chaos()
-	//automation.Chaos()
+	automation.Chaos()
 	ava.Debugf("Starting Hahub ok! |latency=%.2fs", time.Since(now).Seconds())
 	select {}
 }
