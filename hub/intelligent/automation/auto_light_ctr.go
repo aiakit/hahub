@@ -73,6 +73,10 @@ func lightControl(c *ava.Context) {
 
 					actionsOn = append(actionsOn, ActionLight{
 						Action: "light.turn_on",
+						Data: &actionLightData{
+							ColorTempKelvin: 4500,
+							BrightnessPct:   100,
+						},
 						Target: &targetLightData{DeviceId: l.DeviceID},
 					})
 					actionsOff = append(actionsOff, ActionLight{
@@ -91,6 +95,10 @@ func lightControl(c *ava.Context) {
 					})
 					actionsOn = append(actionsOn, ActionLight{
 						Action: "light.turn_on",
+						Data: &actionLightData{
+							ColorTempKelvin: 4500,
+							BrightnessPct:   100,
+						},
 						Target: &targetLightData{DeviceId: l.DeviceID},
 					})
 					actionsOff = append(actionsOff, ActionLight{
