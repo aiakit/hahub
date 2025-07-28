@@ -2,6 +2,7 @@ package automation
 
 import (
 	"hahub/hub/core"
+	"strings"
 
 	"github.com/aiakit/ava"
 )
@@ -31,27 +32,19 @@ func dimmmingReduce(c *ava.Context) {
 				continue
 			}
 
-			var act IfThenELSEAction
-			var conditions []interface{}
-			conditions = append(conditions, Conditions{
-				EntityID:  en.EntityID,
-				State:     "on",
-				Condition: "state",
-			})
-			act.If = append(act.If, ifCondition{
-				Condition:  "and",
-				Conditions: conditions,
-			})
+			if en.Category == core.CategoryLight {
+				if !strings.Contains(en.DeviceName, "彩") && !strings.Contains(en.DeviceName, "夜灯") {
+					continue
+				}
+			}
 
-			act.Then = append(act.Then, ActionLight{
+			script.Sequence = append(script.Sequence, ActionLight{
 				Action: "light.turn_on",
 				Data: &actionLightData{
 					BrightnessStepPct: -20,
 				},
 				Target: &targetLightData{DeviceId: en.DeviceID},
 			})
-
-			script.Sequence = append(script.Sequence, act)
 		}
 
 		if len(script.Sequence) > 0 {

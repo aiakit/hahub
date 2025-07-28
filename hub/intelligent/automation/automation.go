@@ -297,12 +297,16 @@ func Chaos() {
 
 	//开关自动关闭规则
 	//switchRule()
+	ava.Debugf("all automation created done! |total=%d", automaitionCount)
 }
 
 // 发起自动化创建
 // 在所有homeassistant自动化名称中，不能出现名称一样的自动化
 var skipExistAutomation = false //是否跳过相同名称自动化
 var coverExistAutomation = true //是否覆盖名称相关自动化
+
+var automaitionCount int
+
 func CreateAutomation(c *ava.Context, automation *Automation) {
 	// 自动化名称和实体ID检测，确保唯一
 	alias := automation.Alias
@@ -359,6 +363,8 @@ func CreateAutomation(c *ava.Context, automation *Automation) {
 		c.Error(err)
 		return
 	}
+
+	automaitionCount++
 }
 
 func TurnOnAutomation(c *ava.Context, entityId string) error {
@@ -393,9 +399,11 @@ func DeleteAllAutomations(c *ava.Context) {
 		if entity == nil {
 			continue
 		}
-		if core.IsAllDigits(entity.EntityID) {
+
+		if strings.Contains(entity.OriginalName, "*") {
 			continue
 		}
+
 		//url := fmt.Sprintf(prefixUrlCreateAutomation, core.GetHassUrl(), entity.EntityID)，ha这个id生成规则有bug
 		url := fmt.Sprintf(prefixUrlCreateAutomation, core.GetHassUrl(), entity.UniqueID)
 		var response Response

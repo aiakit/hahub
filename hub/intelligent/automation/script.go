@@ -3,6 +3,7 @@ package automation
 import (
 	"fmt"
 	"hahub/hub/core"
+	"strings"
 	"sync"
 	"time"
 
@@ -39,6 +40,8 @@ func ScriptChaos() {
 	//回家离家
 	initHoming(c)
 	initLevingHome(c)
+
+	ava.Debugf("all script created done! |total=%d", scriptCount)
 }
 
 // 脚本，Sequence和automation的actions一致
@@ -49,6 +52,7 @@ type Script struct {
 }
 
 var scriptLock sync.Mutex
+var scriptCount int
 
 func CreateScript(c *ava.Context, script *Script) string {
 	scriptLock.Lock()
@@ -81,6 +85,8 @@ func CreateScript(c *ava.Context, script *Script) string {
 		c.Errorf("data=%v |result=%s", core.MustMarshal2String(script), core.MustMarshal2String(&response))
 	}
 
+	scriptCount++
+
 	return baseEntityId
 }
 
@@ -94,7 +100,8 @@ func DeleteAllScript(c *ava.Context) {
 		if entity == nil {
 			continue
 		}
-		if core.IsAllDigits(entity.EntityID) {
+
+		if strings.Contains(entity.OriginalName, "*") {
 			continue
 		}
 
