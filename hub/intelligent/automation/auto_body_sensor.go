@@ -17,7 +17,7 @@ func walkBodySensor(c *ava.Context) {
 	allEntities := core.GetEntityIdMap()
 	var sensors []*core.Entity
 	for _, e := range allEntities {
-		if strings.Contains(e.DeviceName, "-") && (e.Category == core.CategoryLightGroup || e.Category == core.CategoryHumanBodySensor) {
+		if strings.Contains(e.DeviceName, "-") && (e.Category == core.CategoryLight || e.Category == core.CategoryHumanBodySensor) {
 			sensors = append(sensors, e)
 		}
 	}

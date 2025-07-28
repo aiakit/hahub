@@ -288,7 +288,6 @@ func homingAutomation(scriptId string) *Automation {
 					Domain:    "light",
 				})
 			}
-
 		}
 	}()
 
@@ -312,11 +311,12 @@ func homingAutomation(scriptId string) *Automation {
 	//条件：名字中带有"回家"的开关按键和场景按键
 	func() {
 		for bName, v := range switchSelectSameName {
+			// 使用SplitN分割，确保只分割成两部分，保留最后一个_后的字符作为buttonName
 			bns := strings.Split(bName, "_")
-			if len(bns) != 2 {
+			if len(bns) < 2 {
 				continue
 			}
-			buttonName := bns[1]
+			buttonName := bns[len(bns)-1]
 			if strings.Contains(buttonName, "回家") {
 				//按键触发和条件
 				for _, e := range v {

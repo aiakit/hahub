@@ -177,10 +177,10 @@ func levingHomeAutomation(scriptId string) *Automation {
 	func() {
 		for bName, v := range switchSelectSameName {
 			bns := strings.Split(bName, "_")
-			if len(bns) != 2 {
+			if len(bns) < 2 {
 				continue
 			}
-			buttonName := bns[1]
+			buttonName := bns[len(bns)-1]
 			if strings.Contains(buttonName, "离家") {
 				//按键触发和条件
 				for _, e := range v {
