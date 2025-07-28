@@ -16,7 +16,7 @@ func initHoming(c *ava.Context) {
 		// 基于脚本创建自动化
 		if scriptId != "" {
 			auto := homingAutomation(scriptId)
-			if auto != nil {
+			if auto != nil && len(auto.Triggers) > 0 {
 				CreateAutomation(c, auto)
 			}
 		}
@@ -344,7 +344,7 @@ func homingAutomation(scriptId string) *Automation {
 		Action: "script.turn_on",
 		Target: &struct {
 			EntityId string `json:"entity_id"`
-		}{EntityId: scriptId},
+		}{EntityId: "script." + scriptId},
 	})
 
 	return automation

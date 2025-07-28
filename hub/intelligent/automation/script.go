@@ -3,7 +3,6 @@ package automation
 import (
 	"fmt"
 	"hahub/hub/core"
-	"strconv"
 	"sync"
 	"time"
 
@@ -57,10 +56,9 @@ func CreateScript(c *ava.Context, script *Script) string {
 	// 自动化名称和实体ID检测，确保唯一
 	entityMap := core.GetEntityIdMap()
 	baseEntityId := core.ChineseToPinyin(script.Alias)
-	id := strconv.FormatInt(time.Now().UnixMilli(), 10)
+	//id := strconv.FormatInt(time.Now().UnixMilli(), 10)
 
-	script.Alias += "_" + id
-
+	//script.Alias += "_" + id
 	for _, entity := range entityMap {
 		if entity == nil {
 			continue
@@ -79,7 +77,7 @@ func CreateScript(c *ava.Context, script *Script) string {
 		c.Errorf("data=%v |result=%s", core.MustMarshal2String(script), core.MustMarshal2String(&response))
 	}
 
-	return id
+	return baseEntityId
 }
 
 // 删除所有脚本
@@ -89,7 +87,7 @@ func DeleteAllScript(c *ava.Context) {
 		if entity == nil {
 			continue
 		}
-		if entity.Category != core.CategoryScene {
+		if entity.Category != core.CategoryScript {
 			continue
 		}
 		if core.IsAllDigits(entity.EntityID) {

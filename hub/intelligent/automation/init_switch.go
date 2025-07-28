@@ -35,14 +35,12 @@ func switchMode(entities []*core.Entity) *Script {
 		}
 
 		// 将原本Scene中的实体配置转换为Script中的动作序列
-		s.Sequence = append(s.Sequence, ActionService{
-			Action: "input_text.set_value",
-			Data: map[string]interface{}{
-				"value": option,
-			},
-			Target: &struct {
-				EntityId string `json:"entity_id"`
-			}{EntityId: v.EntityID},
+		s.Sequence = append(s.Sequence, ActionCommon{
+			Type:     "select_option",
+			DeviceID: v.DeviceID,
+			EntityID: v.EntityID,
+			Domain:   "select",
+			Option:   option,
 		})
 	}
 

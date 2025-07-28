@@ -207,13 +207,13 @@ func callEntityList() {
 
 	sendWsRequest(to, func(msg []byte) {
 		var data EntityList
-		var dataTest EntityListTest
+		var dataALL EntityListTest
 		err := Unmarshal(msg, &data)
 		if err != nil {
 			ava.Errorf("Unmarshal EntityList error: %v", err)
 			return
 		}
-		err = Unmarshal(msg, &dataTest)
+		err = Unmarshal(msg, &dataALL)
 		if err != nil {
 			ava.Errorf("Unmarshal EntityListTest error: %v", err)
 			return
@@ -235,7 +235,7 @@ func callEntityList() {
 		data.Total = len(filtered)
 		ava.Debugf("total Entity=%d", len(filtered))
 		writeToFile("entity.json", &data)
-		writeToFile("entity_test.json", &dataTest)
+		writeToFile("entity_test.json", &dataALL)
 
 		shortEntities := FilterEntities(filtered, deviceMap)
 		shortData := EntityList{ID: data.ID, Type: data.Type, Success: data.Success, Result: shortEntities}

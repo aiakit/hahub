@@ -83,43 +83,23 @@ func InitModeOne(c *ava.Context) *Script {
 		}
 
 		if strings.Contains(e.OriginalName, "动态模式效果") {
-			script.Sequence = append(script.Sequence, ActionLight{
-				Action: "set_state",
-				Data: &actionLightData{
-					State: "2",
-				},
-				Target: &targetLightData{EntityId: e.EntityID},
-			})
+			script.Sequence = append(script.Sequence, ActionCommon{Domain: "number", DeviceID: e.DeviceID, EntityID: e.EntityID, Type: "set_value", Value: 2})
 		}
 
 		if strings.Contains(e.OriginalName, "饱和度设置") {
-			script.Sequence = append(script.Sequence, ActionLight{
-				Action: "set_state",
-				Data: &actionLightData{
-					State: "80",
-				},
-				Target: &targetLightData{EntityId: e.EntityID},
-			})
+			script.Sequence = append(script.Sequence, ActionCommon{Domain: "number", DeviceID: e.DeviceID, EntityID: e.EntityID, Type: "set_value", Value: 80})
 		}
 
 		if strings.Contains(e.OriginalName, "柔和度设置") {
-			script.Sequence = append(script.Sequence, ActionLight{
-				Action: "set_state",
-				Data: &actionLightData{
-					State: "40",
-				},
-				Target: &targetLightData{EntityId: e.EntityID},
-			})
+			script.Sequence = append(script.Sequence, ActionCommon{Domain: "number", DeviceID: e.DeviceID, EntityID: e.EntityID, Type: "set_value", Value: 40})
 		}
 
 		if strings.Contains(e.OriginalName, "速度") {
-			script.Sequence = append(script.Sequence, ActionLight{
-				Action: "set_state",
-				Data: &actionLightData{
-					State: "80",
-				},
-				Target: &targetLightData{EntityId: e.EntityID},
-			})
+			script.Sequence = append(script.Sequence, ActionCommon{Domain: "number", DeviceID: e.DeviceID, EntityID: e.EntityID, Type: "set_value", Value: 80})
+		}
+
+		if strings.Contains(e.OriginalName, "律动和场景同步到分控") {
+			script.Sequence = append(script.Sequence, ActionCommon{Domain: "switch", DeviceID: e.DeviceID, EntityID: e.EntityID, Type: "turn_on"})
 		}
 
 		//注意元数据中有空格
@@ -142,53 +122,23 @@ func InitModeOne(c *ava.Context) *Script {
 		}
 
 		if strings.Contains(e.OriginalName, "动态模式效果") {
-			script.Sequence = append(script.Sequence, ActionLight{
-				Action: "set_state",
-				Data: &actionLightData{
-					State: "58",
-				},
-				Target: &targetLightData{EntityId: e.EntityID},
-			})
+			script.Sequence = append(script.Sequence, ActionCommon{Domain: "number", DeviceID: e.DeviceID, EntityID: e.EntityID, Type: "set_value", Value: 58})
 		}
 
 		if strings.Contains(e.OriginalName, "饱和度") {
-			script.Sequence = append(script.Sequence, ActionLight{
-				Action: "set_state",
-				Data: &actionLightData{
-					State: "80",
-				},
-				Target: &targetLightData{EntityId: e.EntityID},
-			})
+			script.Sequence = append(script.Sequence, ActionCommon{Domain: "number", DeviceID: e.DeviceID, EntityID: e.EntityID, Type: "set_value", Value: 80})
 		}
 
 		if strings.Contains(e.OriginalName, "动态亮度") {
-			script.Sequence = append(script.Sequence, ActionLight{
-				Action: "set_state",
-				Data: &actionLightData{
-					State: "100",
-				},
-				Target: &targetLightData{EntityId: e.EntityID},
-			})
+			script.Sequence = append(script.Sequence, ActionCommon{Domain: "number", DeviceID: e.DeviceID, EntityID: e.EntityID, Type: "set_value", Value: 100})
 		}
 
 		if strings.Contains(e.OriginalName, "速度") {
-			script.Sequence = append(script.Sequence, ActionLight{
-				Action: "set_state",
-				Data: &actionLightData{
-					State: "50",
-				},
-				Target: &targetLightData{EntityId: e.EntityID},
-			})
+			script.Sequence = append(script.Sequence, ActionCommon{Domain: "number", DeviceID: e.DeviceID, EntityID: e.EntityID, Type: "set_value", Value: 50})
 		}
 
 		if strings.Contains(e.OriginalName, "LED运行模式") {
-			script.Sequence = append(script.Sequence, ActionLight{
-				Action: "set_state",
-				Data: &actionLightData{
-					State: "动态模式",
-				},
-				Target: &targetLightData{EntityId: e.EntityID},
-			})
+			script.Sequence = append(script.Sequence, ActionCommon{Domain: "select", DeviceID: e.DeviceID, EntityID: e.EntityID, Type: "select_option", Option: "动态模式"})
 		}
 
 		//注意元数据中有空格
@@ -231,63 +181,27 @@ func InitModeTwo(c *ava.Context) *Script {
 		}
 
 		if strings.Contains(e.OriginalName, "动态模式效果") {
-			script.Sequence = append(script.Sequence, ActionLight{
-				Action: "set_state",
-				Data: &actionLightData{
-					State: "22",
-				},
-				Target: &targetLightData{EntityId: e.EntityID},
-			})
+			script.Sequence = append(script.Sequence, ActionCommon{Domain: "number", DeviceID: e.DeviceID, EntityID: e.EntityID, Type: "set_value", Value: 22})
 		}
 
 		if strings.Contains(e.OriginalName, "饱和度设置") {
-			script.Sequence = append(script.Sequence, ActionLight{
-				Action: "set_state",
-				Data: &actionLightData{
-					State: "80",
-				},
-				Target: &targetLightData{EntityId: e.EntityID},
-			})
+			script.Sequence = append(script.Sequence, ActionCommon{Domain: "number", DeviceID: e.DeviceID, EntityID: e.EntityID, Type: "set_value", Value: 80})
 		}
 
 		if strings.Contains(e.OriginalName, "柔和度设置") {
-			script.Sequence = append(script.Sequence, ActionLight{
-				Action: "set_state",
-				Data: &actionLightData{
-					State: "40",
-				},
-				Target: &targetLightData{EntityId: e.EntityID},
-			})
+			script.Sequence = append(script.Sequence, ActionCommon{Domain: "number", DeviceID: e.DeviceID, EntityID: e.EntityID, Type: "set_value", Value: 40})
 		}
 
 		if strings.Contains(e.OriginalName, "律动和场景同步到分控") {
-			script.Sequence = append(script.Sequence, ActionLight{
-				Action: "set_state",
-				Data: &actionLightData{
-					State: "on",
-				},
-				Target: &targetLightData{EntityId: e.EntityID},
-			})
+			script.Sequence = append(script.Sequence, ActionCommon{Domain: "switch", DeviceID: e.DeviceID, EntityID: e.EntityID, Type: "turn_on"})
 		}
 
 		if strings.Contains(e.OriginalName, "速度") {
-			script.Sequence = append(script.Sequence, ActionLight{
-				Action: "set_state",
-				Data: &actionLightData{
-					State: "50",
-				},
-				Target: &targetLightData{EntityId: e.EntityID},
-			})
+			script.Sequence = append(script.Sequence, ActionCommon{Domain: "number", DeviceID: e.DeviceID, EntityID: e.EntityID, Type: "set_value", Value: 50})
 		}
 
 		if strings.Contains(e.OriginalName, "放大等级") {
-			script.Sequence = append(script.Sequence, ActionLight{
-				Action: "set_state",
-				Data: &actionLightData{
-					State: "5",
-				},
-				Target: &targetLightData{EntityId: e.EntityID},
-			})
+			script.Sequence = append(script.Sequence, ActionCommon{Domain: "number", DeviceID: e.DeviceID, EntityID: e.EntityID, Type: "set_value", Value: 8})
 		}
 
 		if e.OriginalName == " 灯" {
@@ -308,53 +222,24 @@ func InitModeTwo(c *ava.Context) *Script {
 		}
 
 		if strings.Contains(e.OriginalName, "动态模式效果") {
-			script.Sequence = append(script.Sequence, ActionLight{
-				Action: "set_state",
-				Data: &actionLightData{
-					State: "5",
-				},
-				Target: &targetLightData{EntityId: e.EntityID},
-			})
+			script.Sequence = append(script.Sequence, ActionCommon{Domain: "number", DeviceID: e.DeviceID, EntityID: e.EntityID, Type: "set_value", Value: 5})
 		}
 
 		if strings.Contains(e.OriginalName, "饱和度") {
-			script.Sequence = append(script.Sequence, ActionLight{
-				Action: "set_state",
-				Data: &actionLightData{
-					State: "80",
-				},
-				Target: &targetLightData{EntityId: e.EntityID},
-			})
+			script.Sequence = append(script.Sequence, ActionCommon{Domain: "number", DeviceID: e.DeviceID, EntityID: e.EntityID, Type: "set_value", Value: 80})
+
 		}
 
 		if strings.Contains(e.OriginalName, "动态亮度") {
-			script.Sequence = append(script.Sequence, ActionLight{
-				Action: "set_state",
-				Data: &actionLightData{
-					State: "100",
-				},
-				Target: &targetLightData{EntityId: e.EntityID},
-			})
+			script.Sequence = append(script.Sequence, ActionCommon{Domain: "number", DeviceID: e.DeviceID, EntityID: e.EntityID, Type: "set_value", Value: 100})
 		}
 
 		if strings.Contains(e.OriginalName, "速度") {
-			script.Sequence = append(script.Sequence, ActionLight{
-				Action: "set_state",
-				Data: &actionLightData{
-					State: "50",
-				},
-				Target: &targetLightData{EntityId: e.EntityID},
-			})
+			script.Sequence = append(script.Sequence, ActionCommon{Domain: "number", DeviceID: e.DeviceID, EntityID: e.EntityID, Type: "set_value", Value: 50})
 		}
 
 		if strings.Contains(e.OriginalName, "LED运行模式") {
-			script.Sequence = append(script.Sequence, ActionLight{
-				Action: "set_state",
-				Data: &actionLightData{
-					State: "律动模式",
-				},
-				Target: &targetLightData{EntityId: e.EntityID},
-			})
+			script.Sequence = append(script.Sequence, ActionCommon{Domain: "select", DeviceID: e.DeviceID, EntityID: e.EntityID, Type: "select_option", Option: "律动模式"})
 		}
 
 		if e.OriginalName == " 灯" {
@@ -396,33 +281,15 @@ func InitModeThree(c *ava.Context) *Script {
 		}
 
 		if strings.Contains(e.OriginalName, "动态模式效果") {
-			script.Sequence = append(script.Sequence, ActionLight{
-				Action: "set_state",
-				Data: &actionLightData{
-					State: "8",
-				},
-				Target: &targetLightData{EntityId: e.EntityID},
-			})
+			script.Sequence = append(script.Sequence, ActionCommon{Domain: "number", DeviceID: e.DeviceID, EntityID: e.EntityID, Type: "set_value", Value: 8})
 		}
 
 		if strings.Contains(e.OriginalName, "饱和度设置") {
-			script.Sequence = append(script.Sequence, ActionLight{
-				Action: "set_state",
-				Data: &actionLightData{
-					State: "100",
-				},
-				Target: &targetLightData{EntityId: e.EntityID},
-			})
+			script.Sequence = append(script.Sequence, ActionCommon{Domain: "number", DeviceID: e.DeviceID, EntityID: e.EntityID, Type: "set_value", Value: 100})
 		}
 
 		if strings.Contains(e.OriginalName, "柔和度设置") {
-			script.Sequence = append(script.Sequence, ActionLight{
-				Action: "set_state",
-				Data: &actionLightData{
-					State: "40",
-				},
-				Target: &targetLightData{EntityId: e.EntityID},
-			})
+			script.Sequence = append(script.Sequence, ActionCommon{Domain: "number", DeviceID: e.DeviceID, EntityID: e.EntityID, Type: "set_value", Value: 40})
 		}
 
 		if e.OriginalName == " 灯" {
@@ -444,33 +311,15 @@ func InitModeThree(c *ava.Context) *Script {
 		}
 
 		if strings.Contains(e.OriginalName, "饱和度") {
-			script.Sequence = append(script.Sequence, ActionLight{
-				Action: "set_state",
-				Data: &actionLightData{
-					State: "80",
-				},
-				Target: &targetLightData{EntityId: e.EntityID},
-			})
+			script.Sequence = append(script.Sequence, ActionCommon{Domain: "number", DeviceID: e.DeviceID, EntityID: e.EntityID, Type: "set_value", Value: 100})
 		}
 
 		if strings.Contains(e.OriginalName, "动态亮度") {
-			script.Sequence = append(script.Sequence, ActionLight{
-				Action: "set_state",
-				Data: &actionLightData{
-					State: "100",
-				},
-				Target: &targetLightData{EntityId: e.EntityID},
-			})
+			script.Sequence = append(script.Sequence, ActionCommon{Domain: "number", DeviceID: e.DeviceID, EntityID: e.EntityID, Type: "set_value", Value: 100})
 		}
 
 		if strings.Contains(e.OriginalName, "LED运行模式") {
-			script.Sequence = append(script.Sequence, ActionLight{
-				Action: "set_state",
-				Data: &actionLightData{
-					State: "静态模式",
-				},
-				Target: &targetLightData{EntityId: e.EntityID},
-			})
+			script.Sequence = append(script.Sequence, ActionCommon{Domain: "select", DeviceID: e.DeviceID, EntityID: e.EntityID, Type: "select_option", Option: "静态模式"})
 		}
 
 		if e.OriginalName == " 灯" {
@@ -487,157 +336,3 @@ func InitModeThree(c *ava.Context) *Script {
 
 	return script
 }
-
-// // 彩光模式
-// func InitModeFour(c *ava.Context) *Script {
-// 	//初始化馨光主机
-// 	entities, ok := core.GetEntityCategoryMap()[core.CategoryXinGuang]
-// 	if !ok {
-// 		return nil
-// 	}
-//
-// 	if len(entities) == 0 {
-// 		return nil
-// 	}
-//
-// 	var script = &Script{
-// 		Alias:       "馨光彩光模式脚本",
-// 		Description: "馨光彩光模式设置脚本",
-// 	}
-//
-// 	// 主机设置
-// 	for _, e := range entities {
-// 		if !strings.Contains(e.DeviceName, "主机") {
-// 			continue
-// 		}
-//
-// 		if strings.Contains(e.OriginalName, "动态模式效果") {
-// 			script.Sequence = append(script.Sequence, ActionLight{
-// 				Action: "set_state",
-// 				Data: &actionLightData{
-// 					State: "13",
-// 				},
-// 				Target: &targetLightData{EntityId: e.EntityID},
-// 			})
-// 		}
-//
-// 		if strings.Contains(e.OriginalName, "饱和度设置") {
-// 			script.Sequence = append(script.Sequence, ActionLight{
-// 				Action: "set_state",
-// 				Data: &actionLightData{
-// 					State: "100",
-// 				},
-// 				Target: &targetLightData{EntityId: e.EntityID},
-// 			})
-// 		}
-//
-// 		if strings.Contains(e.OriginalName, "柔和度设置") {
-// 			script.Sequence = append(script.Sequence, ActionLight{
-// 				Action: "set_state",
-// 				Data: &actionLightData{
-// 					State: "100",
-// 				},
-// 				Target: &targetLightData{EntityId: e.EntityID},
-// 			})
-// 		}
-//
-// 		if strings.Contains(e.OriginalName, "律动和场景同步到分控") {
-// 			script.Sequence = append(script.Sequence, ActionLight{
-// 				Action: "set_state",
-// 				Data: &actionLightData{
-// 					State: "on",
-// 				},
-// 				Target: &targetLightData{EntityId: e.EntityID},
-// 			})
-// 		}
-//
-// 		if strings.Contains(e.OriginalName, "速度") {
-// 			script.Sequence = append(script.Sequence, ActionLight{
-// 				Action: "set_state",
-// 				Data: &actionLightData{
-// 					State: "50",
-// 				},
-// 				Target: &targetLightData{EntityId: e.EntityID},
-// 			})
-// 		}
-//
-// 		if e.OriginalName == " 灯" {
-// 			script.Sequence = append(script.Sequence, ActionLight{
-// 				Action: "light.turn_on",
-// 				Data: &actionLightData{
-// 					Brightness: 255,
-// 				},
-// 				Target: &targetLightData{EntityId: e.EntityID},
-// 			})
-// 		}
-// 	}
-//
-// 	//灯带设置
-// 	for _, e := range entities {
-// 		if strings.Contains(e.DeviceName, "主机") {
-// 			continue
-// 		}
-//
-// 		if strings.Contains(e.OriginalName, "动态模式效果") {
-// 			script.Sequence = append(script.Sequence, ActionLight{
-// 				Action: "set_state",
-// 				Data: &actionLightData{
-// 					State: "2",
-// 				},
-// 				Target: &targetLightData{EntityId: e.EntityID},
-// 			})
-// 		}
-//
-// 		if strings.Contains(e.OriginalName, "饱和度") {
-// 			script.Sequence = append(script.Sequence, ActionLight{
-// 				Action: "set_state",
-// 				Data: &actionLightData{
-// 					State: "100",
-// 				},
-// 				Target: &targetLightData{EntityId: e.EntityID},
-// 			})
-// 		}
-//
-// 		if strings.Contains(e.OriginalName, "动态亮度") {
-// 			script.Sequence = append(script.Sequence, ActionLight{
-// 				Action: "set_state",
-// 				Data: &actionLightData{
-// 					State: "100",
-// 				},
-// 				Target: &targetLightData{EntityId: e.EntityID},
-// 			})
-// 		}
-//
-// 		if strings.Contains(e.OriginalName, "速度") {
-// 			script.Sequence = append(script.Sequence, ActionLight{
-// 				Action: "set_state",
-// 				Data: &actionLightData{
-// 					State: "80",
-// 				},
-// 				Target: &targetLightData{EntityId: e.EntityID},
-// 			})
-// 		}
-//
-// 		if strings.Contains(e.OriginalName, "LED运行模式") {
-// 			script.Sequence = append(script.Sequence, ActionLight{
-// 				Action: "set_state",
-// 				Data: &actionLightData{
-// 					State: "动态模式",
-// 				},
-// 				Target: &targetLightData{EntityId: e.EntityID},
-// 			})
-// 		}
-//
-// 		if e.OriginalName == " 灯" {
-// 			script.Sequence = append(script.Sequence, ActionLight{
-// 				Action: "light.turn_on",
-// 				Data: &actionLightData{
-// 					Brightness: 255,
-// 				},
-// 				Target: &targetLightData{EntityId: e.EntityID},
-// 			})
-// 		}
-// 	}
-//
-// 	return script
-// }

@@ -18,25 +18,25 @@ const (
 	CategorySwitchClickOnce   = "click_once_switch"   // 开关传感器,单击事件
 	CategorySwitchScene       = "scene_switch"        // 开关场景按键
 	//CategorySwitchToggle        = "toggle_switch"           // 开关切换
-	CategorySwitchMode          = "switch_mode"             // 开关模式：判断有线开关和无线开关
-	CategoryLight               = "light"                   // 灯
-	CategoryXinGuang            = "xinguang"                // 灯
-	CategoryLightGroup          = "light_group"             // 灯组
-	CategoryCurtain             = "curtain"                 // 窗帘
-	CategoryHumanPresenceSensor = "human_presence_sensor"   // 存在传感器
-	CategorySocket              = "socket"                  // 插座
-	CategoryHumanBodySensor     = "human_body_sensor"       // 人体传感器
-	CategoryTemperatureSensor   = "temperature_sensor"      // 温度传感器
-	CategoryHumiditySensor      = "humidity_sensor"         // 湿度传感器
-	CategoryLxSensor            = "lx_sensor"               // 光照传感器
-	CategoryIrTV                = "ir_tv"                   // 红外电视
-	CategoryAutomation          = "automation"              // 自动化
-	CategoryScene               = "scene"                   // 场景
-	CategoryGas                 = "gas"                     // 天然气
-	CategoryWater               = "water"                   // 水侵
-	CategoryFire                = "fire"                    // 火灾
-	CategoryLightLowest         = "light_lowest_brightness" //灯-最低亮度设置实体
-	CategoryWaterHeater         = "water_heater"            //热水器
+	CategorySwitchMode          = "switch_mode"           // 开关模式：判断有线开关和无线开关
+	CategoryLight               = "light"                 // 灯
+	CategoryXinGuang            = "xinguang"              // 灯
+	CategoryLightGroup          = "light_group"           // 灯组
+	CategoryCurtain             = "curtain"               // 窗帘
+	CategoryHumanPresenceSensor = "human_presence_sensor" // 存在传感器
+	CategorySocket              = "socket"                // 插座
+	CategoryHumanBodySensor     = "human_body_sensor"     // 人体传感器
+	CategoryTemperatureSensor   = "temperature_sensor"    // 温度传感器
+	CategoryHumiditySensor      = "humidity_sensor"       // 湿度传感器
+	CategoryLxSensor            = "lx_sensor"             // 光照传感器
+	CategoryIrTV                = "ir_tv"                 // 红外电视
+	CategoryAutomation          = "automation"            // 自动化
+	CategoryScene               = "scene"                 // 场景
+	CategoryScript              = "script"                // 场景
+	CategoryGas                 = "gas"                   // 天然气
+	CategoryWater               = "water"                 // 水侵
+	CategoryFire                = "fire"                  // 火灾
+	CategoryWaterHeater         = "water_heater"          //热水器
 )
 
 //过滤实体,并在实体中增加字段标注设备类型，设备数据中也加上，在实体数据中加上设备id,区域id，区域名称
@@ -285,16 +285,15 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 			category = CategoryWater
 		}
 
-		//19.灯-最低亮度
-		if strings.Contains(orgName, "最低亮度") && strings.HasPrefix(id, "number.") {
-			category = CategoryLightLowest
-		}
-
 		//20.热水器
 		if dev, ok := deviceMap[e.DeviceID]; ok && dev != nil {
 			if strings.Contains(dev.Name, "热水器") {
 				waterHeater = append(waterHeater, e)
 			}
+		}
+		//21.脚本
+		if strings.HasPrefix(id, "script.") {
+			category = CategoryScript
 		}
 
 		if category != "" {

@@ -207,7 +207,7 @@ func levingHomeAutomation(scriptId string) *Automation {
 		Action: "script.turn_on",
 		Target: &struct {
 			EntityId string `json:"entity_id"`
-		}{EntityId: scriptId},
+		}{EntityId: "script." + scriptId},
 	})
 
 	return automation

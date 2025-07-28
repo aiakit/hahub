@@ -1,7 +1,6 @@
 package automation
 
 import (
-	"fmt"
 	"hahub/hub/core"
 	"strings"
 
@@ -74,7 +73,6 @@ func goodMorningScript(c *ava.Context) {
 		// 1. 打开窗帘
 		for _, e := range v {
 			if e.Category == core.CategoryCurtain {
-				fmt.Println("----1---", core.MustMarshal2String(e))
 				script.Sequence = append(script.Sequence, ActionCommon{
 					Type:     "open",
 					DeviceID: e.DeviceID,

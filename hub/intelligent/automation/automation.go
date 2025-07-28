@@ -221,11 +221,12 @@ type targetLightData struct {
 }
 
 type ActionCommon struct {
-	Type     string `json:"type,omitempty"`
-	DeviceID string `json:"device_id,omitempty"`
-	EntityID string `json:"entity_id,omitempty"`
-	Domain   string `json:"domain,omitempty"`
-	//Action   string `json:"action,omitempty"`
+	Type     string      `json:"type,omitempty"`
+	DeviceID string      `json:"device_id,omitempty"`
+	EntityID string      `json:"entity_id,omitempty"`
+	Domain   string      `json:"domain,omitempty"`
+	Value    interface{} `json:"value,omitempty"`
+	Option   interface{} `json:"option,omitempty"`
 }
 
 type ActionService struct {
