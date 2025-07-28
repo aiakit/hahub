@@ -32,6 +32,10 @@ func ScriptChaos() {
 	//起床场景
 	goodMorningScript(c)
 
+	//调光脚本
+	dimmmingIncrease(c)
+	dimmmingReduce(c)
+
 	//回家离家
 	initHoming(c)
 	initLevingHome(c)
@@ -82,12 +86,12 @@ func CreateScript(c *ava.Context, script *Script) string {
 
 // 删除所有脚本
 func DeleteAllScript(c *ava.Context) {
-	entityMap := core.GetEntityIdMap()
-	for _, entity := range entityMap {
+	entities, ok := core.GetEntityCategoryMap()[core.CategoryScript]
+	if !ok {
+		return
+	}
+	for _, entity := range entities {
 		if entity == nil {
-			continue
-		}
-		if entity.Category != core.CategoryScript {
 			continue
 		}
 		if core.IsAllDigits(entity.EntityID) {

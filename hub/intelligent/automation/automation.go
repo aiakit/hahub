@@ -209,10 +209,11 @@ type ActionLight struct {
 }
 
 type actionLightData struct {
-	ColorTempKelvin int         `json:"color_temp_kelvin,omitempty"`
-	BrightnessPct   float64     `json:"brightness_pct,omitempty"`
-	RgbColor        []int       `json:"rgb_color,omitempty"`
-	State           interface{} `json:"state,omitempty"`
+	ColorTempKelvin   int         `json:"color_temp_kelvin,omitempty"`
+	BrightnessPct     float64     `json:"brightness_pct,omitempty"`
+	BrightnessStepPct float64     `json:"brightness_step_pct,omitempty"`
+	RgbColor          []int       `json:"rgb_color,omitempty"`
+	State             interface{} `json:"state,omitempty"`
 }
 
 type targetLightData struct {
@@ -384,12 +385,12 @@ func TurnOffAutomation(c *ava.Context, entityId string) error {
 
 // 删除所有自动化
 func DeleteAllAutomations(c *ava.Context) {
-	entityMap := core.GetEntityIdMap()
-	for _, entity := range entityMap {
+	entities, ok := core.GetEntityCategoryMap()[core.CategoryAutomation]
+	if !ok {
+		return
+	}
+	for _, entity := range entities {
 		if entity == nil {
-			continue
-		}
-		if entity.Category != core.CategoryAutomation {
 			continue
 		}
 		if core.IsAllDigits(entity.EntityID) {

@@ -8,16 +8,15 @@ import (
 var LxArea = make(map[string]*Entity)
 
 const (
-	CategoryXiaomiHomeSpeaker = "xiaomi_home_speaker" // 小米音箱
-	CategoryXiaomiMiotSpeaker = "xiaomi_miot_speaker" // 小米MIOT音箱
-	CategoryAppleTV           = "apple_tv"            // Apple TV
-	CategoryAirConditioner    = "air_conditioner"     // 空调
-	CategoryVirtualEvent      = "virtual_event"       // 虚拟事件
-	CategorySwitch            = "switch"              // 开关
-	CategoryWiredSwitch       = "wired_switch"        // 有线开关
-	CategorySwitchClickOnce   = "click_once_switch"   // 开关传感器,单击事件
-	CategorySwitchScene       = "scene_switch"        // 开关场景按键
-	//CategorySwitchToggle        = "toggle_switch"           // 开关切换
+	CategoryXiaomiHomeSpeaker   = "xiaomi_home_speaker"   // 小米音箱
+	CategoryXiaomiMiotSpeaker   = "xiaomi_miot_speaker"   // 小米MIOT音箱
+	CategoryAppleTV             = "apple_tv"              // Apple TV
+	CategoryAirConditioner      = "air_conditioner"       // 空调
+	CategoryVirtualEvent        = "virtual_event"         // 虚拟事件
+	CategorySwitch              = "switch"                // 开关
+	CategoryWiredSwitch         = "wired_switch"          // 有线开关
+	CategorySwitchClickOnce     = "click_once_switch"     // 开关传感器,单击事件
+	CategorySwitchScene         = "scene_switch"          // 开关场景按键
 	CategorySwitchMode          = "switch_mode"           // 开关模式：判断有线开关和无线开关
 	CategoryLight               = "light"                 // 灯
 	CategoryXinGuang            = "xinguang"              // 灯
@@ -37,6 +36,7 @@ const (
 	CategoryWater               = "water"                 // 水侵
 	CategoryFire                = "fire"                  // 火灾
 	CategoryWaterHeater         = "water_heater"          //热水器
+	CategoryDimming             = "dimming"               //调光旋钮
 )
 
 //过滤实体,并在实体中增加字段标注设备类型，设备数据中也加上，在实体数据中加上设备id,区域id，区域名称
@@ -92,220 +92,194 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 
 	var entityIdMap = make(map[string]*Entity, 20)
 	for _, e := range entities {
-		var (
-			orgName  = e.OriginalName
-			id       = e.EntityID
-			platform = e.Platform
-			category = ""
-		)
+		var deviceData *device
+		var category string
+
+		//脚本和自动化数据是没有设备id的，注意不要动这里的代码
+		if v, ok := deviceMap[e.DeviceID]; ok {
+			deviceData = v
+		}
 
 		// 1. 音箱
 		if _, ok := speakerDeviceIDs[e.DeviceID]; ok {
-			if platform == "xiaomi_home" {
+			if e.Platform == "xiaomi_home" {
 				category = CategoryXiaomiHomeSpeaker
-			} else if platform == "xiaomi_miot" {
+			} else if e.Platform == "xiaomi_miot" {
 				category = CategoryXiaomiMiotSpeaker
 			}
 		}
 		// 2. apple_tv
-		if platform == "apple_tv" {
+		if e.Platform == "apple_tv" {
 			category = CategoryAppleTV
 		}
 		// 2. 空调
-		if strings.HasPrefix(id, "climate.") && strings.Contains(orgName, "空调") {
+		if strings.HasPrefix(e.EntityID, "climate.") && strings.Contains(e.OriginalName, "空调") {
 			category = CategoryAirConditioner
 		}
 		// 3. 虚拟事件
-		if strings.Contains(orgName, "虚拟事件") {
+		if strings.Contains(e.OriginalName, "虚拟事件") {
 			category = CategoryVirtualEvent
 		}
 
 		// 4. 开关,设备和实体都是开关
 		if strings.Contains(e.EntityID, "switch.") {
-			if v := deviceMap[e.DeviceID]; v != nil {
-				if strings.Contains(v.Model, ".switch.") {
-					category = CategorySwitch
-				}
+			if deviceData != nil && strings.Contains(deviceData.Model, ".switch.") {
+				category = CategorySwitch
 			}
 		}
 
 		// 4.1 有线开关标记
 		if strings.Contains(e.EntityID, "select.") && strings.Contains(e.EntityID, "_mode_") {
-			if v := deviceMap[e.DeviceID]; v != nil {
-				if strings.Contains(v.Model, ".switch.") {
-					st, err := GetState(e.EntityID)
-					if err != nil {
-						continue
-					}
-					if strings.Contains(st.State, "有线") {
-						category = CategorySwitchMode
-					}
+			if deviceData != nil && strings.Contains(deviceData.Model, ".switch.") {
+				st, err := GetState(e.EntityID)
+				if err != nil {
+					continue
+				}
+				if strings.Contains(st.State, "有线") {
+					category = CategorySwitchMode
 				}
 			}
 		}
 
 		// 4.2 切换类开关实体
-		if strings.Contains(orgName, "开关传感器 单击") && strings.Contains(e.EntityID, "event.") {
-			if v := deviceMap[e.DeviceID]; v != nil {
-				if strings.Contains(v.Model, ".switch.") {
-					category = CategorySwitchClickOnce
-				}
+		if strings.Contains(e.OriginalName, "开关传感器 单击") && strings.Contains(e.EntityID, "event.") {
+			if deviceData != nil && strings.Contains(deviceData.Model, ".switch.") {
+				category = CategorySwitchClickOnce
 			}
 		}
 
 		// 4.3 开关场景按键
 		if strings.Contains(e.Name, "场景") && strings.Contains(e.EntityID, "event.") {
-			//if v := deviceMap[e.DeviceID]; v != nil {
-			//	if strings.Contains(v.Model, ".switch.") {
 			category = CategorySwitchScene
-			//}
-			//}
 		}
 
-		//
-		//// 4.2开关切换
-		//if strings.Contains(orgName, "开关状态切换") && strings.Contains(e.EntityID, "button.") && strings.Contains(e.EntityID, "_toggle_") {
-		//	if v := deviceMap[e.DeviceID]; v != nil {
-		//		if strings.Contains(v.Model, ".switch.") {
-		//			category = CategorySwitchToggle
-		//		}
-		//	}
-		//}
-
 		// 5. 灯
-		if strings.HasPrefix(id, "light.") && !strings.Contains(e.EntityID, "_group_") && !strings.Contains(e.OriginalName, "指示灯") {
+		if strings.HasPrefix(e.EntityID, "light.") && !strings.Contains(e.EntityID, "_group_") && !strings.Contains(e.OriginalName, "指示灯") {
 			category = CategoryLight
 		}
 
 		////5.1 灯组
-		if strings.HasPrefix(id, "light.") && strings.Contains(e.EntityID, "_group_") {
+		if strings.HasPrefix(e.EntityID, "light.") && strings.Contains(e.EntityID, "_group_") {
 			category = CategoryLightGroup
 		}
 
 		// 6. 窗帘
-		if strings.Contains(orgName, "窗帘") && strings.HasPrefix(id, "cover.") {
+		if strings.Contains(e.OriginalName, "窗帘") && strings.HasPrefix(e.EntityID, "cover.") {
 			category = CategoryCurtain
 		}
 
 		// 7. 存在传感器
-		if v, ok := deviceMap[e.DeviceID]; ok {
-			if strings.Contains(v.Name, "存在传感器") {
-				if strings.Contains(id, "sensor.") && (strings.Contains(e.OriginalName, "人在") || strings.Contains(e.OriginalName, "有人无人")) {
-					category = CategoryHumanPresenceSensor
-				}
+		if deviceData != nil && strings.Contains(deviceData.Name, "存在传感器") {
+			if strings.Contains(e.EntityID, "sensor.") && (strings.Contains(e.OriginalName, "人在") || strings.Contains(e.OriginalName, "有人无人")) {
+				category = CategoryHumanPresenceSensor
 			}
 		}
 
 		// 8. 插座
-		if strings.HasPrefix(id, "plug.") && strings.Contains(orgName, "插座") && strings.Contains(orgName, "开关状态") {
+		if strings.HasPrefix(e.EntityID, "plug.") && strings.Contains(e.OriginalName, "插座") && strings.Contains(e.OriginalName, "开关状态") {
 			category = CategorySocket
 		}
 		// 9. 人体传感器,
-		if (strings.HasPrefix(id, "sensor.") || strings.HasPrefix(id, "event.")) && (strings.Contains(orgName, "人体传感器") ||
-			(strings.Contains(orgName, "接近远离") || strings.Contains(orgName, "有人") || strings.Contains(orgName, "无人") ||
-				strings.Contains(orgName, "接近") || strings.Contains(orgName, "远离"))) {
-			if strings.HasPrefix(id, "event.") {
-				if v, ok := deviceMap[e.DeviceID]; ok {
-					if strings.Contains(v.Name, "-") {
-						category = CategoryHumanBodySensor
-					}
+		if (strings.HasPrefix(e.EntityID, "sensor.") || strings.HasPrefix(e.EntityID, "event.")) && (strings.Contains(e.OriginalName, "人体传感器") ||
+			(strings.Contains(e.OriginalName, "接近远离") || strings.Contains(e.OriginalName, "有人") || strings.Contains(e.OriginalName, "无人") ||
+				strings.Contains(e.OriginalName, "接近") || strings.Contains(e.OriginalName, "远离"))) {
+			if strings.HasPrefix(e.EntityID, "event.") {
+				if deviceData != nil && strings.Contains(deviceData.Name, "-") {
+					category = CategoryHumanBodySensor
 				}
 			}
 		}
 		// 10. 温度/湿度
-		if strings.HasPrefix(id, "sensor.") && strings.Contains(orgName, "温度") {
+		if strings.HasPrefix(e.EntityID, "sensor.") && strings.Contains(e.OriginalName, "温度") {
 			category = CategoryTemperatureSensor
 		}
-		if strings.HasPrefix(id, "sensor.") && strings.Contains(orgName, "湿度") {
+		if strings.HasPrefix(e.EntityID, "sensor.") && strings.Contains(e.OriginalName, "湿度") {
 			category = CategoryHumiditySensor
 		}
 		// 11. 光照,如果一个房间有多个，取当前光照值最高的那个
-		if strings.HasPrefix(id, "sensor.") && strings.Contains(orgName, "光照") {
-			s, err := GetState(id)
-			if deviceMap != nil && err == nil {
-				if dev, okDevice := deviceMap[e.DeviceID]; okDevice && dev != nil {
-					if v, ok := areaLxStruct[dev.AreaID]; ok {
-						if strings.Compare(s.State, v.lx) > 0 {
-							areaLxStruct[dev.AreaID] = struct {
-								lx string
-								e  *Entity
-							}{lx: s.State, e: e}
-						}
-					} else {
-						areaLxStruct[dev.AreaID] = struct {
+		if strings.HasPrefix(e.EntityID, "sensor.") && strings.Contains(e.OriginalName, "光照") {
+			s, err := GetState(e.EntityID)
+			if err == nil {
+				if v, ok := areaLxStruct[deviceData.AreaID]; ok {
+					if strings.Compare(s.State, v.lx) > 0 {
+						areaLxStruct[deviceData.AreaID] = struct {
 							lx string
 							e  *Entity
 						}{lx: s.State, e: e}
 					}
+				} else {
+					areaLxStruct[deviceData.AreaID] = struct {
+						lx string
+						e  *Entity
+					}{lx: s.State, e: e}
 				}
 			}
 		}
 
 		// 12. 红外电视
-		if strings.Contains(orgName, "红外电视") {
+		if strings.Contains(e.OriginalName, "红外电视") {
 			category = CategoryIrTV
 		}
 		// 13. 自动化
-		if strings.HasPrefix(id, "automation.") {
+		if strings.HasPrefix(e.EntityID, "automation.") {
 			category = CategoryAutomation
 		}
 		// 14. 场景
-		if strings.HasPrefix(id, "scene.") {
+		if strings.HasPrefix(e.EntityID, "scene.") {
 			category = CategoryScene
 		}
 
 		//15.在自动化设置中，馨光设备id，找到设置灯光模式的id,而不是entityid
-		if strings.Contains(orgName, "LED运行模式") {
-			if dev, ok := deviceMap[e.DeviceID]; ok && dev != nil {
-				if strings.Contains(dev.Name, "馨光") {
-					gHub.xinguang[e.DeviceID] = e.ID
-				}
+		if strings.Contains(e.OriginalName, "LED运行模式") {
+			if deviceData != nil && strings.Contains(deviceData.Name, "馨光") {
+				gHub.xinguang[e.DeviceID] = e.ID
 			}
 		}
 
 		//15.馨光类型,场景设置中需要实体id
-		if dev, ok := deviceMap[e.DeviceID]; ok && dev != nil {
-			if strings.Contains(dev.Name, "馨光") {
-				category = CategoryXinGuang
-			}
+		if deviceData != nil && strings.Contains(deviceData.Name, "馨光") {
+			category = CategoryXinGuang
 		}
 
 		//16.天然气报警
-		if strings.Contains(orgName, "天然气浓度") {
+		if strings.Contains(e.OriginalName, "天然气浓度") {
 			category = CategoryGas
 		}
 
 		//17.烟雾
-		if strings.Contains(orgName, "检测到高浓度烟雾") {
+		if strings.Contains(e.OriginalName, "检测到高浓度烟雾") {
 			category = CategoryFire
 		}
 
 		//18.水
-		if strings.Contains(orgName, "检测到") && strings.Contains(orgName, "水") {
+		if strings.Contains(e.OriginalName, "检测到") && strings.Contains(e.OriginalName, "水") {
 			category = CategoryWater
 		}
 
-		//20.热水器
-		if dev, ok := deviceMap[e.DeviceID]; ok && dev != nil {
-			if strings.Contains(dev.Name, "热水器") {
-				waterHeater = append(waterHeater, e)
-			}
+		//19.调光类型
+		if deviceData != nil && strings.Contains(deviceData.Name, "旋钮") && strings.Contains(deviceData.Model, "remote") {
+			category = CategoryDimming
 		}
+
+		//20.热水器
+		if deviceData != nil && strings.Contains(deviceData.Name, "热水器") {
+			waterHeater = append(waterHeater, e)
+		}
+
 		//21.脚本
-		if strings.HasPrefix(id, "script.") {
+		if strings.HasPrefix(e.EntityID, "script.") {
 			category = CategoryScript
+		}
+
+		if deviceData != nil {
+			e.DeviceName = deviceData.Name
+			e.AreaID = deviceData.AreaID
+			e.AreaName = deviceData.AreaName
 		}
 
 		if category != "" {
 			// 赋值区域信息
 			e.Category = category
-			if deviceMap != nil {
-				if dev, ok := deviceMap[e.DeviceID]; ok && dev != nil {
-					e.AreaID = dev.AreaID
-					e.AreaName = dev.AreaName
-					e.DeviceName = dev.Name // 新增：赋值设备名称
-				}
-			}
 			entityIdMap[e.EntityID] = e
 			filtered = append(filtered, e)
 		}
