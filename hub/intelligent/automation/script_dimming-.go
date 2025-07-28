@@ -41,7 +41,7 @@ func dimmmingReduce(c *ava.Context) {
 			script.Sequence = append(script.Sequence, ActionLight{
 				Action: "light.turn_on",
 				Data: &actionLightData{
-					BrightnessStepPct: -20,
+					BrightnessStepPct: -10,
 				},
 				Target: &targetLightData{DeviceId: en.DeviceID},
 			})
