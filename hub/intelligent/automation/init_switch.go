@@ -26,21 +26,17 @@ func switchMode(entities []*core.Entity) *Script {
 	}
 
 	for _, v := range entities {
-		option := "有线和无线开关"
+		selectSome := "select_first"
 		if !strings.Contains(v.DeviceName, "#") {
-			option = "无线开关"
-		}
-		if strings.Contains(v.DeviceName, "#") {
-			option = "有线和无线开关"
+			selectSome = "select_last"
 		}
 
 		// 将原本Scene中的实体配置转换为Script中的动作序列
 		s.Sequence = append(s.Sequence, ActionCommon{
-			Type:     "select_option",
+			Type:     selectSome,
 			DeviceID: v.DeviceID,
 			EntityID: v.EntityID,
 			Domain:   "select",
-			Option:   option,
 		})
 	}
 

@@ -292,6 +292,9 @@ func Chaos() {
 	//灯光控制
 	lightControl(c)
 
+	//插座打开就开灯
+	walkBodySocketSensor(c)
+
 	//重新缓存一遍数据
 	core.CallService()
 

@@ -37,6 +37,7 @@ const (
 	CategoryFire                = "fire"                  // 火灾
 	CategoryWaterHeater         = "water_heater"          //热水器
 	CategoryDimming             = "dimming"               //调光旋钮
+	CategoryPowerconsumption    = "power_consumption"     //用电功率
 )
 
 //过滤实体,并在实体中增加字段标注设备类型，设备数据中也加上，在实体数据中加上设备id,区域id，区域名称
@@ -176,9 +177,10 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 		}
 
 		// 8. 插座
-		if strings.HasPrefix(e.EntityID, "plug.") && strings.Contains(e.OriginalName, "插座") && strings.Contains(e.OriginalName, "开关状态") {
+		if deviceData != nil && strings.Contains(deviceData.Model, "plug.") && strings.Contains(deviceData.Name, "插座") && strings.Contains(e.OriginalName, "开关") && strings.HasPrefix(e.EntityID, "switch.") {
 			category = CategorySocket
 		}
+
 		// 9. 人体传感器,binary_sensor
 		if (strings.HasPrefix(e.EntityID, "event.") && strings.Contains(e.OriginalName, "有人")) ||
 			(strings.Contains(e.OriginalName, "接近远离") && strings.HasPrefix(e.EntityID, "binary_sensor.")) {
@@ -266,6 +268,11 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 		//21.脚本
 		if strings.HasPrefix(e.EntityID, "script.") {
 			category = CategoryScript
+		}
+
+		//22.功率实体
+		if strings.Contains(e.OriginalName, "功耗参数 电功率") && strings.HasPrefix(e.EntityID, "sensor.") {
+			category = CategoryPowerconsumption
 		}
 
 		if deviceData != nil {
