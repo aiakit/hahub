@@ -222,9 +222,15 @@ func callEntityList() {
 		for _, e := range data.Result {
 			callbackEntity(e)
 
+			if strings.Contains(e.OriginalName, "接近远离") && strings.HasPrefix(e.EntityID, "binary_sensor.") {
+				filtered = append(filtered, e)
+				continue
+			}
+
 			if strings.Contains(e.OriginalName, "厂家设置") || strings.Contains(e.OriginalName, "厂商") || strings.Contains(e.OriginalName, "恢复出厂设置") {
 				continue
 			}
+
 			if e.Platform == "hacs" || e.Platform == "hassio" || e.Platform == "sun" || e.Platform == "backup" || e.Platform == "person" ||
 				e.Platform == "shopping_list" || e.Platform == "google_translate" || e.Platform == "met" {
 				continue

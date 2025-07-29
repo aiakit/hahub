@@ -39,10 +39,6 @@ func walkBodySensor(c *ava.Context) {
 // 人体传感器有人时自动开灯/开关
 func bodySensorOn(entity *core.Entity) (*Automation, error) {
 
-	if strings.HasPrefix(entity.EntityID, "event.") && !strings.Contains(entity.OriginalName, "有人") {
-		return nil, nil
-	}
-
 	areaID := entity.AreaID
 	entities, ok := core.GetEntityAreaMap()[areaID]
 	if !ok {
@@ -82,7 +78,7 @@ func bodySensorOn(entity *core.Entity) (*Automation, error) {
 			}
 		}
 		if e.Category == core.CategoryLight && (strings.Contains(e.DeviceName, "彩") || strings.Contains(e.DeviceName, "夜灯")) {
-			atmosphereSwitches = append(atmosphereSwitches, e)
+			atmosphereLights = append(atmosphereLights, e)
 		}
 	}
 
@@ -272,7 +268,7 @@ func bodySensorOn(entity *core.Entity) (*Automation, error) {
 		triggerTrigger = "state"
 	}
 
-	if entity.Category == core.CategoryLightGroup {
+	if entity.Category == core.CategoryLight {
 		triggerType = "turned_on"
 		triggerDomain = "light"
 	}

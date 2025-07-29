@@ -179,14 +179,11 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 		if strings.HasPrefix(e.EntityID, "plug.") && strings.Contains(e.OriginalName, "插座") && strings.Contains(e.OriginalName, "开关状态") {
 			category = CategorySocket
 		}
-		// 9. 人体传感器,
-		if (strings.HasPrefix(e.EntityID, "sensor.") || strings.HasPrefix(e.EntityID, "event.")) && (strings.Contains(e.OriginalName, "人体传感器") ||
-			(strings.Contains(e.OriginalName, "接近远离") || strings.Contains(e.OriginalName, "有人") || strings.Contains(e.OriginalName, "无人") ||
-				strings.Contains(e.OriginalName, "接近") || strings.Contains(e.OriginalName, "远离"))) {
-			if strings.HasPrefix(e.EntityID, "event.") {
-				if deviceData != nil && strings.Contains(deviceData.Name, "-") {
-					category = CategoryHumanBodySensor
-				}
+		// 9. 人体传感器,binary_sensor
+		if (strings.HasPrefix(e.EntityID, "event.") && strings.Contains(e.OriginalName, "有人")) ||
+			(strings.Contains(e.OriginalName, "接近远离") && strings.HasPrefix(e.EntityID, "binary_sensor.")) {
+			if deviceData != nil && strings.Contains(deviceData.Name, "-") {
+				category = CategoryHumanBodySensor
 			}
 		}
 		// 10. 温度/湿度
@@ -257,7 +254,7 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 		}
 
 		//19.调光类型
-		if deviceData != nil && strings.Contains(deviceData.Name, "旋钮") && strings.Contains(deviceData.Model, "remote") {
+		if deviceData != nil && strings.Contains(deviceData.Name, "旋钮") && strings.Contains(deviceData.Model, "remote") && strings.Contains(e.OriginalName, "旋转") {
 			category = CategoryDimming
 		}
 
