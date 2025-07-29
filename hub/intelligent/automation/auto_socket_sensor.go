@@ -241,15 +241,14 @@ func bodySocketSensorOn(entity *core.Entity) (*Automation, error) {
 	}
 	auto.Actions = actions
 
-	// 增加光照条件
-	lxConfig := getLxConfig(areaID)
-	if lxConfig != nil {
-		auto.Conditions = append(auto.Conditions, Conditions{
-			Condition: "numeric_state",
-			EntityID:  lxConfig.EntityId,
-			Below:     lxConfig.Lx, // 设置光照阈值
-		})
-	}
+	// 插座是关闭的
+	auto.Conditions = append(auto.Conditions, Conditions{
+		Type:      "is_off",
+		EntityID:  entity.EntityID,
+		DeviceID:  entity.DeviceID,
+		Domain:    "switch",
+		Condition: "device",
+	})
 	auto.Conditions = append(auto.Conditions, condition...)
 
 	return auto, nil
@@ -381,6 +380,13 @@ func bodySocketSensorOff(en *core.Entity) (*Automation, error) {
 	if len(actions) == 0 {
 		return nil, errors.New("没有设备")
 	}
+
+	actions = append(actions, ActionCommon{
+		Type:     "turn_off",
+		DeviceID: en.DeviceID,
+		EntityID: en.EntityID,
+		Domain:   "switch",
+	})
 
 	areaName := core.SpiltAreaName(entity.AreaName)
 	sensorPrefixStr := prefix
