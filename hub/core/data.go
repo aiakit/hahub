@@ -220,6 +220,7 @@ func callEntityList() {
 		}
 		var filtered []*Entity
 		for _, e := range data.Result {
+
 			callbackEntity(e)
 
 			if strings.Contains(e.OriginalName, "接近远离") && strings.HasPrefix(e.EntityID, "binary_sensor.") {

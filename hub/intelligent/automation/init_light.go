@@ -39,7 +39,18 @@ func InitLight(c *ava.Context) {
 // 最低亮度设置
 func lowestBrightness(entity *core.Entity) {
 	// 为每个实体添加动作到场景序列中
-	if strings.Contains(entity.OriginalName, "默认状态 最低亮度") {
+	if strings.Contains(entity.OriginalName, "最低亮度(x10)") {
+		slowestSetting.Sequence = append(slowestSetting.Sequence, ActionCommon{
+			Type:     "set_value",
+			DeviceID: entity.DeviceID,
+			EntityID: entity.EntityID,
+			Domain:   "number",
+			Value:    8,
+		})
+		return
+	}
+
+	if strings.Contains(entity.OriginalName, "最低亮度") {
 		slowestSetting.Sequence = append(slowestSetting.Sequence, ActionCommon{
 			Type:     "set_value",
 			DeviceID: entity.DeviceID,
@@ -55,17 +66,17 @@ func registerLightGradientTime(entity *core.Entity) {
 
 	//判断区域，带流动
 	//柜子灯带
-	if (strings.Contains(entity.OriginalName, "开灯渐变时长(单位ms)") || strings.Contains(entity.OriginalName, "灯光调光时长(单位ms)") || strings.Contains(entity.OriginalName, "关灯渐变时长(单位ms)")) && strings.Contains(entity.ID, "number.") {
+	if (strings.Contains(entity.OriginalName, "开灯渐变时长(单位ms)") || strings.Contains(entity.OriginalName, "灯光调光时长(单位ms)") || strings.Contains(entity.OriginalName, "关灯渐变时长(单位ms)")) && strings.Contains(entity.EntityID, "number.") {
 		lightGradientTime.Sequence = append(lightGradientTime.Sequence, ActionCommon{
 			Type:     "set_value",
 			DeviceID: entity.DeviceID,
 			EntityID: entity.EntityID,
 			Domain:   "number",
-			Value:    1000,
+			Value:    5000,
 		})
 	}
 
-	if (strings.Contains(entity.OriginalName, "通电默认状态") || strings.Contains(entity.OriginalName, "分段开关") || strings.Contains(entity.OriginalName, "恢复断电前灯光")) && strings.Contains(entity.ID, "switch.") {
+	if (strings.Contains(entity.OriginalName, "通电默认状态") || strings.Contains(entity.OriginalName, "分段开关") || strings.Contains(entity.OriginalName, "恢复断电前灯光")) && strings.Contains(entity.EntityID, "switch.") {
 		lightGradientTime.Sequence = append(lightGradientTime.Sequence, ActionCommon{
 			Type:     "turn_off",
 			EntityID: entity.EntityID,
@@ -84,9 +95,11 @@ func registerLightGradientTime(entity *core.Entity) {
 	}
 
 	if strings.Contains(entity.OriginalName, "默认状态 渐变时间设置，字节[0]开灯渐变时间，字节[1]关灯渐变时间，字节[2]模式渐变时间") {
-		value := "21056069" //5秒，10秒，1秒
+		//value := "21056069" //5秒，10秒，1秒
+		value := "21318213" //5秒，10秒，5秒
 		if strings.Contains(entity.OriginalName, "字节3（配置渐变、默认灯光、配置灯光、灯光变化、配置变化）") {
-			value = "4278853" //5,10,1秒
+			//value = "4278853" //5,10,1秒
+			value = "21318213" //5,10,5秒
 		}
 		lightGradientTime.Sequence = append(lightGradientTime.Sequence, ActionCommon{
 			Type:     "set_value",
@@ -97,7 +110,7 @@ func registerLightGradientTime(entity *core.Entity) {
 		})
 	}
 
-	if strings.Contains(entity.OriginalName, "默认上电状态") && strings.Contains(entity.ID, "select.") {
+	if strings.Contains(entity.OriginalName, "默认上电状态") && strings.Contains(entity.EntityID, "select.") {
 		lightGradientTime.Sequence = append(lightGradientTime.Sequence, ActionCommon{
 			Type:     "select_option",
 			DeviceID: entity.DeviceID,
@@ -107,7 +120,7 @@ func registerLightGradientTime(entity *core.Entity) {
 		})
 	}
 
-	if strings.Contains(entity.OriginalName, "默认状态 灯光变化") && strings.HasPrefix(entity.ID, "select.") {
+	if strings.Contains(entity.OriginalName, "默认状态 灯光变化") && strings.HasPrefix(entity.EntityID, "select.") {
 
 		lightGradientTime.Sequence = append(lightGradientTime.Sequence, ActionCommon{
 			Type:     "select_option",
@@ -118,7 +131,7 @@ func registerLightGradientTime(entity *core.Entity) {
 		})
 	}
 
-	if strings.Contains(entity.OriginalName, "默认状态 默认灯光") && strings.HasPrefix(entity.ID, "select.") {
+	if strings.Contains(entity.OriginalName, "默认状态 默认灯光") && strings.HasPrefix(entity.EntityID, "select.") {
 		lightGradientTime.Sequence = append(lightGradientTime.Sequence, ActionCommon{
 			Type:     "select_option",
 			DeviceID: entity.DeviceID,
@@ -129,7 +142,7 @@ func registerLightGradientTime(entity *core.Entity) {
 	}
 
 	//馨光灯带，关灯断电
-	if strings.Contains(entity.OriginalName, "关灯断电") && strings.HasPrefix(entity.ID, "select.") {
+	if strings.Contains(entity.OriginalName, "关灯断电") && strings.HasPrefix(entity.EntityID, "select.") {
 		lightGradientTime.Sequence = append(lightGradientTime.Sequence, ActionCommon{
 			Type:     "select_option",
 			DeviceID: entity.DeviceID,
