@@ -72,8 +72,8 @@ func InitModeOne(c *ava.Context) *Script {
 	}
 
 	var script = &Script{
-		Alias:       "馨光光随影动脚本",
-		Description: "馨光光随影动模式设置脚本",
+		Alias:       "馨光光随影动场景",
+		Description: "馨光光随影动模式设置场景",
 	}
 
 	// 主机设置
@@ -170,8 +170,8 @@ func InitModeTwo(c *ava.Context) *Script {
 	}
 
 	var script = &Script{
-		Alias:       "馨光音乐律动脚本",
-		Description: "馨光音乐律动模式设置脚本",
+		Alias:       "馨光音乐律动场景",
+		Description: "馨光音乐律动模式设置场景",
 	}
 
 	// 主机设置
@@ -270,8 +270,8 @@ func InitModeThree(c *ava.Context) *Script {
 	}
 
 	var script = &Script{
-		Alias:       "馨光静态模式脚本",
-		Description: "馨光静态模式设置脚本",
+		Alias:       "馨光静态模式场景",
+		Description: "馨光静态模式设置场景",
 	}
 
 	// 主机设置

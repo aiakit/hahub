@@ -14,7 +14,7 @@ var prefixUrlCreateScript = "%s/api/config/script/config/%s"
 
 func ScriptChaos() {
 	c := ava.Background()
-	//删除所有脚本
+	//删除所有场景
 	DeleteAllScript(c)
 
 	//初始化开关选择：场景按键，开关按键类型
@@ -33,7 +33,7 @@ func ScriptChaos() {
 	//起床场景
 	goodMorningScript(c)
 
-	//调光脚本
+	//调光场景
 	dimmmingIncrease(c)
 	dimmmingReduce(c)
 
@@ -44,7 +44,7 @@ func ScriptChaos() {
 	ava.Debugf("all script created done! |total=%d", scriptCount)
 }
 
-// 脚本，Sequence和automation的actions一致
+// 场景，Sequence和automation的actions一致
 type Script struct {
 	Alias       string        `json:"alias"`       //自动化名称
 	Description string        `json:"description"` //自动化描述
@@ -90,7 +90,7 @@ func CreateScript(c *ava.Context, script *Script) string {
 	return baseEntityId
 }
 
-// 删除所有脚本
+// 删除所有场景
 func DeleteAllScript(c *ava.Context) {
 	entities, ok := core.GetEntityCategoryMap()[core.CategoryScript]
 	if !ok {

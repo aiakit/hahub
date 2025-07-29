@@ -8,12 +8,12 @@ import (
 )
 
 func initHoming(c *ava.Context) {
-	// 创建回家脚本
+	// 创建回家场景
 	script := homingScript()
 	if script != nil && len(script.Sequence) > 0 {
 		scriptId := CreateScript(c, script)
 
-		// 基于脚本创建自动化
+		// 基于场景创建自动化
 		if scriptId != "" {
 			auto := homingAutomation(scriptId)
 			if auto != nil && len(auto.Triggers) > 0 {
@@ -23,11 +23,11 @@ func initHoming(c *ava.Context) {
 	}
 }
 
-// 回家场景脚本
+// 回家场景场景
 func homingScript() *Script {
 	var script = &Script{
-		Alias:       "回家脚本",
-		Description: "回家场景执行脚本",
+		Alias:       "回家场景",
+		Description: "回家场景执行场景",
 	}
 
 	//打开客厅所有灯
@@ -339,7 +339,7 @@ func homingAutomation(scriptId string) *Automation {
 		}
 	}()
 
-	// 执行回家脚本
+	// 执行回家场景
 	automation.Actions = append(automation.Actions, ActionService{
 		Action: "script.turn_on",
 		Target: &struct {

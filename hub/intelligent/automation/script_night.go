@@ -50,9 +50,9 @@ func goodNightScript(c *ava.Context) {
 			}
 		}
 
-		// 创建脚本部分
+		// 创建场景部分
 		script := &Script{
-			Alias:       areaName + "睡觉脚本",
+			Alias:       areaName + "睡觉场景",
 			Description: "执行" + areaName + "睡觉操作，包括播放音乐、关闭窗帘、调节灯光和控制空调",
 		}
 
@@ -69,7 +69,7 @@ func goodNightScript(c *ava.Context) {
 			}
 		}()
 
-		// 添加设备操作到脚本中
+		// 添加设备操作到场景中
 		// 1. 关闭窗帘
 		for _, e := range v {
 			if e.Category == core.CategoryCurtain {
@@ -160,7 +160,7 @@ func goodNightScript(c *ava.Context) {
 
 			auto := &Automation{
 				Alias:       areaName + "睡觉自动化",
-				Description: "执行" + areaName + "睡觉脚本，包括播放音乐、关闭窗帘、调节灯光和控制空调",
+				Description: "执行" + areaName + "睡觉场景，包括播放音乐、关闭窗帘、调节灯光和控制空调",
 				Mode:        "single",
 			}
 
@@ -194,7 +194,7 @@ func goodNightScript(c *ava.Context) {
 				}
 			}()
 
-			// 执行脚本
+			// 执行场景
 			auto.Actions = script.Sequence
 
 			// 创建自动化

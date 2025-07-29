@@ -38,7 +38,7 @@ func InitLight(c *ava.Context) {
 
 // 最低亮度设置
 func lowestBrightness(entity *core.Entity) {
-	// 为每个实体添加动作到脚本序列中
+	// 为每个实体添加动作到场景序列中
 	if strings.Contains(entity.OriginalName, "默认状态 最低亮度") {
 		slowestSetting.Sequence = append(slowestSetting.Sequence, ActionCommon{
 			Type:     "set_value",

@@ -8,12 +8,12 @@ import (
 )
 
 func initLevingHome(c *ava.Context) {
-	// 创建离家脚本
+	// 创建离家场景
 	script := levingHomeScript()
 	if script != nil && len(script.Sequence) > 0 {
 		scriptId := CreateScript(c, script)
 
-		// 基于脚本创建自动化
+		// 基于场景创建自动化
 		if scriptId != "" {
 			auto := levingHomeAutomation(scriptId)
 			if auto != nil {
@@ -23,11 +23,11 @@ func initLevingHome(c *ava.Context) {
 	}
 }
 
-// 离家场景脚本
+// 离家场景场景
 func levingHomeScript() *Script {
 	var script = &Script{
-		Alias:       "离家脚本",
-		Description: "离家场景执行脚本",
+		Alias:       "离家场景",
+		Description: "离家场景执行场景",
 	}
 
 	// 关闭所有灯
@@ -202,7 +202,7 @@ func levingHomeAutomation(scriptId string) *Automation {
 		}
 	}()
 
-	// 执行离家脚本
+	// 执行离家场景
 	automation.Actions = append(automation.Actions, ActionService{
 		Action: "script.turn_on",
 		Target: &struct {

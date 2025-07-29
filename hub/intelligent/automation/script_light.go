@@ -108,7 +108,7 @@ func lightScene(c *ava.Context, simpleName string, brightness float64, kelvin in
 			}
 		}()
 
-		// 添加设备操作到脚本中
+		// 添加设备操作到场景中
 		for _, e1 := range v {
 			if e1.Category == core.CategoryLightGroup {
 				script.Sequence = append(script.Sequence, ActionLight{
@@ -146,8 +146,8 @@ func lightScene(c *ava.Context, simpleName string, brightness float64, kelvin in
 		}
 
 		if len(script.Sequence) > 0 {
-			script.Alias = areaName + simpleName + "脚本"
-			script.Description = "点击开关按键执行" + areaName + simpleName + "脚本"
+			script.Alias = areaName + simpleName + "场景"
+			script.Description = "点击开关按键执行" + areaName + simpleName + "场景"
 			scriptId := CreateScript(c, script)
 
 			if scriptId != "" && len(automation.Triggers) > 0 {
