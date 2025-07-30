@@ -138,6 +138,21 @@ func levingHomeScript() *Script {
 		}
 	}()
 
+	//关闭插座
+	func() {
+		entities, ok := core.GetEntityCategoryMap()[core.CategorySocket]
+		if ok {
+			for _, e := range entities {
+				script.Sequence = append(script.Sequence, ActionCommon{
+					Type:     "turn_off",
+					DeviceID: e.DeviceID,
+					EntityID: e.EntityID,
+					Domain:   "switch",
+				})
+			}
+		}
+	}()
+
 	// 布防
 	script.Sequence = append(script.Sequence, ActionService{
 		Action: "automation.turn_on",

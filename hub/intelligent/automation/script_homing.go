@@ -99,6 +99,21 @@ func homingScript() *Script {
 		}
 	}()
 
+	//打开插座
+	func() {
+		entities, ok := core.GetEntityCategoryMap()[core.CategorySocket]
+		if ok {
+			for _, e := range entities {
+				script.Sequence = append(script.Sequence, ActionCommon{
+					Type:     "turn_on",
+					DeviceID: e.DeviceID,
+					EntityID: e.EntityID,
+					Domain:   "switch",
+				})
+			}
+		}
+	}()
+
 	//打开电视
 	func() {
 		entities, ok := core.GetEntityCategoryMap()[core.CategoryIrTV]
