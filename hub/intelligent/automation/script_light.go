@@ -10,6 +10,9 @@ import (
 func lightScriptSetting(c *ava.Context) {
 	lightScene(c, "会客", 80, 6000)
 	lightScene(c, "观影", 20, 3800)
+	lightScene(c, "游戏", 100, 4800)
+	lightScene(c, "棋牌", 100, 4800)
+	lightScene(c, "喝茶", 80, 3500)
 	lightScene(c, "休息", 60, 3000)
 	lightScene(c, "日常", 80, 4500)
 	lightScene(c, "阅读", 70, 4000)

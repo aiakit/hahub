@@ -21,6 +21,7 @@ func ScriptChaos() {
 	InitSwitchSelect(c)
 	//灯光初始化
 	InitLight(c)
+
 	//初始化开关
 	InitSwitch(c)
 

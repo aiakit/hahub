@@ -39,7 +39,7 @@ func InitLight(c *ava.Context) {
 // 最低亮度设置
 func lowestBrightness(entity *core.Entity) {
 	// 为每个实体添加动作到场景序列中
-	if strings.Contains(entity.OriginalName, "最低亮度(x10)") {
+	if strings.Contains(entity.OriginalName, "最低亮度(x10)") && strings.HasPrefix(entity.EntityID, "number.") {
 		slowestSetting.Sequence = append(slowestSetting.Sequence, ActionCommon{
 			Type:     "set_value",
 			DeviceID: entity.DeviceID,
@@ -50,7 +50,7 @@ func lowestBrightness(entity *core.Entity) {
 		return
 	}
 
-	if strings.Contains(entity.OriginalName, "最低亮度") {
+	if strings.Contains(entity.OriginalName, "最低亮度") && strings.HasPrefix(entity.EntityID, "number.") {
 		slowestSetting.Sequence = append(slowestSetting.Sequence, ActionCommon{
 			Type:     "set_value",
 			DeviceID: entity.DeviceID,

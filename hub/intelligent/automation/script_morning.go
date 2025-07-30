@@ -58,12 +58,14 @@ func goodMorningScript(c *ava.Context) {
 
 		// 1. 播放30秒轻音乐
 		func() {
-			entities, ok := core.GetEntityCategoryMap()[core.CategoryXiaomiHomeSpeaker]
+			speakers, ok := core.GetEntityCategoryMap()[core.CategoryXiaomiHomeSpeaker]
 			if ok {
-				for _, e := range entities {
-					if strings.Contains(e.AreaName, areaName) && strings.Contains(e.OriginalName, "执行文本指令") {
-						script.Sequence = append(script.Sequence, ExecuteTextCommand(e.EntityID, "播放一段轻快的音乐", true))
-						break
+				for _, e := range speakers {
+					if e.AreaID == areaId {
+						if strings.Contains(e.AreaName, areaName) && strings.Contains(e.OriginalName, "执行文本指令") {
+							script.Sequence = append(script.Sequence, ExecuteTextCommand(e.EntityID, "播放一段轻快的音乐", true))
+							break
+						}
 					}
 				}
 			}

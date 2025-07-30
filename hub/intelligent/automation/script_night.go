@@ -44,7 +44,7 @@ func goodNightScript(c *ava.Context) {
 		var switchEntities []*core.Entity
 		for _, e := range v {
 			if e.Category == core.CategorySwitchScene {
-				if strings.Contains(e.OriginalName, "睡觉") {
+				if strings.Contains(e.OriginalName, "睡觉") || strings.Contains(e.OriginalName, "晚安") {
 					switchEntities = append(switchEntities, e)
 				}
 			}
@@ -52,18 +52,20 @@ func goodNightScript(c *ava.Context) {
 
 		// 创建场景部分
 		script := &Script{
-			Alias:       areaName + "睡觉场景",
-			Description: "执行" + areaName + "睡觉操作，包括播放音乐、关闭窗帘、调节灯光和控制空调",
+			Alias:       areaName + "睡觉/晚安场景",
+			Description: "执行" + areaName + "睡觉场景，包括播放音乐、关闭窗帘、调节灯光和控制空调",
 		}
 
 		// 1. 播放30秒轻音乐
 		func() {
-			entities, ok := core.GetEntityCategoryMap()[core.CategoryXiaomiHomeSpeaker]
+			speakers, ok := core.GetEntityCategoryMap()[core.CategoryXiaomiHomeSpeaker]
 			if ok {
-				for _, e := range entities {
-					if strings.Contains(e.AreaName, areaName) && strings.Contains(e.OriginalName, "执行文本指令") {
-						script.Sequence = append(script.Sequence, ExecuteTextCommand(e.EntityID, "播放一段轻音乐", true))
-						break
+				for _, e := range speakers {
+					if e.AreaID == areaId {
+						if strings.Contains(e.AreaName, areaName) && strings.Contains(e.OriginalName, "执行文本指令") {
+							script.Sequence = append(script.Sequence, ExecuteTextCommand(e.EntityID, "播放一段轻快的音乐", true))
+							break
+						}
 					}
 				}
 			}
@@ -164,7 +166,7 @@ func goodNightScript(c *ava.Context) {
 				Mode:        "single",
 			}
 
-			//条件：名字中带有"回家"的开关按键和场景按键
+			//条件：名字中带有"睡觉"/“晚安”的开关按键和场景按键
 			func() {
 				for bName, v := range switchSelectSameName {
 					bns := strings.Split(bName, "_")
