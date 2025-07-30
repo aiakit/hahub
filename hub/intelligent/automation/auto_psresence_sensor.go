@@ -59,6 +59,11 @@ func presenceSensorOn(entity *core.Entity) (*Automation, error) {
 	if !ok {
 		return nil, errors.New("entity area not found")
 	}
+	// 1. 取entity.Name中'-'前的前缀
+	prefix := entity.DeviceName
+	if idx := strings.Index(prefix, "-"); idx > 0 {
+		prefix = prefix[:idx]
+	}
 
 	for _, e := range entities {
 		if e.Category == core.CategoryWiredSwitch && !strings.HasPrefix(e.EntityID, "button.") {
@@ -87,6 +92,11 @@ func presenceSensorOn(entity *core.Entity) (*Automation, error) {
 	var parallel1 = make(map[string][]interface{})
 	// 1. 先开氛围灯
 	for _, l := range atmosphereLights {
+		if prefix != "" {
+			if !strings.Contains(l.DeviceName, prefix) {
+				continue
+			}
+		}
 		act := &ActionLight{
 			Action: "light.turn_on",
 			Data: &actionLightData{
@@ -104,6 +114,12 @@ func presenceSensorOn(entity *core.Entity) (*Automation, error) {
 	}
 	// 2. 先开氛围开关
 	for _, s := range atmosphereSwitches {
+		if prefix != "" {
+			if !strings.Contains(s.DeviceName, prefix) {
+				continue
+			}
+		}
+
 		parallel1["parallel"] = append(parallel1["parallel"], &ActionCommon{
 			Type:     "turn_on",
 			DeviceID: s.DeviceID,
@@ -128,6 +144,11 @@ func presenceSensorOn(entity *core.Entity) (*Automation, error) {
 	for _, l := range normalLights {
 		if strings.Contains(l.DeviceName, "馨光") && strings.Contains(l.DeviceName, "主机") {
 			continue
+		}
+		if prefix != "" {
+			if !strings.Contains(l.DeviceName, prefix) {
+				continue
+			}
 		}
 
 		if strings.Contains(l.DeviceName, "馨光") && !strings.Contains(l.DeviceName, "主机") {
@@ -187,6 +208,12 @@ func presenceSensorOn(entity *core.Entity) (*Automation, error) {
 	}
 	// 5. 再开非氛围开关
 	for _, s := range normalSwitches {
+		if prefix != "" {
+			if !strings.Contains(s.DeviceName, prefix) {
+				continue
+			}
+		}
+
 		parallel2["parallel"] = append(parallel2["parallel"], &ActionCommon{
 			Type:     "turn_on",
 			DeviceID: s.DeviceID,

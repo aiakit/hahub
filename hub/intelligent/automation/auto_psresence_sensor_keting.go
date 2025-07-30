@@ -95,6 +95,12 @@ func presenceSensorOnKeting(entity, lumen *core.Entity, lxMin, lxMax float64, du
 		normalLights       []*core.Entity
 	)
 
+	// 1. 取entity.Name中'-'前的前缀
+	prefix := entity.DeviceName
+	if idx := strings.Index(prefix, "-"); idx > 0 {
+		prefix = prefix[:idx]
+	}
+
 	var duringName string
 	// 查找同区域所有实体
 	entities, ok := core.GetEntityAreaMap()[areaID]
@@ -155,6 +161,12 @@ func presenceSensorOnKeting(entity, lumen *core.Entity, lxMin, lxMax float64, du
 	var parallel1 = make(map[string][]interface{})
 	// 1. 先开氛围灯
 	for _, l := range atmosphereLights {
+		if prefix != "" {
+			if !strings.Contains(l.DeviceName, prefix) {
+				continue
+			}
+		}
+
 		parallel1["parallel"] = append(parallel1["parallel"], &ActionLight{
 			Action: "light.turn_on",
 			Data: &actionLightData{
@@ -166,6 +178,12 @@ func presenceSensorOnKeting(entity, lumen *core.Entity, lxMin, lxMax float64, du
 	}
 	// 2. 先开氛围开关
 	for _, s := range atmosphereSwitches {
+		if prefix != "" {
+			if !strings.Contains(s.DeviceName, prefix) {
+				continue
+			}
+		}
+
 		parallel1["parallel"] = append(parallel1["parallel"], &ActionCommon{
 			Type:     "turn_on",
 			DeviceID: s.DeviceID,
@@ -188,7 +206,11 @@ func presenceSensorOnKeting(entity, lumen *core.Entity, lxMin, lxMax float64, du
 	var parallel2 = make(map[string][]interface{})
 	// 4. 再开非氛围灯
 	for _, l := range normalLights {
-
+		if prefix != "" {
+			if !strings.Contains(l.DeviceName, prefix) {
+				continue
+			}
+		}
 		//不打开主机
 		if strings.Contains(l.DeviceName, "馨光") && strings.Contains(l.DeviceName, "主机") {
 			continue
@@ -238,6 +260,11 @@ func presenceSensorOnKeting(entity, lumen *core.Entity, lxMin, lxMax float64, du
 	}
 	// 5. 再开非氛围开关
 	for _, s := range normalSwitches {
+		if prefix != "" {
+			if !strings.Contains(s.DeviceName, prefix) {
+				continue
+			}
+		}
 		parallel2["parallel"] = append(parallel2["parallel"], &ActionCommon{
 			Type:     "turn_on",
 			DeviceID: s.DeviceID,

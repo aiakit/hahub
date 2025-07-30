@@ -76,6 +76,29 @@ func InitModeOne(c *ava.Context) *Script {
 		Description: "馨光光随影动模式设置场景",
 	}
 
+	//先开机
+	for _, e := range entities {
+		//注意元数据中有空格
+		if strings.HasPrefix(e.EntityID, "light.") {
+			script.Sequence = append(script.Sequence, ActionLight{
+				Type:          "turn_on",
+				DeviceID:      e.DeviceID,
+				EntityID:      e.EntityID,
+				Domain:        "light",
+				BrightnessPct: 100,
+			})
+		}
+	}
+
+	//script.Sequence = append(script.Sequence, ActionTimerDelay{
+	//	Delay: struct {
+	//		Hours        int `json:"hours"`
+	//		Minutes      int `json:"minutes"`
+	//		Seconds      int `json:"seconds"`
+	//		Milliseconds int `json:"milliseconds"`
+	//	}{Seconds: 3},
+	//})
+
 	// 主机设置
 	for _, e := range entities {
 		if !strings.Contains(e.DeviceName, "主机") {
@@ -101,18 +124,6 @@ func InitModeOne(c *ava.Context) *Script {
 		if strings.Contains(e.OriginalName, "律动和场景同步到分控") {
 			script.Sequence = append(script.Sequence, ActionCommon{Domain: "switch", DeviceID: e.DeviceID, EntityID: e.EntityID, Type: "turn_on"})
 		}
-
-		//注意元数据中有空格
-		if e.OriginalName == " 灯" {
-			script.Sequence = append(script.Sequence, ActionLight{
-				Action: "light.turn_on",
-				Data: &actionLightData{
-					BrightnessPct: 100,
-					RgbColor:      GetRgbColor(5000),
-				},
-				Target: &targetLightData{EntityId: e.EntityID},
-			})
-		}
 	}
 
 	//灯带设置
@@ -120,6 +131,14 @@ func InitModeOne(c *ava.Context) *Script {
 		if strings.Contains(e.DeviceName, "主机") {
 			continue
 		}
+
+		script.Sequence = append(script.Sequence, ActionLight{
+			Type:          "turn_on",
+			DeviceID:      e.DeviceID,
+			EntityID:      e.EntityID,
+			Domain:        "light",
+			BrightnessPct: 100,
+		})
 
 		if strings.Contains(e.OriginalName, "动态模式效果") {
 			script.Sequence = append(script.Sequence, ActionCommon{Domain: "number", DeviceID: e.DeviceID, EntityID: e.EntityID, Type: "set_value", Value: 58})
@@ -139,18 +158,6 @@ func InitModeOne(c *ava.Context) *Script {
 
 		if strings.Contains(e.OriginalName, "LED运行模式") {
 			script.Sequence = append(script.Sequence, ActionCommon{Domain: "select", DeviceID: e.DeviceID, EntityID: e.EntityID, Type: "select_option", Option: "动态模式"})
-		}
-
-		//注意元数据中有空格
-		if e.OriginalName == " 灯" {
-			script.Sequence = append(script.Sequence, ActionLight{
-				Action: "light.turn_on",
-				Data: &actionLightData{
-					BrightnessPct: 100,
-					RgbColor:      GetRgbColor(5000),
-				},
-				Target: &targetLightData{EntityId: e.EntityID},
-			})
 		}
 	}
 
@@ -173,6 +180,29 @@ func InitModeTwo(c *ava.Context) *Script {
 		Alias:       "馨光音乐律动场景",
 		Description: "馨光音乐律动模式设置场景",
 	}
+
+	//先开机
+	for _, e := range entities {
+		//注意元数据中有空格
+		if strings.HasPrefix(e.EntityID, "light.") {
+			script.Sequence = append(script.Sequence, ActionLight{
+				Type:          "turn_on",
+				DeviceID:      e.DeviceID,
+				EntityID:      e.EntityID,
+				Domain:        "light",
+				BrightnessPct: 100,
+			})
+		}
+	}
+
+	//script.Sequence = append(script.Sequence, ActionTimerDelay{
+	//	Delay: struct {
+	//		Hours        int `json:"hours"`
+	//		Minutes      int `json:"minutes"`
+	//		Seconds      int `json:"seconds"`
+	//		Milliseconds int `json:"milliseconds"`
+	//	}{Seconds: 3},
+	//})
 
 	// 主机设置
 	for _, e := range entities {
@@ -203,16 +233,6 @@ func InitModeTwo(c *ava.Context) *Script {
 		if strings.Contains(e.OriginalName, "放大等级") {
 			script.Sequence = append(script.Sequence, ActionCommon{Domain: "number", DeviceID: e.DeviceID, EntityID: e.EntityID, Type: "set_value", Value: 8})
 		}
-
-		if e.OriginalName == " 灯" {
-			script.Sequence = append(script.Sequence, ActionLight{
-				Action: "light.turn_on",
-				Data: &actionLightData{
-					BrightnessPct: 100,
-					RgbColor:      GetRgbColor(5000)},
-				Target: &targetLightData{EntityId: e.EntityID},
-			})
-		}
 	}
 
 	//灯带设置
@@ -241,17 +261,6 @@ func InitModeTwo(c *ava.Context) *Script {
 		if strings.Contains(e.OriginalName, "LED运行模式") {
 			script.Sequence = append(script.Sequence, ActionCommon{Domain: "select", DeviceID: e.DeviceID, EntityID: e.EntityID, Type: "select_option", Option: "律动模式"})
 		}
-
-		if e.OriginalName == " 灯" {
-			script.Sequence = append(script.Sequence, ActionLight{
-				Action: "light.turn_on",
-				Data: &actionLightData{
-					BrightnessPct: 100,
-					RgbColor:      GetRgbColor(5000),
-				},
-				Target: &targetLightData{EntityId: e.EntityID},
-			})
-		}
 	}
 
 	return script
@@ -274,6 +283,29 @@ func InitModeThree(c *ava.Context) *Script {
 		Description: "馨光静态模式设置场景",
 	}
 
+	//先开机
+	for _, e := range entities {
+		//注意元数据中有空格
+		if strings.HasPrefix(e.EntityID, "light.") {
+			script.Sequence = append(script.Sequence, ActionLight{
+				Type:          "turn_on",
+				DeviceID:      e.DeviceID,
+				EntityID:      e.EntityID,
+				Domain:        "light",
+				BrightnessPct: 100,
+			})
+		}
+	}
+
+	//script.Sequence = append(script.Sequence, ActionTimerDelay{
+	//	Delay: struct {
+	//		Hours        int `json:"hours"`
+	//		Minutes      int `json:"minutes"`
+	//		Seconds      int `json:"seconds"`
+	//		Milliseconds int `json:"milliseconds"`
+	//	}{Seconds: 3},
+	//})
+
 	// 主机设置
 	for _, e := range entities {
 		if !strings.Contains(e.DeviceName, "主机") {
@@ -290,17 +322,6 @@ func InitModeThree(c *ava.Context) *Script {
 
 		if strings.Contains(e.OriginalName, "柔和度设置") {
 			script.Sequence = append(script.Sequence, ActionCommon{Domain: "number", DeviceID: e.DeviceID, EntityID: e.EntityID, Type: "set_value", Value: 40})
-		}
-
-		if e.OriginalName == " 灯" {
-			script.Sequence = append(script.Sequence, ActionLight{
-				Action: "light.turn_on",
-				Data: &actionLightData{
-					BrightnessPct: 100,
-					RgbColor:      GetRgbColor(5000),
-				},
-				Target: &targetLightData{EntityId: e.EntityID},
-			})
 		}
 	}
 
@@ -320,17 +341,6 @@ func InitModeThree(c *ava.Context) *Script {
 
 		if strings.Contains(e.OriginalName, "LED运行模式") {
 			script.Sequence = append(script.Sequence, ActionCommon{Domain: "select", DeviceID: e.DeviceID, EntityID: e.EntityID, Type: "select_option", Option: "静态模式"})
-		}
-
-		if e.OriginalName == " 灯" {
-			script.Sequence = append(script.Sequence, ActionLight{
-				Action: "light.turn_on",
-				Data: &actionLightData{
-					BrightnessPct: 100,
-					RgbColor:      GetRgbColor(5000),
-				},
-				Target: &targetLightData{EntityId: e.EntityID},
-			})
 		}
 	}
 
