@@ -1,8 +1,7 @@
 package main
 
 import (
-	"hahub/hub/core"
-	"hahub/hub/intelligent/automation"
+	"hahub/hub/data"
 	"time"
 
 	"github.com/aiakit/ava"
@@ -11,12 +10,10 @@ import (
 func main() {
 	now := time.Now()
 	// 等待 chaos.go 的初始化完成
-	core.WaitForInit()
+	data.WaitForInit()
 
 	//必须先创建脚本再创建自动化
-	automation.ScriptChaos()
-
-	automation.Chaos()
+	//intelligent.Chaos()
 	ava.Debugf("Starting Hahub ok! |latency=%.2fs", time.Since(now).Seconds())
 	select {}
 }
