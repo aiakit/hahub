@@ -24,7 +24,7 @@ func init() {
 
 	logicDataMap.Objects["device"] = &phome.ObjectLogic{
 		Description:  "对智能家居设备进行信息获取或者操作设备",
-		Action:       []string{"操作设备", "修改设备信息", "查询设备状态", "查询设备数量"},
+		Action:       []string{"操作设备", "查询设备状态", "查询设备数量"},
 		FunctionName: "设备",
 	}
 
@@ -35,7 +35,7 @@ func init() {
 	}
 
 	logicDataMap.Objects["daily_conversation"] = &phome.ObjectLogic{
-		Description:  "并非针对智能家居所在领域的对话,每种类型相当于一个智能agent,默认是其他类型",
+		Description:  "非智能家居所在领域的对话",
 		Action:       []string{"其他"},
 		FunctionName: "日常对话",
 	}
