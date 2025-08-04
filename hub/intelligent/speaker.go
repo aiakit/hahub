@@ -3,8 +3,8 @@ package intelligent
 import (
 	"fmt"
 	"hahub/hub/data"
+	"hahub/hub/internal/chat"
 	"hahub/hub/internal/x"
-	"hahub/proto/phome"
 	"net/http"
 	"strings"
 	"sync"
@@ -101,7 +101,7 @@ func ExecuteTextCommand(entityId string, command string, silent bool) *ActionSer
 }
 
 type conversationor struct {
-	Conversation []*phome.ChatMessage `json:"conversation"`
+	Conversation []*chat.ChatMessage `json:"conversation"`
 	entityId     string
 	deviceId     string
 }
@@ -237,7 +237,7 @@ func (s *speakerProcess) sendToRemote(conversations []*conversationor) {
 }
 
 // 修改:getBusinessID现在处理对话历史数组
-func (s *speakerProcess) getBusinessID(conversations []*phome.ChatMessage) string {
+func (s *speakerProcess) getBusinessID(conversations []*chat.ChatMessage) string {
 	// 根据对话内容获取业务 ID
 	for _, conv := range conversations {
 		if conv.Role == "user" {
@@ -375,7 +375,7 @@ func SpeakerAsk2manAction4HomingHandler(event *data.StateChangedSimple, body []b
 		}
 
 		var cs = &conversationor{
-			Conversation: []*phome.ChatMessage{{
+			Conversation: []*chat.ChatMessage{{
 				Role:    "user",
 				Content: state.Event.Data.NewState.State,
 			}, {

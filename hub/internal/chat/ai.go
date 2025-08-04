@@ -2,7 +2,6 @@ package chat
 
 import (
 	"context"
-	"hahub/proto/phome"
 
 	"github.com/aiakit/ava"
 	"github.com/sashabaranov/go-openai"
@@ -17,9 +16,14 @@ var DefaultQianwenModel = "qwen-turbo-2024-11-01"
 
 var DefaultProvider = NewOpenAIProvider(DefaultQianwenModel)
 
+type ChatMessage struct {
+	Role    string `json:"role"`
+	Content string `json:"content"`
+}
+
 // AIProvider 定义AI服务提供者的接口
 type AIProvider interface {
-	ChatCompletion(messages []phome.ChatMessage) (string, error)
+	ChatCompletion(messages []ChatMessage) (string, error)
 }
 
 // OpenAIProvider 实现OpenAI服务提供者
@@ -35,7 +39,7 @@ func NewOpenAIProvider(m string) *OpenAIProvider {
 	return &OpenAIProvider{client: openai.NewClientWithConfig(config), m: m}
 }
 
-func (o *OpenAIProvider) ChatCompletion(messages []*phome.ChatMessage) (string, error) {
+func (o *OpenAIProvider) ChatCompletion(messages []*ChatMessage) (string, error) {
 	openaiMessages := make([]openai.ChatCompletionMessage, 0, 2)
 	for _, msg := range messages {
 		openaiMessages = append(openaiMessages, openai.ChatCompletionMessage{
@@ -70,7 +74,7 @@ func NewDoubaoProvider(m string) *DoubaoProvider {
 	return &DoubaoProvider{client: arkruntime.NewClientWithApiKey(DefaultQianwenApiKey), m: m}
 }
 
-func (d *DoubaoProvider) ChatCompletion(messages []phome.ChatMessage) (string, error) {
+func (d *DoubaoProvider) ChatCompletion(messages []ChatMessage) (string, error) {
 
 	openaiMessages := make([]*model.ChatCompletionMessage, 0, 2)
 	for _, msg := range messages {
@@ -98,6 +102,6 @@ func (d *DoubaoProvider) ChatCompletion(messages []phome.ChatMessage) (string, e
 }
 
 // ChatCompletionMessage 通用的聊天完成函数
-func ChatCompletionMessage(messages []*phome.ChatMessage) (string, error) {
+func ChatCompletionMessage(messages []*ChatMessage) (string, error) {
 	return DefaultProvider.ChatCompletion(messages)
 }
