@@ -2,24 +2,28 @@ syntax = "proto3";
 
 package phome;
 
-message AppointmentReq{
+message ChatReq{
   string content = 1;
+}
+
+message PrepareData{
   map<string, ObjectLogic> objects = 2;
 }
 
-message AppointmentRsp{
+message ChatRsp{
   int32 code = 1;
   string msg = 2;
   string result = 3;
 }
 
-message conversation{
+message chatMessage{
   string content = 1;
   string role = 2;
 }
 
 message ObjectLogic{
   string description = 1;
+  string FunctionName = 4;
   repeated string action = 2;
   repeated object object = 3;
 }
@@ -33,5 +37,5 @@ message object{
 
 service Homeassistant{
   //功能预约
-  rpc Prepare(AppointmentReq) returns (AppointmentRsp);
+  rpc Prepare(ChatReq) returns (ChatRsp);
 }

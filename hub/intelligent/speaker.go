@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"hahub/hub/data"
 	"hahub/hub/internal/x"
+	"hahub/proto/phome"
 	"net/http"
 	"strings"
 	"sync"
@@ -100,7 +101,7 @@ func ExecuteTextCommand(entityId string, command string, silent bool) *ActionSer
 }
 
 type conversationor struct {
-	Conversation []*conversation `json:"conversation"`
+	Conversation []*phome.ChatMessage `json:"conversation"`
 	entityId     string
 	deviceId     string
 }
@@ -236,7 +237,7 @@ func (s *speakerProcess) sendToRemote(conversations []*conversationor) {
 }
 
 // 修改:getBusinessID现在处理对话历史数组
-func (s *speakerProcess) getBusinessID(conversations []*conversation) string {
+func (s *speakerProcess) getBusinessID(conversations []*phome.ChatMessage) string {
 	// 根据对话内容获取业务 ID
 	for _, conv := range conversations {
 		if conv.Role == "user" {
@@ -244,14 +245,6 @@ func (s *speakerProcess) getBusinessID(conversations []*conversation) string {
 		}
 	}
 	return ""
-}
-
-// 修改:为conversation结构体添加时间戳字段
-type conversation struct {
-	Role     string `json:"role"` //system,user,xiaoai
-	Content  string `json:"content"`
-	entityID string
-	deviceID string
 }
 
 func downPlay(deviceId string) {
@@ -382,16 +375,12 @@ func SpeakerAsk2manAction4HomingHandler(event *data.StateChangedSimple, body []b
 		}
 
 		var cs = &conversationor{
-			Conversation: []*conversation{{
-				Role:     "user",
-				Content:  state.Event.Data.NewState.State,
-				entityID: en.EntityID,
-				deviceID: en.DeviceID,
+			Conversation: []*phome.ChatMessage{{
+				Role:    "user",
+				Content: state.Event.Data.NewState.State,
 			}, {
-				Role:     "assistant",
-				Content:  v[0].Llm.Text,
-				entityID: en.EntityID,
-				deviceID: en.DeviceID,
+				Role:    "assistant",
+				Content: v[0].Llm.Text,
 			}},
 			entityId: en.EntityID,
 			deviceId: en.DeviceID,

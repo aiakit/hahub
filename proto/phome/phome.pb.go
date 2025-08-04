@@ -23,23 +23,22 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-type AppointmentReq struct {
-	Content string                  `protobuf:"bytes,1,opt,name=content,proto3" json:"content,omitempty"`
-	Objects map[string]*ObjectLogic `protobuf:"bytes,2,rep,name=objects,proto3" json:"objects,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+type ChatReq struct {
+	Content string `protobuf:"bytes,1,opt,name=content,proto3" json:"content,omitempty"`
 }
 
-func (m *AppointmentReq) Reset()         { *m = AppointmentReq{} }
-func (m *AppointmentReq) String() string { return proto.CompactTextString(m) }
-func (*AppointmentReq) ProtoMessage()    {}
-func (*AppointmentReq) Descriptor() ([]byte, []int) {
+func (m *ChatReq) Reset()         { *m = ChatReq{} }
+func (m *ChatReq) String() string { return proto.CompactTextString(m) }
+func (*ChatReq) ProtoMessage()    {}
+func (*ChatReq) Descriptor() ([]byte, []int) {
 	return fileDescriptor_ababc20b4cf82464, []int{0}
 }
-func (m *AppointmentReq) XXX_Unmarshal(b []byte) error {
+func (m *ChatReq) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *AppointmentReq) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *ChatReq) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_AppointmentReq.Marshal(b, m, deterministic)
+		return xxx_messageInfo_ChatReq.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -49,50 +48,87 @@ func (m *AppointmentReq) XXX_Marshal(b []byte, deterministic bool) ([]byte, erro
 		return b[:n], nil
 	}
 }
-func (m *AppointmentReq) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_AppointmentReq.Merge(m, src)
+func (m *ChatReq) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ChatReq.Merge(m, src)
 }
-func (m *AppointmentReq) XXX_Size() int {
+func (m *ChatReq) XXX_Size() int {
 	return m.Size()
 }
-func (m *AppointmentReq) XXX_DiscardUnknown() {
-	xxx_messageInfo_AppointmentReq.DiscardUnknown(m)
+func (m *ChatReq) XXX_DiscardUnknown() {
+	xxx_messageInfo_ChatReq.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_AppointmentReq proto.InternalMessageInfo
+var xxx_messageInfo_ChatReq proto.InternalMessageInfo
 
-func (m *AppointmentReq) GetContent() string {
+func (m *ChatReq) GetContent() string {
 	if m != nil {
 		return m.Content
 	}
 	return ""
 }
 
-func (m *AppointmentReq) GetObjects() map[string]*ObjectLogic {
+type PrepareData struct {
+	Objects map[string]*ObjectLogic `protobuf:"bytes,2,rep,name=objects,proto3" json:"objects,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+}
+
+func (m *PrepareData) Reset()         { *m = PrepareData{} }
+func (m *PrepareData) String() string { return proto.CompactTextString(m) }
+func (*PrepareData) ProtoMessage()    {}
+func (*PrepareData) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ababc20b4cf82464, []int{1}
+}
+func (m *PrepareData) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *PrepareData) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_PrepareData.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *PrepareData) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PrepareData.Merge(m, src)
+}
+func (m *PrepareData) XXX_Size() int {
+	return m.Size()
+}
+func (m *PrepareData) XXX_DiscardUnknown() {
+	xxx_messageInfo_PrepareData.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_PrepareData proto.InternalMessageInfo
+
+func (m *PrepareData) GetObjects() map[string]*ObjectLogic {
 	if m != nil {
 		return m.Objects
 	}
 	return nil
 }
 
-type AppointmentRsp struct {
+type ChatRsp struct {
 	Code   int32  `protobuf:"varint,1,opt,name=code,proto3" json:"code,omitempty"`
 	Msg    string `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
 	Result string `protobuf:"bytes,3,opt,name=result,proto3" json:"result,omitempty"`
 }
 
-func (m *AppointmentRsp) Reset()         { *m = AppointmentRsp{} }
-func (m *AppointmentRsp) String() string { return proto.CompactTextString(m) }
-func (*AppointmentRsp) ProtoMessage()    {}
-func (*AppointmentRsp) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ababc20b4cf82464, []int{1}
+func (m *ChatRsp) Reset()         { *m = ChatRsp{} }
+func (m *ChatRsp) String() string { return proto.CompactTextString(m) }
+func (*ChatRsp) ProtoMessage()    {}
+func (*ChatRsp) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ababc20b4cf82464, []int{2}
 }
-func (m *AppointmentRsp) XXX_Unmarshal(b []byte) error {
+func (m *ChatRsp) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *AppointmentRsp) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *ChatRsp) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_AppointmentRsp.Marshal(b, m, deterministic)
+		return xxx_messageInfo_ChatRsp.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -102,56 +138,56 @@ func (m *AppointmentRsp) XXX_Marshal(b []byte, deterministic bool) ([]byte, erro
 		return b[:n], nil
 	}
 }
-func (m *AppointmentRsp) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_AppointmentRsp.Merge(m, src)
+func (m *ChatRsp) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ChatRsp.Merge(m, src)
 }
-func (m *AppointmentRsp) XXX_Size() int {
+func (m *ChatRsp) XXX_Size() int {
 	return m.Size()
 }
-func (m *AppointmentRsp) XXX_DiscardUnknown() {
-	xxx_messageInfo_AppointmentRsp.DiscardUnknown(m)
+func (m *ChatRsp) XXX_DiscardUnknown() {
+	xxx_messageInfo_ChatRsp.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_AppointmentRsp proto.InternalMessageInfo
+var xxx_messageInfo_ChatRsp proto.InternalMessageInfo
 
-func (m *AppointmentRsp) GetCode() int32 {
+func (m *ChatRsp) GetCode() int32 {
 	if m != nil {
 		return m.Code
 	}
 	return 0
 }
 
-func (m *AppointmentRsp) GetMsg() string {
+func (m *ChatRsp) GetMsg() string {
 	if m != nil {
 		return m.Msg
 	}
 	return ""
 }
 
-func (m *AppointmentRsp) GetResult() string {
+func (m *ChatRsp) GetResult() string {
 	if m != nil {
 		return m.Result
 	}
 	return ""
 }
 
-type Conversation struct {
+type ChatMessage struct {
 	Content string `protobuf:"bytes,1,opt,name=content,proto3" json:"content,omitempty"`
 	Role    string `protobuf:"bytes,2,opt,name=role,proto3" json:"role,omitempty"`
 }
 
-func (m *Conversation) Reset()         { *m = Conversation{} }
-func (m *Conversation) String() string { return proto.CompactTextString(m) }
-func (*Conversation) ProtoMessage()    {}
-func (*Conversation) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ababc20b4cf82464, []int{2}
+func (m *ChatMessage) Reset()         { *m = ChatMessage{} }
+func (m *ChatMessage) String() string { return proto.CompactTextString(m) }
+func (*ChatMessage) ProtoMessage()    {}
+func (*ChatMessage) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ababc20b4cf82464, []int{3}
 }
-func (m *Conversation) XXX_Unmarshal(b []byte) error {
+func (m *ChatMessage) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *Conversation) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *ChatMessage) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_Conversation.Marshal(b, m, deterministic)
+		return xxx_messageInfo_ChatMessage.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -161,26 +197,26 @@ func (m *Conversation) XXX_Marshal(b []byte, deterministic bool) ([]byte, error)
 		return b[:n], nil
 	}
 }
-func (m *Conversation) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Conversation.Merge(m, src)
+func (m *ChatMessage) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ChatMessage.Merge(m, src)
 }
-func (m *Conversation) XXX_Size() int {
+func (m *ChatMessage) XXX_Size() int {
 	return m.Size()
 }
-func (m *Conversation) XXX_DiscardUnknown() {
-	xxx_messageInfo_Conversation.DiscardUnknown(m)
+func (m *ChatMessage) XXX_DiscardUnknown() {
+	xxx_messageInfo_ChatMessage.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_Conversation proto.InternalMessageInfo
+var xxx_messageInfo_ChatMessage proto.InternalMessageInfo
 
-func (m *Conversation) GetContent() string {
+func (m *ChatMessage) GetContent() string {
 	if m != nil {
 		return m.Content
 	}
 	return ""
 }
 
-func (m *Conversation) GetRole() string {
+func (m *ChatMessage) GetRole() string {
 	if m != nil {
 		return m.Role
 	}
@@ -188,16 +224,17 @@ func (m *Conversation) GetRole() string {
 }
 
 type ObjectLogic struct {
-	Description string    `protobuf:"bytes,1,opt,name=description,proto3" json:"description,omitempty"`
-	Action      []string  `protobuf:"bytes,2,rep,name=action,proto3" json:"action,omitempty"`
-	Object      []*Object `protobuf:"bytes,3,rep,name=object,proto3" json:"object,omitempty"`
+	Description  string    `protobuf:"bytes,1,opt,name=description,proto3" json:"description,omitempty"`
+	FunctionName string    `protobuf:"bytes,4,opt,name=FunctionName,proto3" json:"FunctionName,omitempty"`
+	Action       []string  `protobuf:"bytes,2,rep,name=action,proto3" json:"action,omitempty"`
+	Object       []*Object `protobuf:"bytes,3,rep,name=object,proto3" json:"object,omitempty"`
 }
 
 func (m *ObjectLogic) Reset()         { *m = ObjectLogic{} }
 func (m *ObjectLogic) String() string { return proto.CompactTextString(m) }
 func (*ObjectLogic) ProtoMessage()    {}
 func (*ObjectLogic) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ababc20b4cf82464, []int{3}
+	return fileDescriptor_ababc20b4cf82464, []int{4}
 }
 func (m *ObjectLogic) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -233,6 +270,13 @@ func (m *ObjectLogic) GetDescription() string {
 	return ""
 }
 
+func (m *ObjectLogic) GetFunctionName() string {
+	if m != nil {
+		return m.FunctionName
+	}
+	return ""
+}
+
 func (m *ObjectLogic) GetAction() []string {
 	if m != nil {
 		return m.Action
@@ -258,7 +302,7 @@ func (m *Object) Reset()         { *m = Object{} }
 func (m *Object) String() string { return proto.CompactTextString(m) }
 func (*Object) ProtoMessage()    {}
 func (*Object) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ababc20b4cf82464, []int{4}
+	return fileDescriptor_ababc20b4cf82464, []int{5}
 }
 func (m *Object) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -316,10 +360,11 @@ func (m *Object) GetDeviceId() string {
 }
 
 func init() {
-	proto.RegisterType((*AppointmentReq)(nil), "phome.AppointmentReq")
-	proto.RegisterMapType((map[string]*ObjectLogic)(nil), "phome.AppointmentReq.ObjectsEntry")
-	proto.RegisterType((*AppointmentRsp)(nil), "phome.AppointmentRsp")
-	proto.RegisterType((*Conversation)(nil), "phome.conversation")
+	proto.RegisterType((*ChatReq)(nil), "phome.ChatReq")
+	proto.RegisterType((*PrepareData)(nil), "phome.PrepareData")
+	proto.RegisterMapType((map[string]*ObjectLogic)(nil), "phome.PrepareData.ObjectsEntry")
+	proto.RegisterType((*ChatRsp)(nil), "phome.ChatRsp")
+	proto.RegisterType((*ChatMessage)(nil), "phome.chatMessage")
 	proto.RegisterType((*ObjectLogic)(nil), "phome.ObjectLogic")
 	proto.RegisterType((*Object)(nil), "phome.object")
 }
@@ -327,33 +372,35 @@ func init() {
 func init() { proto.RegisterFile("proto/phome/phome.proto", fileDescriptor_ababc20b4cf82464) }
 
 var fileDescriptor_ababc20b4cf82464 = []byte{
-	// 413 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x7c, 0x52, 0x4d, 0x6b, 0x14, 0x41,
-	0x10, 0xdd, 0xd9, 0x4f, 0xb7, 0x36, 0x11, 0x29, 0x50, 0x87, 0x08, 0xe3, 0x32, 0x20, 0xec, 0x69,
-	0x85, 0xf5, 0xa0, 0x48, 0x2e, 0x0a, 0x42, 0x02, 0x12, 0xa5, 0xf1, 0x1e, 0x26, 0x3d, 0x45, 0x6c,
-	0xdd, 0xe9, 0x6e, 0xbb, 0x3b, 0x2b, 0xf3, 0x2f, 0xfc, 0x39, 0xfe, 0x04, 0x8f, 0x39, 0x7a, 0x94,
-	0xdd, 0x3f, 0x22, 0xfd, 0x31, 0xb0, 0x81, 0x25, 0x97, 0xa6, 0xea, 0xbd, 0xaa, 0x57, 0x8f, 0x47,
-	0xc3, 0x53, 0x6d, 0x94, 0x53, 0x2f, 0xf5, 0x57, 0xd5, 0x50, 0x7c, 0x97, 0x01, 0xc1, 0x51, 0x68,
-	0xca, 0xdf, 0x19, 0x3c, 0x7c, 0xa7, 0xb5, 0x12, 0xd2, 0x35, 0x24, 0x1d, 0xa3, 0x1f, 0x98, 0xc3,
-	0x84, 0x2b, 0xe9, 0x48, 0xba, 0x3c, 0x9b, 0x67, 0x8b, 0x29, 0xeb, 0x5a, 0x3c, 0x85, 0x89, 0xba,
-	0xfa, 0x46, 0xdc, 0xd9, 0xbc, 0x3f, 0x1f, 0x2c, 0x66, 0xab, 0x72, 0x19, 0x25, 0xef, 0x2a, 0x2c,
-	0x3f, 0xc5, 0xa1, 0x0f, 0xd2, 0x99, 0x96, 0x75, 0x2b, 0x27, 0x17, 0x70, 0xb4, 0x4f, 0xe0, 0x23,
-	0x18, 0x7c, 0xa7, 0x36, 0xdd, 0xf0, 0x25, 0x2e, 0x60, 0xb4, 0xa9, 0xd6, 0x37, 0x94, 0xf7, 0xe7,
-	0xd9, 0x62, 0xb6, 0xc2, 0xa4, 0x1e, 0xb7, 0x3e, 0xaa, 0x6b, 0xc1, 0x59, 0x1c, 0x78, 0xdb, 0x7f,
-	0x93, 0x95, 0x17, 0x77, 0x9d, 0x5b, 0x8d, 0x08, 0x43, 0xae, 0x6a, 0x0a, 0x92, 0x23, 0x16, 0x6a,
-	0x7f, 0xa5, 0xb1, 0xd7, 0x41, 0x71, 0xca, 0x7c, 0x89, 0x4f, 0x60, 0x6c, 0xc8, 0xde, 0xac, 0x5d,
-	0x3e, 0x08, 0x60, 0xea, 0xca, 0x53, 0x38, 0xe2, 0x4a, 0x6e, 0xc8, 0xd8, 0xca, 0x09, 0x25, 0xef,
-	0xc9, 0x01, 0x61, 0x68, 0xd4, 0x9a, 0x92, 0x68, 0xa8, 0x4b, 0x09, 0xb3, 0x3d, 0x9f, 0x38, 0x87,
-	0x59, 0x4d, 0x96, 0x1b, 0xa1, 0xbd, 0x56, 0x12, 0xd8, 0x87, 0xbc, 0x8d, 0x8a, 0x07, 0xd2, 0x67,
-	0x39, 0x65, 0xa9, 0xc3, 0x17, 0x30, 0x8e, 0x89, 0xe5, 0x83, 0x90, 0xf1, 0x71, 0x4a, 0x21, 0x82,
-	0x2c, 0x91, 0xe5, 0xcf, 0x6e, 0xcc, 0xbb, 0x91, 0x55, 0x43, 0xe9, 0x46, 0xa8, 0xf1, 0xb9, 0x3f,
-	0xbf, 0x11, 0x9c, 0x2e, 0x5d, 0xab, 0x3b, 0xa3, 0x10, 0xa1, 0x2f, 0xad, 0x26, 0x7c, 0x06, 0x53,
-	0x92, 0x4e, 0xb8, 0xf6, 0x52, 0xd4, 0x29, 0x87, 0x07, 0x11, 0x38, 0xaf, 0x3d, 0x99, 0xb6, 0x45,
-	0x9d, 0x0f, 0x23, 0x19, 0x81, 0xf3, 0x7a, 0x75, 0x06, 0xc7, 0x67, 0xaa, 0xa1, 0xca, 0x5a, 0x61,
-	0x5d, 0x25, 0x1d, 0xbe, 0x86, 0xc9, 0x67, 0x43, 0xba, 0x32, 0x84, 0x8f, 0x0f, 0xfe, 0x87, 0x93,
-	0x43, 0xb0, 0xd5, 0xef, 0xf3, 0x3f, 0xdb, 0x22, 0xbb, 0xdd, 0x16, 0xd9, 0xbf, 0x6d, 0x91, 0xfd,
-	0xda, 0x15, 0xbd, 0xdb, 0x5d, 0xd1, 0xfb, 0xbb, 0x2b, 0x7a, 0x57, 0xe3, 0xf0, 0x47, 0x5f, 0xfd,
-	0x0f, 0x00, 0x00, 0xff, 0xff, 0x03, 0x76, 0x7d, 0x71, 0xbe, 0x02, 0x00, 0x00,
+	// 434 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x74, 0x52, 0x4d, 0x6f, 0xd3, 0x40,
+	0x14, 0xcc, 0x26, 0x4d, 0xd2, 0x3c, 0xb7, 0x08, 0xbd, 0x03, 0x58, 0x45, 0x72, 0x23, 0x23, 0xa4,
+	0x70, 0x09, 0x52, 0xb8, 0x40, 0xb9, 0xf1, 0x5d, 0x09, 0x0a, 0xb2, 0xb8, 0x57, 0x5b, 0xfb, 0x29,
+	0x59, 0x48, 0x76, 0x17, 0xef, 0xa6, 0xc8, 0xff, 0x02, 0x71, 0xe2, 0x27, 0x71, 0xec, 0x91, 0x23,
+	0x4a, 0xfe, 0x08, 0xda, 0x8f, 0x48, 0xce, 0xa1, 0x17, 0xeb, 0xcd, 0xec, 0xec, 0xec, 0x78, 0xf4,
+	0xe0, 0xbe, 0xae, 0x95, 0x55, 0x4f, 0xf4, 0x42, 0xad, 0x28, 0x7c, 0xa7, 0x9e, 0xc1, 0xbe, 0x07,
+	0xf9, 0x43, 0x18, 0xbe, 0x5a, 0x70, 0x5b, 0xd0, 0x77, 0x4c, 0x61, 0x58, 0x2a, 0x69, 0x49, 0xda,
+	0x94, 0x8d, 0xd9, 0x64, 0x54, 0xec, 0x60, 0xfe, 0x9b, 0x41, 0xf2, 0xb9, 0x26, 0xcd, 0x6b, 0x7a,
+	0xcd, 0x2d, 0xc7, 0xe7, 0x30, 0x54, 0x57, 0x5f, 0xa9, 0xb4, 0x26, 0xed, 0x8e, 0x7b, 0x93, 0x64,
+	0x76, 0x3a, 0x0d, 0xd6, 0x2d, 0xd1, 0xf4, 0x53, 0x50, 0xbc, 0x91, 0xb6, 0x6e, 0x8a, 0x9d, 0xfe,
+	0xe4, 0x02, 0x8e, 0xda, 0x07, 0x78, 0x17, 0x7a, 0xdf, 0xa8, 0x89, 0x0f, 0xba, 0x11, 0x27, 0xd0,
+	0xbf, 0xe6, 0xcb, 0x35, 0xa5, 0xdd, 0x31, 0x9b, 0x24, 0x33, 0x8c, 0xd6, 0xe1, 0xd6, 0x07, 0x35,
+	0x17, 0x65, 0x11, 0x04, 0x67, 0xdd, 0x67, 0x2c, 0x7f, 0x17, 0xf3, 0x1b, 0x8d, 0x08, 0x07, 0xa5,
+	0xaa, 0xc8, 0x7b, 0xf5, 0x0b, 0x3f, 0x3b, 0xfb, 0x95, 0x99, 0x7b, 0xab, 0x51, 0xe1, 0x46, 0xbc,
+	0x07, 0x83, 0x9a, 0xcc, 0x7a, 0x69, 0xd3, 0x9e, 0x27, 0x23, 0xca, 0x5f, 0x40, 0x52, 0x2e, 0xb8,
+	0xfd, 0x48, 0xc6, 0xf0, 0x39, 0xdd, 0x5e, 0x86, 0x7b, 0xa6, 0x56, 0x4b, 0x8a, 0x9e, 0x7e, 0xce,
+	0x7f, 0x31, 0x48, 0x5a, 0x01, 0x71, 0x0c, 0x49, 0x45, 0xa6, 0xac, 0x85, 0xb6, 0x42, 0xc9, 0xe8,
+	0xd0, 0xa6, 0x30, 0x87, 0xa3, 0xb7, 0x6b, 0x59, 0xba, 0xf9, 0x82, 0xaf, 0x28, 0x3d, 0xf0, 0x92,
+	0x3d, 0xce, 0x45, 0xe5, 0x1e, 0xf9, 0x96, 0x47, 0x45, 0x44, 0xf8, 0x08, 0x06, 0xa1, 0xce, 0xb4,
+	0xe7, 0xdb, 0x3f, 0x8e, 0x15, 0x05, 0xb2, 0x88, 0x87, 0xf9, 0x8f, 0x9d, 0xcc, 0x45, 0x96, 0xee,
+	0x91, 0x90, 0xc3, 0xcf, 0x78, 0xea, 0x22, 0x5e, 0x8b, 0x92, 0x2e, 0x6d, 0xa3, 0x77, 0x7f, 0x03,
+	0x81, 0xfa, 0xd2, 0x68, 0xc2, 0x07, 0x30, 0x22, 0x69, 0x85, 0x6d, 0x2e, 0x45, 0x15, 0xbb, 0x3a,
+	0x0c, 0xc4, 0x79, 0xe5, 0x0e, 0xe3, 0x6d, 0x51, 0xc5, 0xec, 0x87, 0x81, 0x38, 0xaf, 0x66, 0x67,
+	0x70, 0xfc, 0x5e, 0xad, 0x88, 0x1b, 0x23, 0x8c, 0xe5, 0xd2, 0xe2, 0x63, 0x18, 0xc6, 0xcd, 0xc0,
+	0x3b, 0x31, 0x6b, 0x5c, 0xba, 0x93, 0x3d, 0x6c, 0xf4, 0xcb, 0xf4, 0xcf, 0x26, 0x63, 0x37, 0x9b,
+	0x8c, 0xfd, 0xdb, 0x64, 0xec, 0xe7, 0x36, 0xeb, 0xdc, 0x6c, 0xb3, 0xce, 0xdf, 0x6d, 0xd6, 0xb9,
+	0x1a, 0xf8, 0xbd, 0x7d, 0xfa, 0x3f, 0x00, 0x00, 0xff, 0xff, 0xf5, 0x22, 0xc3, 0x44, 0xd2, 0x02,
+	0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -365,7 +412,7 @@ const _ = ava.SupportPackageIsVersion1
 
 type HomeassistantClient interface {
 	// 功能预约
-	Prepare(c *ava.Context, req *AppointmentReq, opts ...ava.InvokeOptions) (*AppointmentRsp, error)
+	Prepare(c *ava.Context, req *ChatReq, opts ...ava.InvokeOptions) (*ChatRsp, error)
 }
 
 type homeassistantClient struct {
@@ -376,8 +423,8 @@ func NewHomeassistantClient() HomeassistantClient {
 	return &homeassistantClient{c: ava.AvaClient()}
 }
 
-func (cc *homeassistantClient) Prepare(c *ava.Context, req *AppointmentReq, opts ...ava.InvokeOptions) (*AppointmentRsp, error) {
-	rsp := &AppointmentRsp{}
+func (cc *homeassistantClient) Prepare(c *ava.Context, req *ChatReq, opts ...ava.InvokeOptions) (*ChatRsp, error) {
+	rsp := &ChatRsp{}
 	err := cc.c.InvokeRR(c, "/homeassistant/prepare", req, rsp, opts...)
 	return rsp, err
 }
@@ -385,7 +432,7 @@ func (cc *homeassistantClient) Prepare(c *ava.Context, req *AppointmentReq, opts
 // HomeassistantServer is the server API for Homeassistant ava.
 type HomeassistantServer interface {
 	// 功能预约
-	Prepare(c *ava.Context, req *AppointmentReq, rsp *AppointmentRsp)
+	Prepare(c *ava.Context, req *ChatReq, rsp *ChatRsp)
 }
 
 func RegisterHomeassistantServer(h HomeassistantServer) {
@@ -398,25 +445,25 @@ type homeassistantHandler struct {
 }
 
 func (r *homeassistantHandler) Prepare(c *ava.Context, req *ava.Packet, interrupt ava.Interceptor) (rsp proto.Message, err error) {
-	var in AppointmentReq
+	var in ChatReq
 	err = c.Codec().Decode(req.Bytes(), &in)
 	if err != nil {
 		c.Errorf("server decode packet err=%v |method=%s |data=%s", err, c.Metadata.Method(), req.String())
 		return nil, err
 	}
-	var out = AppointmentRsp{}
+	var out = ChatRsp{}
 	if interrupt == nil {
 		r.h.Prepare(c, &in, &out)
 		return &out, err
 	}
 	f := func(c *ava.Context, req proto.Message) proto.Message {
-		r.h.Prepare(c, req.(*AppointmentReq), &out)
+		r.h.Prepare(c, req.(*ChatReq), &out)
 		return &out
 	}
 	return interrupt(c, &in, f)
 }
 
-func (m *AppointmentReq) Marshal() (dAtA []byte, err error) {
+func (m *ChatReq) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -426,12 +473,42 @@ func (m *AppointmentReq) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *AppointmentReq) MarshalTo(dAtA []byte) (int, error) {
+func (m *ChatReq) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *AppointmentReq) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *ChatReq) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Content) > 0 {
+		i -= len(m.Content)
+		copy(dAtA[i:], m.Content)
+		i = encodeVarintPhome(dAtA, i, uint64(len(m.Content)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *PrepareData) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *PrepareData) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *PrepareData) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -462,17 +539,10 @@ func (m *AppointmentReq) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 			dAtA[i] = 0x12
 		}
 	}
-	if len(m.Content) > 0 {
-		i -= len(m.Content)
-		copy(dAtA[i:], m.Content)
-		i = encodeVarintPhome(dAtA, i, uint64(len(m.Content)))
-		i--
-		dAtA[i] = 0xa
-	}
 	return len(dAtA) - i, nil
 }
 
-func (m *AppointmentRsp) Marshal() (dAtA []byte, err error) {
+func (m *ChatRsp) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -482,12 +552,12 @@ func (m *AppointmentRsp) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *AppointmentRsp) MarshalTo(dAtA []byte) (int, error) {
+func (m *ChatRsp) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *AppointmentRsp) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *ChatRsp) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -514,7 +584,7 @@ func (m *AppointmentRsp) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *Conversation) Marshal() (dAtA []byte, err error) {
+func (m *ChatMessage) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -524,12 +594,12 @@ func (m *Conversation) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *Conversation) MarshalTo(dAtA []byte) (int, error) {
+func (m *ChatMessage) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *Conversation) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *ChatMessage) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -571,6 +641,13 @@ func (m *ObjectLogic) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	if len(m.FunctionName) > 0 {
+		i -= len(m.FunctionName)
+		copy(dAtA[i:], m.FunctionName)
+		i = encodeVarintPhome(dAtA, i, uint64(len(m.FunctionName)))
+		i--
+		dAtA[i] = 0x22
+	}
 	if len(m.Object) > 0 {
 		for iNdEx := len(m.Object) - 1; iNdEx >= 0; iNdEx-- {
 			{
@@ -666,7 +743,7 @@ func encodeVarintPhome(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
-func (m *AppointmentReq) Size() (n int) {
+func (m *ChatReq) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -676,6 +753,15 @@ func (m *AppointmentReq) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovPhome(uint64(l))
 	}
+	return n
+}
+
+func (m *PrepareData) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
 	if len(m.Objects) > 0 {
 		for k, v := range m.Objects {
 			_ = k
@@ -692,7 +778,7 @@ func (m *AppointmentReq) Size() (n int) {
 	return n
 }
 
-func (m *AppointmentRsp) Size() (n int) {
+func (m *ChatRsp) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -712,7 +798,7 @@ func (m *AppointmentRsp) Size() (n int) {
 	return n
 }
 
-func (m *Conversation) Size() (n int) {
+func (m *ChatMessage) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -751,6 +837,10 @@ func (m *ObjectLogic) Size() (n int) {
 			n += 1 + l + sovPhome(uint64(l))
 		}
 	}
+	l = len(m.FunctionName)
+	if l > 0 {
+		n += 1 + l + sovPhome(uint64(l))
+	}
 	return n
 }
 
@@ -785,7 +875,7 @@ func sovPhome(x uint64) (n int) {
 func sozPhome(x uint64) (n int) {
 	return sovPhome(uint64((x << 1) ^ uint64((int64(x) >> 63))))
 }
-func (m *AppointmentReq) Unmarshal(dAtA []byte) error {
+func (m *ChatReq) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -808,10 +898,10 @@ func (m *AppointmentReq) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: AppointmentReq: wiretype end group for non-group")
+			return fmt.Errorf("proto: ChatReq: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: AppointmentReq: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: ChatReq: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -846,6 +936,56 @@ func (m *AppointmentReq) Unmarshal(dAtA []byte) error {
 			}
 			m.Content = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipPhome(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthPhome
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *PrepareData) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowPhome
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: PrepareData: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: PrepareData: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
 		case 2:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Objects", wireType)
@@ -996,7 +1136,7 @@ func (m *AppointmentReq) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *AppointmentRsp) Unmarshal(dAtA []byte) error {
+func (m *ChatRsp) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1019,10 +1159,10 @@ func (m *AppointmentRsp) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: AppointmentRsp: wiretype end group for non-group")
+			return fmt.Errorf("proto: ChatRsp: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: AppointmentRsp: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: ChatRsp: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -1129,7 +1269,7 @@ func (m *AppointmentRsp) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *Conversation) Unmarshal(dAtA []byte) error {
+func (m *ChatMessage) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1152,10 +1292,10 @@ func (m *Conversation) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: conversation: wiretype end group for non-group")
+			return fmt.Errorf("proto: chatMessage: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: conversation: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: chatMessage: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -1369,6 +1509,38 @@ func (m *ObjectLogic) Unmarshal(dAtA []byte) error {
 			if err := m.Object[len(m.Object)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field FunctionName", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPhome
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthPhome
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthPhome
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.FunctionName = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex

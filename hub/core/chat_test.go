@@ -2,13 +2,13 @@ package core
 
 import (
 	"fmt"
-	"hahub/hub/internal/chat"
 	"hahub/hub/internal/x"
+	"hahub/proto/phome"
 	"testing"
 )
 
 func TestChat(t *testing.T) {
-	result, err := chatCompletion([]chat.ChatMessage{
+	result, err := chatCompletion([]*phome.ChatMessage{
 		{Role: "user", Content: fmt.Sprintf(preparePrompts, x.MustMarshalEscape2String(logicDataMap))},
 		{Role: "user", Content: "修改回家场景"},
 	})
