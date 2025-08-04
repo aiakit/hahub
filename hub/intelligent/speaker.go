@@ -181,6 +181,7 @@ func (s *speakerProcess) runSpeakerPlayText() {
 		select {
 		case message := <-s.playTextMessage:
 
+			//todo:获取当前音箱音量,将音量调到最小,5分钟之内如果没有新的数据进来，就恢复音量
 			pausePlay(message.deviceId)
 
 			// 添加消息到历史记录
