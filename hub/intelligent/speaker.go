@@ -100,7 +100,7 @@ func ExecuteTextCommand(entityId string, command string, silent bool) *ActionSer
 }
 
 type conversationor struct {
-	conversation []*conversation
+	Conversation []*conversation `json:"conversation"`
 	entityId     string
 	deviceId     string
 }
@@ -206,6 +206,17 @@ func (s *speakerProcess) addToHistory(conv *conversationor) {
 	// 添加新记录
 	s.history = append(s.history, conv)
 	s.lock.Unlock()
+}
+
+func GetHistory() []*conversationor {
+	if gSpeakerProcess == nil {
+		return nil
+	}
+	gSpeakerProcess.lock.Lock()
+
+	history := gSpeakerProcess.history
+	gSpeakerProcess.lock.Unlock()
+	return history
 }
 
 // 修改:sendToRemote现在发送整个历史记录
@@ -371,7 +382,7 @@ func SpeakerAsk2manAction4HomingHandler(event *data.StateChangedSimple, body []b
 		}
 
 		var cs = &conversationor{
-			conversation: []*conversation{{
+			Conversation: []*conversation{{
 				Role:     "user",
 				Content:  state.Event.Data.NewState.State,
 				entityID: en.EntityID,

@@ -1,5 +1,6 @@
 # hahub
 
+## ssh安装前提：https://lazyadmin.nl/smart-home/enable-ssh-home-assistant/
 ## 设备名称和区域：
 
 1.空调命名必须带有“空调”，地暖则带有"地暖"，不管是小爱还是ha，都更好识别

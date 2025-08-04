@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"net"
 	"net/http"
 	"net/url"
 	"time"
@@ -85,24 +86,24 @@ var (
 
 func ClientInstance() *http.Client {
 	if Client == nil {
-		//Client = &http.Client{
-		//	Timeout: 10 * time.Second,
-		//	Transport: &http.Transport{
-		//		//TLSClientConfig:   &tls.Config{InsecureSkipVerify: true},
-		//		DisableKeepAlives: true,
-		//		//Proxy:             http.ProxyFromEnvironment,
-		//		DialContext: (&net.Dialer{
-		//			Timeout:   30 * time.Second,  // tcp连接超时时间
-		//			KeepAlive: 600 * time.Second, // 保持长连接的时间
-		//		}).DialContext, // 设置连接的参数
-		//		MaxIdleConns:          50,                // 最大空闲连接
-		//		MaxConnsPerHost:       100,               //每个host建立多少个连接
-		//		MaxIdleConnsPerHost:   100,               // 每个host保持的空闲连接数
-		//		ExpectContinueTimeout: 60 * time.Second,  // 等待服务第一响应的超时时间
-		//		IdleConnTimeout:       600 * time.Second, // 空闲连接的超时时间
-		//	},
-		//}
-		Client = http.DefaultClient
+		Client = &http.Client{
+			Timeout: 10 * time.Second,
+			Transport: &http.Transport{
+				//TLSClientConfig:   &tls.Config{InsecureSkipVerify: true},
+				DisableKeepAlives: true,
+				//Proxy:             http.ProxyFromEnvironment,
+				DialContext: (&net.Dialer{
+					Timeout:   30 * time.Second,  // tcp连接超时时间
+					KeepAlive: 600 * time.Second, // 保持长连接的时间
+				}).DialContext, // 设置连接的参数
+				MaxIdleConns:          50,                // 最大空闲连接
+				MaxConnsPerHost:       100,               //每个host建立多少个连接
+				MaxIdleConnsPerHost:   100,               // 每个host保持的空闲连接数
+				ExpectContinueTimeout: 60 * time.Second,  // 等待服务第一响应的超时时间
+				IdleConnTimeout:       600 * time.Second, // 空闲连接的超时时间
+			},
+		}
+		//Client = http.DefaultClient
 	}
 
 	return Client

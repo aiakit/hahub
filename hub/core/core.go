@@ -1,3 +1,3 @@
 package core
 
-var apiKey = "123456"
+var apiey = "123456"

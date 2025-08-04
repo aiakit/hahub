@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package phome;
+
+message AppointmentReq{
+  string content = 1;
+  map<string, ObjectLogic> objects = 2;
+}
+
+message AppointmentRsp{
+  int32 code = 1;
+  string msg = 2;
+  string result = 3;
+}
+
+message conversation{
+  string content = 1;
+  string role = 2;
+}
+
+message ObjectLogic{
+  string description = 1;
+  repeated string action = 2;
+  repeated object object = 3;
+}
+
+message object{
+  string name = 1;
+  string device_type = 2;
+  string entity_id = 3;
+  string device_id = 4;
+}
+
+service Homeassistant{
+  //功能预约
+  rpc Prepare(AppointmentReq) returns (AppointmentRsp);
+}
