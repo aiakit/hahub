@@ -1,4 +1,4 @@
-package core
+package speaker
 
 type ObjectLogic struct {
 	Description string    `json:"description,omitempty"`

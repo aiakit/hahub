@@ -24,18 +24,15 @@ message chatMessage{
 message ObjectLogic{
   string description = 1;
   string FunctionName = 4;
-  repeated string action = 2;
-  repeated object object = 3;
+  repeated action action = 2;
 }
 
-message object{
+message action{
   string name = 1;
-  string device_type = 2;
-  string entity_id = 3;
-  string device_id = 4;
+  string description = 2;
 }
 
 service Homeassistant{
   //功能预约
-  rpc Prepare(ChatReq) returns (ChatRsp);
+  rpc Chat(ChatReq) returns (ChatRsp);
 }

@@ -1,4 +1,4 @@
-package core
+package speaker
 
 import "hahub/proto/phome"
 
@@ -12,19 +12,19 @@ func init() {
 
 	logicDataMap.Objects["scene"] = &phome.ObjectLogic{
 		Description:  "通过用户口令或者手动指令触发的对智能家居设备一系列的操作",
-		Action:       []string{"执行场景", "修改场景", "查询场景"},
+		Action:       []string{"执行场景", "查询场景"}, //todo:在细化一下
 		FunctionName: "场景",
 	}
 
 	logicDataMap.Objects["automation"] = &phome.ObjectLogic{
 		Description:  "通过一些自然条件（例如：天气、温度、湿度、时间等）或者设备条件（例如：水浸传感器、人体传感器等设备状态）或者某个事件触发（例如：当执行睡觉场景之后就关闭人来亮灯自动化）对智能家居设备一系列的操作",
-		Action:       []string{"执行自动化", "修改自动化", "查询自动化"},
+		Action:       []string{"执行自动化", "查询自动化"},
 		FunctionName: "自动化",
 	}
 
 	logicDataMap.Objects["device"] = &phome.ObjectLogic{
 		Description:  "对智能家居设备进行信息获取或者操作设备",
-		Action:       []string{"操作设备", "查询设备状态", "查询设备数量"},
+		Action:       []string{"操作设备", "查询设备状态", "查询设备数量"}, //platform不等于xiaomi_home的设备需要AI操作,例如热水器等
 		FunctionName: "设备",
 	}
 
@@ -38,18 +38,6 @@ func init() {
 		Description:  "非智能家居所在领域的对话",
 		Action:       []string{"其他"},
 		FunctionName: "日常对话",
-	}
-
-	logicDataMap.Objects["weather"] = &phome.ObjectLogic{
-		Description:  "查询当地或者某个地区的天气",
-		Action:       []string{"查询天气"},
-		FunctionName: "天气",
-	}
-
-	logicDataMap.Objects["date"] = &phome.ObjectLogic{
-		Description:  "对日期时间的查",
-		Action:       []string{"查询天气"},
-		FunctionName: "时间日期",
 	}
 
 	logicDataMap.Objects["function_call"] = &phome.ObjectLogic{
