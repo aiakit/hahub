@@ -1,7 +1,7 @@
 package main
 
 import (
-	"hahub/hub/data"
+	"hahub/data"
 	"time"
 
 	"github.com/aiakit/ava"
