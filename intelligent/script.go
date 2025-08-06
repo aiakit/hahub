@@ -56,6 +56,14 @@ type Script struct {
 var scriptLock sync.Mutex
 var scriptCount int
 
+func GetScript(uniqueId string, v interface{}) error {
+	err := x.Get(ava.Background(), fmt.Sprintf(prefixUrlCreateScript, data.GetHassUrl(), uniqueId), data.GetToken(), v)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func CreateScript(c *ava.Context, script *Script) string {
 	scriptLock.Lock()
 	defer func() {

@@ -59,7 +59,6 @@ type speakerProcess struct {
 	lock            sync.Mutex
 	playTextMessage chan *conversationor
 	timeout         time.Duration
-	history         map[string][]*chat.ChatMessage
 	speakerEntity   map[string][]*data.Entity
 	lastUpdateTime  map[string]time.Time
 }
@@ -72,7 +71,6 @@ func ChaosSpeaker() {
 	gSpeakerProcess = &speakerProcess{
 		playTextMessage: make(chan *conversationor, 5),
 		timeout:         time.Second * 5,
-		history:         make(map[string][]*chat.ChatMessage, 5), // 初始化容量为5的切片
 		speakerEntity:   make(map[string][]*data.Entity),
 		lastUpdateTime:  make(map[string]time.Time),
 	}
@@ -112,8 +110,17 @@ func (s *speakerProcess) runSpeakerPlayText() {
 
 			pausePlay(message.deviceId)
 
-			// 添加消息到历史记录
-			s.addToHistory(message)
+			// 添加消息到历史记录 (使用memory.go中的函数)
+			for _, msg := range message.Conversation {
+				switch msg.Role {
+				case "user":
+					AddUserMessage(message.deviceId, msg.Content)
+				case "assistant":
+					AddAIMessage(message.deviceId, msg.Content)
+				case "system":
+					AddSystemMessage(message.deviceId, msg.Content)
+				}
+			}
 
 			s.lock.Lock()
 			s.lastUpdateTime[message.deviceId] = time.Now()
@@ -134,39 +141,6 @@ func (s *speakerProcess) runSpeakerPlayText() {
 	}
 }
 
-// 修改:添加addToHistory方法来维护历史记录
-func (s *speakerProcess) addToHistory(conv *conversationor) {
-	s.lock.Lock()
-	// 如果历史记录已满(5条)，移除最旧的记录
-	if len(s.history[conv.deviceId]) >= 5 {
-		// 移除第一个元素(最旧的记录)
-		s.history[conv.deviceId] = s.history[conv.deviceId][1:]
-	}
-
-	var msg = make([]*chat.ChatMessage, 0, 2)
-	for _, m := range conv.Conversation {
-		msg = append(msg, &chat.ChatMessage{
-			Content: m.Content,
-			Role:    m.Role,
-		})
-	}
-
-	// 添加新记录
-	s.history[conv.deviceId] = append(s.history[conv.deviceId], msg...)
-	s.lock.Unlock()
-}
-
-func GetHistory(deviceId string) []*chat.ChatMessage {
-	if gSpeakerProcess == nil {
-		return nil
-	}
-	gSpeakerProcess.lock.Lock()
-
-	history := gSpeakerProcess.history[deviceId]
-	gSpeakerProcess.lock.Unlock()
-	return history
-}
-
 // 修改:sendToRemote现在发送整个历史记录
 func (s *speakerProcess) sendToRemote(conversations *conversationor) {
 
@@ -179,14 +153,15 @@ func (s *speakerProcess) sendToRemote(conversations *conversationor) {
 	defer func() {
 		PlayTextAction(conversations.deviceId, conversations.entityId, message)
 	}()
-
-	prepare, err := prepareCall(conversations.deviceId)
+	// 使用memory.go中的GetHistory函数获取历史记录
+	history := GetHistory(conversations.deviceId)
+	prepare, err := prepareCall(history)
 	if err != nil {
 		message = "主人，请稍等，网络开小差了，请重试一次..."
 		return
 	}
 
-	message = Call(findFunction(prepare))
+	message = Call(findFunction(prepare), conversations.deviceId)
 }
 
 // 修改:getBusinessID现在处理对话历史数组
