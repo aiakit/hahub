@@ -2,7 +2,6 @@ package core
 
 type ObjectLogic struct {
 	Description  string            `json:"description"`
-	Action       []string          `json:"action"`
 	Object       []*Object         `json:"object"`
 	FunctionName string            `json:"function_name"`
 	localKey     map[string]string //todo: 后期优化再做，用来跳过第一步向ai获取预处理动作
