@@ -1,5 +1,11 @@
 package core
 
+import (
+	"fmt"
+	"hahub/internal/chat"
+	"hahub/x"
+)
+
 // 功能预处理,AI对json的组装效果不好，用文字返回代替处理,无论AI返回什么样的格式，用字符串去进行一起匹配
 // 板块名称：动作：对象
 // eg.场景，执行场景，回家
@@ -84,7 +90,7 @@ func init() {
 	}
 
 	logicDataMap["is_handled"] = &ObjectLogic{
-		Description:  "在我们的对话中，assistant的回复是已经处理了的情况，返回这个对象，防止重复处理",
+		Description:  "在最近一次对话中，assistant的回复是已经处理了的情况，返回这个对象，防止重复处理",
 		FunctionName: "已经处理过一次",
 	}
 
@@ -92,12 +98,23 @@ func init() {
 		Description:  "在我们的对话中，如果没有找到对应功能，就返回这个对象",
 		FunctionName: "功能开发中",
 	}
+
+	logicDataMap["is_done"] = &ObjectLogic{
+		Description:  "根据对话上下文判断是否需要终止对话",
+		FunctionName: "终止对话",
+	}
 }
 
 var logicDataMap = make(map[string]*ObjectLogic)
 
 // 预调用提示
-var preparePrompts = `我提供了一些功能选项，根据我的意图选择需要执行什么功能，并按照规定的格式返回数据，除了返回的数据格式，禁止有其他内容。
+var preparePrompts = `根据对话内容，我提供了一些功能选项，根据我的意图选择需要执行什么功能，并按照规定的格式返回数据，除了返回的数据格式，禁止有其他内容。
 功能选项：%s
-返回数据格式：{"功能模块","动作"}
-返回数据例子：{"函数调用","初始化场景"}`
+返回数据格式：{"功能模块":"功能名称"}
+返回数据例子：{"query_scene":"查询场景"}`
+
+func prepareCall(deviceId string) (string, error) {
+	return chatCompletion(deviceId, []*chat.ChatMessage{
+		{Role: "user", Content: fmt.Sprintf(preparePrompts, x.MustMarshalEscape2String(logicDataMap))},
+	})
+}

@@ -2,7 +2,7 @@ package intelligent
 
 import (
 	"hahub/data"
-	"hahub/internal/x"
+	"hahub/x"
 	"strings"
 	"time"
 

@@ -2,7 +2,7 @@ package data
 
 import (
 	"fmt"
-	"hahub/internal/x"
+	"hahub/x"
 	urlpkg "net/url"
 	"os"
 	"os/signal"

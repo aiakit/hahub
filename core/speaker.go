@@ -4,8 +4,7 @@ import (
 	"fmt"
 	"hahub/data"
 	"hahub/internal/chat"
-	"hahub/internal/x"
-	"net/http"
+	"hahub/x"
 	"strings"
 	"sync"
 	"time"
@@ -13,6 +12,7 @@ import (
 	"github.com/aiakit/ava"
 )
 
+// Value:    "[" + message + ",false]", //这是发起指令的穿参数
 func PlayTextAction(deviceID, entityId, message string) {
 	//调整音量
 	upPlay(deviceID)
@@ -49,26 +49,6 @@ func GetPlaybackDuration(message string) time.Duration {
 	return totalDuration
 }
 
-//func PlayControlAction(deviceID, entityId, message string) {
-//	err := core.Post(ava.Background(), core.GetHassUrl()+"/api/services/text/set_value", core.GetToken(), &core.HttpServiceData{
-//		EntityId: entityId,
-//		Value:    "[" + message + ",false]",
-//	}, nil)
-//	if err != nil {
-//		ava.Error(err)
-//	}
-//
-//	core.TimingwheelAfter(GetPlaybackDuration(message), func() {
-//		//进入唤醒状态
-//		wakeup(deviceID)
-//
-//		//暂停
-//		core.TimingwheelAfter(GetPlaybackDuration(message), func() {
-//			pausePlay(entityId)
-//		})
-//	})
-//}
-
 type conversationor struct {
 	Conversation []*chat.ChatMessage `json:"conversation"`
 	entityId     string
@@ -79,8 +59,7 @@ type speakerProcess struct {
 	lock            sync.Mutex
 	playTextMessage chan *conversationor
 	timeout         time.Duration
-	callbacks       map[string]func(*http.Response, error)
-	history         []*conversationor
+	history         map[string][]*chat.ChatMessage
 	speakerEntity   map[string][]*data.Entity
 	lastUpdateTime  map[string]time.Time
 }
@@ -93,8 +72,7 @@ func ChaosSpeaker() {
 	gSpeakerProcess = &speakerProcess{
 		playTextMessage: make(chan *conversationor, 5),
 		timeout:         time.Second * 5,
-		callbacks:       make(map[string]func(*http.Response, error)),
-		history:         make([]*conversationor, 0, 5), // 初始化容量为5的切片
+		history:         make(map[string][]*chat.ChatMessage, 5), // 初始化容量为5的切片
 		speakerEntity:   make(map[string][]*data.Entity),
 		lastUpdateTime:  make(map[string]time.Time),
 	}
@@ -116,31 +94,7 @@ func ChaosSpeaker() {
 		gSpeakerProcess.speakerEntity[e.DeviceID] = append(gSpeakerProcess.speakerEntity[e.DeviceID], e)
 	}
 
-	// 注册不同的业务逻辑处理
-	gSpeakerProcess.RegisterCallback("play_text", func(resp *http.Response, err error) {
-		if err != nil {
-			fmt.Println("Error sending to remote:", err)
-			return
-		}
-		defer resp.Body.Close()
-
-		if resp.StatusCode == http.StatusOK {
-			fmt.Println("Conversations sent to remote successfully")
-		} else {
-			fmt.Println("Remote server returned error:", resp.Status)
-			// 可以添加重试或其他错误处理逻辑
-		}
-	})
-
-	// 注册其他业务逻辑的回调函数
-
 	go gSpeakerProcess.runSpeakerPlayText()
-}
-
-func (s *speakerProcess) RegisterCallback(businessID string, callback func(*http.Response, error)) {
-	s.lock.Lock()
-	defer s.lock.Unlock()
-	s.callbacks[businessID] = callback
 }
 
 func speakerProcessSend(message *conversationor) {
@@ -148,11 +102,13 @@ func speakerProcessSend(message *conversationor) {
 }
 
 func (s *speakerProcess) runSpeakerPlayText() {
-	var ticker = time.NewTicker(time.Second * 5)
+	var ticker = time.NewTicker(time.Second * 10)
 
 	for {
 		select {
 		case message := <-s.playTextMessage:
+			//todo: 如何判断处理同一轮对话当中
+			//todo: 增加基础指令拦截
 
 			pausePlay(message.deviceId)
 
@@ -160,11 +116,11 @@ func (s *speakerProcess) runSpeakerPlayText() {
 			s.addToHistory(message)
 
 			s.lock.Lock()
-			// 发送历史记录
-			// 修改:在调用PlayTextAction之前发送时间到channel
 			s.lastUpdateTime[message.deviceId] = time.Now()
-			s.sendToRemote(s.history)
+			s.sendToRemote(message)
 			s.lock.Unlock()
+
+			//todo: 增加交互优化，如果5秒内没有收到消息，可以主动询问是否需要其他帮助，或者直接终止对话
 		case <-ticker.C:
 			for deviceId := range s.lastUpdateTime {
 				if time.Now().Sub(s.lastUpdateTime[deviceId]) > 5*time.Minute {
@@ -182,41 +138,55 @@ func (s *speakerProcess) runSpeakerPlayText() {
 func (s *speakerProcess) addToHistory(conv *conversationor) {
 	s.lock.Lock()
 	// 如果历史记录已满(5条)，移除最旧的记录
-	if len(s.history) >= 5 {
+	if len(s.history[conv.deviceId]) >= 5 {
 		// 移除第一个元素(最旧的记录)
-		s.history = s.history[1:]
+		s.history[conv.deviceId] = s.history[conv.deviceId][1:]
+	}
+
+	var msg = make([]*chat.ChatMessage, 0, 2)
+	for _, m := range conv.Conversation {
+		msg = append(msg, &chat.ChatMessage{
+			Content: m.Content,
+			Role:    m.Role,
+		})
 	}
 
 	// 添加新记录
-	s.history = append(s.history, conv)
+	s.history[conv.deviceId] = append(s.history[conv.deviceId], msg...)
 	s.lock.Unlock()
 }
 
-func GetHistory() []*conversationor {
+func GetHistory(deviceId string) []*chat.ChatMessage {
 	if gSpeakerProcess == nil {
 		return nil
 	}
 	gSpeakerProcess.lock.Lock()
 
-	history := gSpeakerProcess.history
+	history := gSpeakerProcess.history[deviceId]
 	gSpeakerProcess.lock.Unlock()
 	return history
 }
 
 // 修改:sendToRemote现在发送整个历史记录
-func (s *speakerProcess) sendToRemote(conversations []*conversationor) {
+func (s *speakerProcess) sendToRemote(conversations *conversationor) {
 
-	//模拟请求服务返回的让音箱播报的内容情景
-	time.Sleep(time.Second * 3)
+	//1.获取函数调用
+	//2.发起调用,在处理函数中询问ai获取调用数据
+	//3.发送通知
 
-	PlayTextAction("cd5be8092557a0dcd20162114ad99de3", "text.xiaomi_cn_865393253_lx06_play_text_a_5_1", "主人，还有什么需要帮助的吗？")
-	//// 根据业务 ID 执行不同的回调函数
-	//businessID := s.getBusinessID(conversations)
-	//if callback, ok := s.callbacks[businessID]; ok {
-	//	callback(resp, err)
-	//} else {
-	//	fmt.Println("No callback found for business ID:", businessID)
-	//}
+	var message string
+
+	defer func() {
+		PlayTextAction(conversations.deviceId, conversations.entityId, message)
+	}()
+
+	prepare, err := prepareCall(conversations.deviceId)
+	if err != nil {
+		message = "主人，请稍等，网络开小差了，请重试一次..."
+		return
+	}
+
+	message = Call(findFunction(prepare))
 }
 
 // 修改:getBusinessID现在处理对话历史数组

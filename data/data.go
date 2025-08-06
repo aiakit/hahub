@@ -1,7 +1,7 @@
 package data
 
 import (
-	"hahub/internal/x"
+	"hahub/x"
 	"math"
 	"strings"
 	"time"

@@ -3,7 +3,7 @@ package core
 import (
 	"fmt"
 	"hahub/internal/chat"
-	"hahub/internal/x"
+	"hahub/x"
 	"testing"
 )
 

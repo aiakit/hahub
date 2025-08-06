@@ -3,7 +3,7 @@ package intelligent
 import (
 	"errors"
 	"hahub/data"
-	"hahub/internal/x"
+	"hahub/x"
 	"strings"
 
 	"github.com/aiakit/ava"

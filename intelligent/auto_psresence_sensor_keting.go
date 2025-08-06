@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"hahub/data"
-	"hahub/internal/x"
+	"hahub/x"
 	"strings"
 
 	"github.com/aiakit/ava"

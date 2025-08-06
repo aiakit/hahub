@@ -2,7 +2,7 @@ package data
 
 import (
 	"fmt"
-	"hahub/internal/x"
+	"hahub/x"
 
 	"github.com/aiakit/ava"
 )

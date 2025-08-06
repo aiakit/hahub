@@ -3,7 +3,7 @@ package intelligent
 import (
 	"fmt"
 	"hahub/data"
-	"hahub/internal/x"
+	"hahub/x"
 	"strings"
 	"sync"
 
