@@ -12,7 +12,7 @@ var gFunctionRouter *FunctionRouter
 func CoreChaos() {
 	gFunctionRouter = NewFunctionRouter()
 
-	gFunctionRouter.Register(query_scene, QueryScene)
+	gFunctionRouter.Register(queryScene, QueryScene)
 
 	chaosScene()
 	chaosSpeaker()

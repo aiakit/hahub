@@ -9,20 +9,18 @@ import (
 	"sync"
 	"time"
 
+	"context"
+
 	"github.com/aiakit/ava"
 )
 
 // Value:    "[" + message + ",false]", //这是发起指令的穿参数
 func PlayTextAction(deviceID, message string) {
-
 	entityId, ok := gSpeakerProcess.speakerEntityPlayText[deviceID]
 	if !ok {
 		return
 	}
 
-	//调整音量
-	upPlay(deviceID)
-	fmt.Println("----0-----", "调高音量,播报文本", time.Now(), entityId)
 	err := x.Post(ava.Background(), data.GetHassUrl()+"/api/services/text/set_value", data.GetToken(), &data.HttpServiceData{
 		EntityId: entityId,
 		Value:    message,
@@ -30,19 +28,13 @@ func PlayTextAction(deviceID, message string) {
 	if err != nil {
 		ava.Error(err)
 	}
-
+	//暂停，等待播放完成
 	time.Sleep(GetPlaybackDuration(message))
-	//唤醒之前把音量调最小
-
-	downPlay(deviceID)
-	fmt.Println("----1--", "调低音量,唤醒", time.Now(), entityId)
-
-	wakeup(deviceID)
 }
 
 func GetPlaybackDuration(message string) time.Duration {
 	// 每个字符需要0.3秒播报
-	charDuration := 100 * time.Millisecond
+	charDuration := 130 * time.Millisecond
 
 	// 计算总播报时间
 	totalDuration := time.Duration(len(message)) * charDuration
@@ -63,13 +55,19 @@ type conversationor struct {
 
 type speakerProcess struct {
 	lock                     sync.Mutex
+	deviceLocks              map[string]*sync.Mutex // 每个设备独立的锁
 	playTextMessage          chan *conversationor
 	timeout                  time.Duration
-	speakerEntityPlayText    map[string]string //xiaomi_iot_device_id:*xiaomi_home
-	speakerEntityDirective   map[string]string //xiaomi_iot_device_id:*xiaomi_home
-	speakerEntityMediaPlayer map[string]string //xiaomi_iot_device_id:*xiaomi_home
-	speakerEntityWakeUp      map[string]string //xiaomi_iot_device_id:*xiaomi_home
+	speakerEntityPlayText    map[string]string //xiaomi_iot_device_id:xiaomi_home
+	speakerEntityDirective   map[string]string //xiaomi_iot_device_id:xiaomi_home
+	speakerEntityMediaPlayer map[string]string //xiaomi_iot_device_id:xiaomi_home
+	speakerEntityWakeUp      map[string]string //xiaomi_iot_device_id:xiaomi_home
 	lastUpdateTime           map[string]time.Time
+	// 添加会话状态管理
+	activeSessions map[string]bool
+	// 添加轮询控制
+	pollCancelFuncs map[string]context.CancelFunc
+	pollContexts    map[string]context.Context
 }
 
 var gSpeakerProcess *speakerProcess
@@ -78,6 +76,7 @@ func chaosSpeaker() {
 	data.RegisterDataHandler(SpeakerAsk2manAction4HomingHandler)
 
 	gSpeakerProcess = &speakerProcess{
+		deviceLocks:              make(map[string]*sync.Mutex), // 初始化设备锁map
 		playTextMessage:          make(chan *conversationor, 5),
 		timeout:                  time.Second * 5,
 		speakerEntityPlayText:    make(map[string]string),
@@ -85,6 +84,10 @@ func chaosSpeaker() {
 		speakerEntityMediaPlayer: make(map[string]string),
 		speakerEntityWakeUp:      make(map[string]string),
 		lastUpdateTime:           make(map[string]time.Time),
+		// 初始化会话状态
+		activeSessions:  make(map[string]bool),
+		pollCancelFuncs: make(map[string]context.CancelFunc),
+		pollContexts:    make(map[string]context.Context),
 	}
 
 	entitieXiaomiHome, ok := data.GetEntityCategoryMap()[data.CategoryXiaomiHomeSpeaker]
@@ -124,20 +127,44 @@ func speakerProcessSend(message *conversationor) {
 	gSpeakerProcess.playTextMessage <- message
 }
 
+// 获取指定设备的锁，如果不存在则创建
+func (s *speakerProcess) getDeviceLock(deviceId string) *sync.Mutex {
+	// 保护对deviceLocks的并发访问
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	if mutex, exists := s.deviceLocks[deviceId]; exists {
+		return mutex
+	}
+
+	// 创建新的mutex并存储
+	mutex := &sync.Mutex{}
+	s.deviceLocks[deviceId] = mutex
+	return mutex
+}
+
 func (s *speakerProcess) runSpeakerPlayText() {
 	var ticker = time.NewTicker(time.Second * 10)
 	for {
 		select {
 		case message := <-s.playTextMessage:
-			//todo: 如何判断处理同一轮对话当中
 			//todo: 增加基础指令拦截
-			pausePlay(message.deviceId)
 			fmt.Println("---------2-2-2----", x.MustMarshalEscape2String(message.Conversation))
 
-			s.lock.Lock()
+			// 使用设备独立的锁
+			deviceLock := s.getDeviceLock(message.deviceId)
+			deviceLock.Lock()
+			// 标记会话开始
+			if !s.activeSessions[message.deviceId] {
+				pausePlay(message.deviceId)
+				s.activeSessions[message.deviceId] = true
+				// 启动轮询
+				fmt.Println("-------1-----", "会话开始，启动轮训，暂停播放")
+				s.startPolling(message.deviceId)
+			}
 			s.lastUpdateTime[message.deviceId] = time.Now()
 			s.sendToRemote(message)
-			s.lock.Unlock()
+			deviceLock.Unlock()
 			// 添加消息到历史记录 (使用memory.go中的函数)
 			for _, msg := range message.Conversation {
 				switch msg.Role {
@@ -145,6 +172,7 @@ func (s *speakerProcess) runSpeakerPlayText() {
 					AddUserMessage(message.deviceId, msg.Content)
 				case "assistant":
 					if msg.Name == "jinx" {
+						fmt.Println("----------1111", msg.Content)
 						AddXiaoaiMessage(message.deviceId, msg.Content)
 					} else {
 						AddAIMessage(message.deviceId, msg.Content)
@@ -157,12 +185,40 @@ func (s *speakerProcess) runSpeakerPlayText() {
 			//todo: 增加交互优化，如果5秒内没有收到消息，可以主动询问是否需要其他帮助，或者直接终止对话
 		case <-ticker.C:
 			for deviceId := range s.lastUpdateTime {
-				if time.Now().Sub(s.lastUpdateTime[deviceId]) > 5*time.Minute {
-					upPlay(deviceId)
-					s.lock.Lock()
+				s.getDeviceLock(deviceId).Lock()
+
+				elapsed := time.Now().Sub(s.lastUpdateTime[deviceId])
+				if elapsed > 10*time.Second && elapsed <= 20*time.Second {
+					// 10秒内没有新消息，主动询问
+					if s.activeSessions[deviceId] {
+						// 唤醒设备并询问是否还需要帮助
+						// 暂停轮询
+						if cancel, exists := gSpeakerProcess.pollCancelFuncs[deviceId]; exists && cancel != nil {
+							cancel()
+							gSpeakerProcess.pollCancelFuncs[deviceId] = nil
+							fmt.Println("--------3---", "暂停轮训")
+						}
+
+						PlayTextAction(deviceId, "主人，还需要其他帮助吗？")
+						gSpeakerProcess.startPolling(deviceId)
+						wakeup(deviceId)
+						// 更新时间以避免重复询问
+						s.lastUpdateTime[deviceId] = time.Now().Add(10 * time.Second)
+					}
+				} else if elapsed > 20*time.Second {
+					// 20秒内没有新消息，结束会话
+					if s.activeSessions[deviceId] {
+						// 停止轮询
+						if cancel, exists := s.pollCancelFuncs[deviceId]; exists && cancel != nil {
+							cancel()
+						}
+						delete(s.activeSessions, deviceId)
+						delete(s.pollCancelFuncs, deviceId)
+						delete(s.pollContexts, deviceId)
+					}
 					delete(s.lastUpdateTime, deviceId)
-					s.lock.Unlock()
 				}
+				s.getDeviceLock(deviceId).Unlock()
 			}
 		}
 	}
@@ -179,7 +235,20 @@ func (s *speakerProcess) sendToRemote(conversations *conversationor) {
 
 	defer func() {
 		AddAIMessage(conversations.deviceId, message)
+		fmt.Println("--------4---", "播放")
+
+		// 暂停轮询
+		if cancel, exists := gSpeakerProcess.pollCancelFuncs[conversations.deviceId]; exists && cancel != nil {
+			cancel()
+			gSpeakerProcess.pollCancelFuncs[conversations.deviceId] = nil
+			fmt.Println("--------3---", "暂停轮训")
+		}
+		time.Sleep(time.Second)
 		PlayTextAction(conversations.deviceId, message)
+		PlayTextAction(conversations.deviceId, askMessage[x.Intn(len(askMessage)-1)])
+		gSpeakerProcess.startPolling(conversations.deviceId)
+		fmt.Println("--------8888---", "唤醒")
+		wakeup(conversations.deviceId)
 	}()
 	// 使用memory.go中的GetHistory函数获取历史记录
 	prepare, err := prepareCall(conversations.Conversation, conversations.deviceId)
@@ -235,11 +304,14 @@ func upPlay(deviceId string) {
 }
 
 func pausePlay(deviceId string) {
-
 	entityId, ok := gSpeakerProcess.speakerEntityMediaPlayer[deviceId]
 	if !ok {
 		return
 	}
+
+	// 不在这里获取锁，避免死锁
+	// gSpeakerProcess.lock.Lock()
+	// defer gSpeakerProcess.lock.Unlock()
 
 	err := x.Post(ava.Background(), data.GetHassUrl()+"/api/services/media_player/volume_mute", data.GetToken(), &data.HttpServiceDataPlayPause{
 		EntityId:      entityId,
@@ -309,6 +381,11 @@ func SpeakerAsk2manAction4HomingHandler(event *data.StateChangedSimple, body []b
 		if len(v) == 0 {
 			return
 		}
+		fmt.Println("-------999999---", string(body))
+		var content = v[0].TTS.Text
+		if content == "" {
+			content = v[0].Llm.Text
+		}
 
 		var cs = &conversationor{
 			Conversation: []*chat.ChatMessage{{
@@ -316,7 +393,7 @@ func SpeakerAsk2manAction4HomingHandler(event *data.StateChangedSimple, body []b
 				Content: state.Event.Data.NewState.State,
 			}, {
 				Role:    "assistant",
-				Content: v[0].Llm.Text,
+				Content: v[0].TTS.Text,
 				Name:    "jinx",
 			}},
 			entityId: en.EntityID,
@@ -370,7 +447,10 @@ type chatMessage struct {
 					Content        string `json:"content"`
 					Answers        []struct {
 						Type string `json:"type"`
-						Llm  struct {
+						TTS  struct {
+							Text string `json:"text"`
+						} `json:"tts"`
+						Llm struct {
 							Text string `json:"text"`
 						} `json:"llm"`
 					} `json:"answers"`
@@ -399,4 +479,33 @@ type chatMessage struct {
 		} `json:"context"`
 	} `json:"event"`
 	ID int `json:"id"`
+}
+
+func (s *speakerProcess) startPolling(deviceId string) {
+	// 如果已有轮询在运行，先取消它
+	if cancel, exists := s.pollCancelFuncs[deviceId]; exists && cancel != nil {
+		cancel()
+	}
+
+	// 创建新的上下文
+	ctx, cancel := context.WithCancel(context.Background())
+	s.pollContexts[deviceId] = ctx
+	s.pollCancelFuncs[deviceId] = cancel
+
+	// 启动轮询goroutine
+	go func() {
+		ticker := time.NewTicker(time.Second)
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				// 在轮询中调用pausePlay时不需要获取锁
+				// 因为这可能与其他需要锁的操作形成死锁
+				pausePlay(deviceId)
+			}
+		}
+	}()
 }

@@ -68,7 +68,7 @@ func (o *OpenAIProvider) ChatCompletion(messages []*ChatMessage) (string, error)
 	)
 
 	if err != nil {
-		ava.Errorf("openai ChatCompletion error=%v", err)
+		ava.Errorf("openai ChatCompletion error=%v |data=%s", err, x.MustMarshalEscape2String(messages))
 		return "", err
 	}
 
