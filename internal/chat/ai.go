@@ -2,6 +2,7 @@ package chat
 
 import (
 	"context"
+	"hahub/x"
 
 	"github.com/aiakit/ava"
 	"github.com/sashabaranov/go-openai"
@@ -12,18 +13,23 @@ import (
 
 var DefaultQianwenApiKey = "sk-08cdfea5547040209ea0e2d874fff912"
 var DefaultQianwenUrl = "https://dashscope.aliyuncs.com/compatible-mode/v1"
-var DefaultQianwenModel = "qwen-turbo-2024-11-01"
+var DefaultQianwenModel = "qwen-turbo-2025-07-15"
+
+//var DefaultQianwenModel = "qwen-turbo-2024-11-01"
 
 var DefaultProvider = NewOpenAIProvider(DefaultQianwenModel)
+
+//var DefaultProvider = NewDoubaoProvider("doubao-seed-1-6-250615")
 
 type ChatMessage struct {
 	Role    string `json:"role"`
 	Content string `json:"content"`
+	Name    string `json:"name,omitempty"`
 }
 
 // AIProvider 定义AI服务提供者的接口
 type AIProvider interface {
-	ChatCompletion(messages []ChatMessage) (string, error)
+	ChatCompletion(messages []*ChatMessage) (string, error)
 }
 
 // OpenAIProvider 实现OpenAI服务提供者
@@ -42,10 +48,15 @@ func NewOpenAIProvider(m string) *OpenAIProvider {
 func (o *OpenAIProvider) ChatCompletion(messages []*ChatMessage) (string, error) {
 	openaiMessages := make([]openai.ChatCompletionMessage, 0, 2)
 	for _, msg := range messages {
-		openaiMessages = append(openaiMessages, openai.ChatCompletionMessage{
+		mm := openai.ChatCompletionMessage{
 			Role:    msg.Role,
 			Content: msg.Content,
-		})
+		}
+		if msg.Name != "" {
+			mm.Name = msg.Name
+		}
+
+		openaiMessages = append(openaiMessages, mm)
 	}
 
 	resp, err := o.client.CreateChatCompletion(
@@ -71,17 +82,21 @@ type DoubaoProvider struct {
 }
 
 func NewDoubaoProvider(m string) *DoubaoProvider {
-	return &DoubaoProvider{client: arkruntime.NewClientWithApiKey(DefaultQianwenApiKey), m: m}
+	return &DoubaoProvider{client: arkruntime.NewClientWithApiKey("5b60ed7d-71cd-486a-96bd-cb1ad2a9a9d2"), m: m}
 }
 
-func (d *DoubaoProvider) ChatCompletion(messages []ChatMessage) (string, error) {
+func (d *DoubaoProvider) ChatCompletion(messages []*ChatMessage) (string, error) {
 
 	openaiMessages := make([]*model.ChatCompletionMessage, 0, 2)
 	for _, msg := range messages {
-		openaiMessages = append(openaiMessages, &model.ChatCompletionMessage{
+		mm := &model.ChatCompletionMessage{
 			Role:    msg.Role,
 			Content: &model.ChatCompletionMessageContent{StringValue: volcengine.String(msg.Content)},
-		})
+		}
+		if msg.Name != "" {
+			mm.Name = volcengine.String(msg.Name)
+		}
+		openaiMessages = append(openaiMessages, mm)
 	}
 
 	req := model.CreateChatCompletionRequest{
@@ -103,5 +118,11 @@ func (d *DoubaoProvider) ChatCompletion(messages []ChatMessage) (string, error) 
 
 // ChatCompletionMessage 通用的聊天完成函数
 func ChatCompletionMessage(messages []*ChatMessage) (string, error) {
-	return DefaultProvider.ChatCompletion(messages)
+	s, err := DefaultProvider.ChatCompletion(messages)
+	if err != nil {
+		ava.Debugf("TO=%s| err=%v", x.MustMarshalEscape2String(messages), err)
+		return s, err
+	}
+	ava.Debugf("TO=%s| FROM=%s", x.MustMarshalEscape2String(messages), s)
+	return s, err
 }

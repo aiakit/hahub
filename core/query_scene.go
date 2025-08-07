@@ -6,6 +6,7 @@ import (
 	"hahub/intelligent"
 	"hahub/internal/chat"
 	"hahub/x"
+	"strconv"
 	"strings"
 
 	"github.com/aiakit/ava"
@@ -15,7 +16,7 @@ import (
 
 var gShortScenes = make(map[string]*shortScene)
 
-func init() {
+func chaosScene() {
 	entities, ok := data.GetEntityCategoryMap()[data.CategoryScript]
 	if !ok {
 		return
@@ -44,9 +45,11 @@ func QueryScene(message, deviceId string) string {
 
 	//发送所有场景简短数据给ai
 	result, err := chatCompletionHistory([]*chat.ChatMessage{{
-		Role:    "user",
-		Content: fmt.Sprintf(`这是我的全部场景信息%s，根据对话内容将场景按照格式返回给我：{"id":"","alias"}`, x.MustMarshalEscape2String(gShortScenes)),
-	}}, deviceId)
+		Role: "user",
+		Content: fmt.Sprintf(`这是我的全部场景信息%s，根据对话内容将信息返回给我：
+1.查询某个场景："id":""
+2.查询场景数量："场景数量"`, x.MustMarshalEscape2String(gShortScenes)),
+	}, {Role: "user", Content: message}}, deviceId)
 	if err != nil {
 		ava.Error(err)
 		return "服务器开小差了，请等一会儿再试试"
@@ -58,6 +61,11 @@ func QueryScene(message, deviceId string) string {
 			id = v.Id
 		}
 	}
+
+	if id == "" {
+		return "主人，你总共有" + strconv.Itoa(len(gShortScenes)) + "个场景"
+	}
+
 	//拿到场景名称和id
 	e, ok := data.GetEntityIdMap()[id]
 	if !ok {
@@ -86,16 +94,16 @@ func QueryScene(message, deviceId string) string {
 	}
 
 	//发送给ai
-	msg, err := chatCompletion([]*chat.ChatMessage{
+	msg, err := chatCompletionHistory([]*chat.ChatMessage{
 		{
 			Role:    "system",
-			Content: fmt.Sprintf(`请根据场景信息回答我的问题，当前场景信息配置如下：%s`, x.MustMarshalEscape2String(scene)),
+			Content: fmt.Sprintf(`请根据场景信息用总结、归纳性的人性化的语言回答我，当前场景信息配置如下：%s`, x.MustMarshalEscape2String(scene)),
 		},
 		{
 			Role:    "user",
 			Content: message,
 		},
-	})
+	}, deviceId)
 	if err != nil {
 		ava.Error(err)
 		return "场景信息处理失败了"

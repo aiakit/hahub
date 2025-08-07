@@ -130,18 +130,19 @@ func init() {
 var logicDataMap = make(map[string]*ObjectLogic)
 
 // 预调用提示
-var preparePrompts = `根据对话内容，我提供了一些功能选项，根据我的意图选择需要执行什么功能，并按照规定的格式返回数据，除了返回的数据格式，禁止有其他内容。
+var preparePrompts = `根据对话内容，以及我提供的一些功能选项，判断我的意图选择需要执行什么功能，并按照规定的格式返回数据，除了返回的数据格式，禁止有其他内容。
 功能选项：%s
 返回数据格式：{"功能模块":"功能名称"}
 返回数据例子：{"query_scene":"查询场景"}`
 
 // todo: 加入当前对话位置名称，方便操作对应位置的设备
-func prepareCall(messageInput []*chat.ChatMessage) (string, error) {
+func prepareCall(messageInput []*chat.ChatMessage, deviceId string) (string, error) {
 	var messageList = make([]*chat.ChatMessage, 0, 6)
+	messageList = append(messageList, &chat.ChatMessage{Role: "user", Content: fmt.Sprintf(preparePrompts, x.MustMarshalEscape2String(logicDataMap))})
+
 	if len(messageInput) > 0 {
 		messageList = append(messageList, messageInput...)
 	}
-	messageList = append(messageList, &chat.ChatMessage{Role: "user", Content: fmt.Sprintf(preparePrompts, x.MustMarshalEscape2String(logicDataMap))})
 
-	return chatCompletion(messageList)
+	return chatCompletionHistory(messageList, deviceId)
 }

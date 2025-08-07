@@ -5,18 +5,17 @@ import (
 	"hahub/internal/chat"
 	"hahub/x"
 	"strings"
-
-	"github.com/aiakit/ava"
 )
 
 var gFunctionRouter *FunctionRouter
 
-func init() {
+func CoreChaos() {
 	gFunctionRouter = NewFunctionRouter()
 
 	gFunctionRouter.Register(query_scene, QueryScene)
 
-	ChaosSpeaker()
+	chaosScene()
+	chaosSpeaker()
 }
 
 // 定义函数处理类型
@@ -40,9 +39,9 @@ func (fr *FunctionRouter) Register(functionName string, handler FunctionHandler)
 }
 
 // 根据函数名调用对应的函数
-func Call(functionName, deviceId string) string {
+func Call(functionName, deviceId, message string) string {
 	if handler, exists := gFunctionRouter.handlers[functionName]; exists {
-		return handler(functionName, deviceId)
+		return handler(message, deviceId)
 	}
 	// 如果没有找到对应的处理器，返回空字符串或错误信息
 	return "未知指令"
@@ -58,32 +57,32 @@ func findFunction(message string) string {
 	return "is_in_development"
 }
 
-var systemPrompts = `你是一个智能家居助理音箱，名字叫做'小爱同学'，以下是我们最近的对话记录%s。`
+var systemPrompts = `你是一个智能家居助理，你的中文名:小爱同学,英文名:jax，和你共同工作的另一个AI助理的英文名字叫：jinx,中文名字：金克丝。你的所有回答必须简洁，以下是我们最近的对话记录%s。`
+var systemPromptsNone = `你是一个智能家居助理音箱，你的中文名:小爱同学,英文名:jax，和你共同工作的另一个AI助理的英文名字叫：jinx,中文名字：金克丝。你的所有回答必须简洁。`
 
-func chatCompletion(msgInput []*chat.ChatMessage) (string, error) {
-	var message = make([]*chat.ChatMessage, 0, 5)
-
-	message = append(message, msgInput...)
-	ava.Debugf("req=%s", x.MustMarshal2String(message))
-
-	return chat.ChatCompletionMessage(message)
-}
+//func chatCompletion(msgInput []*chat.ChatMessage) (string, error) {
+//	var message = make([]*chat.ChatMessage, 0, 5)
+//
+//	message = append(message, msgInput...)
+//
+//	return chat.ChatCompletionMessage(message)
+//}
 
 func chatCompletionHistory(msgInput []*chat.ChatMessage, deviceId string) (string, error) {
 	history := GetHistory(deviceId)
 	var message = make([]*chat.ChatMessage, 0, 5)
 
-	if len(history) == 0 {
-		history = []*chat.ChatMessage{}
+	var content = systemPromptsNone
+	if len(history) > 0 {
+		content = fmt.Sprintf(systemPrompts, x.MustMarshal2String(history))
 	}
 
 	message = append(message, &chat.ChatMessage{
 		Role:    "system",
-		Content: fmt.Sprintf(systemPrompts, x.MustMarshal2String(history)),
+		Content: content,
 	})
 
 	message = append(message, msgInput...)
-	ava.Debugf("req=%s", x.MustMarshal2String(message))
 
 	return chat.ChatCompletionMessage(message)
 }

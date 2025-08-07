@@ -13,7 +13,13 @@ import (
 )
 
 // Value:    "[" + message + ",false]", //这是发起指令的穿参数
-func PlayTextAction(deviceID, entityId, message string) {
+func PlayTextAction(deviceID, message string) {
+
+	entityId, ok := gSpeakerProcess.speakerEntityPlayText[deviceID]
+	if !ok {
+		return
+	}
+
 	//调整音量
 	upPlay(deviceID)
 	fmt.Println("----0-----", "调高音量,播报文本", time.Now(), entityId)
@@ -56,23 +62,29 @@ type conversationor struct {
 }
 
 type speakerProcess struct {
-	lock            sync.Mutex
-	playTextMessage chan *conversationor
-	timeout         time.Duration
-	speakerEntity   map[string][]*data.Entity
-	lastUpdateTime  map[string]time.Time
+	lock                     sync.Mutex
+	playTextMessage          chan *conversationor
+	timeout                  time.Duration
+	speakerEntityPlayText    map[string]string //xiaomi_iot_device_id:*xiaomi_home
+	speakerEntityDirective   map[string]string //xiaomi_iot_device_id:*xiaomi_home
+	speakerEntityMediaPlayer map[string]string //xiaomi_iot_device_id:*xiaomi_home
+	speakerEntityWakeUp      map[string]string //xiaomi_iot_device_id:*xiaomi_home
+	lastUpdateTime           map[string]time.Time
 }
 
 var gSpeakerProcess *speakerProcess
 
-func ChaosSpeaker() {
+func chaosSpeaker() {
 	data.RegisterDataHandler(SpeakerAsk2manAction4HomingHandler)
 
 	gSpeakerProcess = &speakerProcess{
-		playTextMessage: make(chan *conversationor, 5),
-		timeout:         time.Second * 5,
-		speakerEntity:   make(map[string][]*data.Entity),
-		lastUpdateTime:  make(map[string]time.Time),
+		playTextMessage:          make(chan *conversationor, 5),
+		timeout:                  time.Second * 5,
+		speakerEntityPlayText:    make(map[string]string),
+		speakerEntityDirective:   make(map[string]string),
+		speakerEntityMediaPlayer: make(map[string]string),
+		speakerEntityWakeUp:      make(map[string]string),
+		lastUpdateTime:           make(map[string]time.Time),
 	}
 
 	entitieXiaomiHome, ok := data.GetEntityCategoryMap()[data.CategoryXiaomiHomeSpeaker]
@@ -84,12 +96,25 @@ func ChaosSpeaker() {
 		return
 	}
 
-	for _, e := range entitieXiaomiHome {
-		gSpeakerProcess.speakerEntity[e.DeviceID] = append(gSpeakerProcess.speakerEntity[e.DeviceID], e)
-	}
-
 	for _, e := range entitieXiaomIot {
-		gSpeakerProcess.speakerEntity[e.DeviceID] = append(gSpeakerProcess.speakerEntity[e.DeviceID], e)
+
+		for _, e1 := range entitieXiaomiHome {
+			if e.Name == e1.Name && strings.Contains(e1.EntityID, "_play_text") {
+				gSpeakerProcess.speakerEntityPlayText[e.DeviceID] = e1.EntityID
+			}
+
+			if e.Name == e1.Name && strings.Contains(e1.EntityID, "_execute_text_directive") {
+				gSpeakerProcess.speakerEntityDirective[e.DeviceID] = e1.EntityID
+			}
+
+			if e.Name == e1.Name && strings.HasPrefix(e1.EntityID, "media_player.") {
+				gSpeakerProcess.speakerEntityMediaPlayer[e.DeviceID] = e1.EntityID
+			}
+
+			if e.Name == e1.Name && strings.Contains(e1.EntityID, "_wake_up") {
+				gSpeakerProcess.speakerEntityWakeUp[e.DeviceID] = e1.EntityID
+			}
+		}
 	}
 
 	go gSpeakerProcess.runSpeakerPlayText()
@@ -101,31 +126,33 @@ func speakerProcessSend(message *conversationor) {
 
 func (s *speakerProcess) runSpeakerPlayText() {
 	var ticker = time.NewTicker(time.Second * 10)
-
 	for {
 		select {
 		case message := <-s.playTextMessage:
 			//todo: 如何判断处理同一轮对话当中
 			//todo: 增加基础指令拦截
-
 			pausePlay(message.deviceId)
+			fmt.Println("---------2-2-2----", x.MustMarshalEscape2String(message.Conversation))
 
+			s.lock.Lock()
+			s.lastUpdateTime[message.deviceId] = time.Now()
+			s.sendToRemote(message)
+			s.lock.Unlock()
 			// 添加消息到历史记录 (使用memory.go中的函数)
 			for _, msg := range message.Conversation {
 				switch msg.Role {
 				case "user":
 					AddUserMessage(message.deviceId, msg.Content)
 				case "assistant":
-					AddAIMessage(message.deviceId, msg.Content)
+					if msg.Name == "jinx" {
+						AddXiaoaiMessage(message.deviceId, msg.Content)
+					} else {
+						AddAIMessage(message.deviceId, msg.Content)
+					}
 				case "system":
 					AddSystemMessage(message.deviceId, msg.Content)
 				}
 			}
-
-			s.lock.Lock()
-			s.lastUpdateTime[message.deviceId] = time.Now()
-			s.sendToRemote(message)
-			s.lock.Unlock()
 
 			//todo: 增加交互优化，如果5秒内没有收到消息，可以主动询问是否需要其他帮助，或者直接终止对话
 		case <-ticker.C:
@@ -151,17 +178,17 @@ func (s *speakerProcess) sendToRemote(conversations *conversationor) {
 	var message string
 
 	defer func() {
-		PlayTextAction(conversations.deviceId, conversations.entityId, message)
+		AddAIMessage(conversations.deviceId, message)
+		PlayTextAction(conversations.deviceId, message)
 	}()
 	// 使用memory.go中的GetHistory函数获取历史记录
-	history := GetHistory(conversations.deviceId)
-	prepare, err := prepareCall(history)
+	prepare, err := prepareCall(conversations.Conversation, conversations.deviceId)
 	if err != nil {
 		message = "主人，请稍等，网络开小差了，请重试一次..."
 		return
 	}
 
-	message = Call(findFunction(prepare), conversations.deviceId)
+	message = Call(findFunction(prepare), conversations.deviceId, conversations.Conversation[0].Content)
 }
 
 // 修改:getBusinessID现在处理对话历史数组
@@ -177,18 +204,13 @@ func (s *speakerProcess) getBusinessID(conversations []*chat.ChatMessage) string
 
 func downPlay(deviceId string) {
 
-	var playEntityId string
-	for _, e := range gSpeakerProcess.speakerEntity[deviceId] {
-		if e.Category == data.CategoryXiaomiHomeSpeaker && e.DeviceID == deviceId && strings.HasPrefix(e.EntityID, "media_player.") {
-			playEntityId = e.EntityID
-		}
-	}
-	if playEntityId == "" {
+	entityId, ok := gSpeakerProcess.speakerEntityMediaPlayer[deviceId]
+	if !ok {
 		return
 	}
 
 	err := x.Post(ava.Background(), data.GetHassUrl()+"/api/services/media_player/volume_set", data.GetToken(), &data.HttpServiceDataPlay{
-		EntityId:    playEntityId,
+		EntityId:    entityId,
 		VolumeLevel: 0,
 	}, nil)
 	if err != nil {
@@ -198,18 +220,13 @@ func downPlay(deviceId string) {
 
 func upPlay(deviceId string) {
 
-	var playEntityId string
-	for _, e := range gSpeakerProcess.speakerEntity[deviceId] {
-		if e.Category == data.CategoryXiaomiHomeSpeaker && e.DeviceID == deviceId && strings.HasPrefix(e.EntityID, "media_player.") {
-			playEntityId = e.EntityID
-		}
-	}
-	if playEntityId == "" {
+	entityId, ok := gSpeakerProcess.speakerEntityMediaPlayer[deviceId]
+	if !ok {
 		return
 	}
 
 	err := x.Post(ava.Background(), data.GetHassUrl()+"/api/services/media_player/volume_set", data.GetToken(), &data.HttpServiceDataPlay{
-		EntityId:    playEntityId,
+		EntityId:    entityId,
 		VolumeLevel: 0.5,
 	}, nil)
 	if err != nil {
@@ -219,18 +236,13 @@ func upPlay(deviceId string) {
 
 func pausePlay(deviceId string) {
 
-	var playEntityId string
-	for _, e := range gSpeakerProcess.speakerEntity[deviceId] {
-		if e.Category == data.CategoryXiaomiHomeSpeaker && e.DeviceID == deviceId && strings.HasPrefix(e.EntityID, "media_player.") {
-			playEntityId = e.EntityID
-		}
-	}
-	if playEntityId == "" {
+	entityId, ok := gSpeakerProcess.speakerEntityMediaPlayer[deviceId]
+	if !ok {
 		return
 	}
 
 	err := x.Post(ava.Background(), data.GetHassUrl()+"/api/services/media_player/volume_mute", data.GetToken(), &data.HttpServiceDataPlayPause{
-		EntityId:      playEntityId,
+		EntityId:      entityId,
 		IsVolumeMuted: true,
 	}, nil)
 	if err != nil {
@@ -240,17 +252,13 @@ func pausePlay(deviceId string) {
 
 // 主动唤醒逻辑
 func wakeup(deviceId string) {
-	var wakeupEntityId string
-	for _, e := range gSpeakerProcess.speakerEntity[deviceId] {
-		if e.Category == data.CategoryXiaomiHomeSpeaker && e.DeviceID == deviceId && strings.Contains(e.OriginalName, "唤醒") {
-			wakeupEntityId = e.EntityID
-		}
-	}
-	if wakeupEntityId == "" {
+	entityId, ok := gSpeakerProcess.speakerEntityWakeUp[deviceId]
+	if !ok {
 		return
 	}
+
 	err := x.Post(ava.Background(), data.GetHassUrl()+"/api/services/button/press", data.GetToken(), &data.HttpServiceData{
-		EntityId: wakeupEntityId,
+		EntityId: entityId,
 	}, nil)
 	if err != nil {
 		ava.Error(err)
@@ -309,6 +317,7 @@ func SpeakerAsk2manAction4HomingHandler(event *data.StateChangedSimple, body []b
 			}, {
 				Role:    "assistant",
 				Content: v[0].Llm.Text,
+				Name:    "jinx",
 			}},
 			entityId: en.EntityID,
 			deviceId: en.DeviceID,

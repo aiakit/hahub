@@ -48,6 +48,15 @@ func AddAIMessage(deviceId, content string) {
 	addMessage(deviceId, &chat.ChatMessage{
 		Role:    "assistant",
 		Content: content,
+		Name:    "jax",
+	})
+}
+
+func AddXiaoaiMessage(deviceId, content string) {
+	addMessage(deviceId, &chat.ChatMessage{
+		Role:    "assistant",
+		Content: content,
+		Name:    "jinx",
 	})
 }
 
