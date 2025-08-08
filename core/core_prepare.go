@@ -94,7 +94,7 @@ func init() {
 	}
 
 	logicDataMap[dailyConversation] = &ObjectLogic{
-		Description:  "非智能家居所在领域的对话",
+		Description:  "非智能家居所在领域的其他对话，当收到非智能家居领域的对话时，使用这个对象",
 		FunctionName: "对话",
 	}
 

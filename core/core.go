@@ -19,12 +19,13 @@ func CoreChaos() {
 	gFunctionRouter.Register(queryScene, QueryScene)
 	gFunctionRouter.Register(queryAutomation, QueryAutomation)
 	gFunctionRouter.Register(queryDevice, QueryDevice)
-	gFunctionRouter.Register(dailyConversation, Conversation)
+	gFunctionRouter.Register(sendMessage2Speaker, SendMessagePlay)
 	gFunctionRouter.Register(isInDevelopment, IsInDevelopment)
 	gFunctionRouter.Register(runAutomation, RunAutomation)
 	gFunctionRouter.Register(runScene, RunScene)
 	gFunctionRouter.Register(controlDevice, RunDevice)
 	gFunctionRouter.Register(timingTask, RunTming)
+	gFunctionRouter.Register(dailyConversation, Conversation)
 
 	chaosSpeaker()
 }
