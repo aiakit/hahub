@@ -11,23 +11,21 @@ import (
 // eg.场景，执行场景，回家
 // eg.天气，查询天气，小爱入口忽略/云端查询
 const (
-	queryScene                      = "query_scene"
-	runScene                        = "run_scene"
-	runAutomation                   = "run_automation"
-	queryAutomation                 = "query_automation"
-	runDevice                       = "run_device"
-	queryDeviceState                = "query_device_state"
-	delayedTask                     = "delayed_task"
-	scheduledTask                   = "scheduled_task"
-	dailyConversation               = "daily_conversation"
-	functionCallInitScene           = "function_call_init_scene"
-	functionCallInitAutomation      = "function_call_init_automation"
-	functionCallInitLight           = "function_call_init_light"
-	functionCallInitSwitch          = "function_call_init_switch"
-	functionCallInitLowestLight     = "function_call_init_lowest_light"
-	functionCallInitLightingControl = "function_call_init_lighting_control"
-	isHandled                       = "is_handled"
-	isInDevelopment                 = "is_in_development"
+	queryScene                 = "query_scene"
+	runScene                   = "run_scene"
+	runAutomation              = "run_automation"
+	queryAutomation            = "query_automation"
+	controlDevice              = "control_device"
+	queryDevice                = "query_device"
+	delayedTask                = "delayed_task"
+	scheduledTask              = "scheduled_task"
+	dailyConversation          = "daily_conversation"
+	functionCallInitScene      = "function_call_init_scene"
+	functionCallInitAll        = "function_call_init_all"
+	functionCallInitAutomation = "function_call_init_automation"
+	isHandled                  = "is_handled"
+	isInDevelopment            = "is_in_development"
+	sendMessage2Speaker        = "send_message_to_speaker"
 )
 
 func init() {
@@ -53,14 +51,22 @@ func init() {
 	}
 
 	//platform不等于xiaomi_home的设备需要AI操作,例如热水器等
-	logicDataMap[runDevice] = &ObjectLogic{
+	logicDataMap[controlDevice] = &ObjectLogic{
 		Description:  "对智能家居设备进行控制",
 		FunctionName: "操作设备",
 	}
 
-	logicDataMap[queryDeviceState] = &ObjectLogic{
-		Description:  "查询智能家居设备的运行状态",
-		FunctionName: "查询设备状态",
+	logicDataMap[queryDevice] = &ObjectLogic{
+		Description:  "查询智能家居设备的相关信息,包括设备离线，在线，状态，数量",
+		FunctionName: "查询设备相关信息",
+		SubFunction: []subFunction{
+			{Name: "query_offline_number", Description: "查询离线设备总数量"},
+			{Name: "query_offline_state", Description: "查询离线设备状态"},
+			{Name: "query_online_number", Description: "查询在线设备总数量"},
+			{Name: "query_online_state", Description: "查询在线设备状态"},
+			{Name: "query_all_number", Description: "查询设备总数量"},
+			{Name: "query_device_state_detail", Description: "查询某个设备详细状态"},
+		},
 	}
 
 	logicDataMap[delayedTask] = &ObjectLogic{
@@ -75,7 +81,7 @@ func init() {
 
 	logicDataMap[dailyConversation] = &ObjectLogic{
 		Description:  "非智能家居所在领域的对话",
-		FunctionName: "日常对话",
+		FunctionName: "对话",
 	}
 
 	logicDataMap[functionCallInitScene] = &ObjectLogic{
@@ -87,21 +93,10 @@ func init() {
 		Description:  "执行初始化自动化函数调用",
 		FunctionName: "初始化自动化函数调用",
 	}
-	logicDataMap[functionCallInitLight] = &ObjectLogic{
-		Description:  "执行初始化灯具参数函数调用",
-		FunctionName: "初始化灯具参数函数调用",
-	}
-	logicDataMap[functionCallInitSwitch] = &ObjectLogic{
-		Description:  "执行初始化开关参数函数调用",
-		FunctionName: "初始化开关参数函数调用",
-	}
-	logicDataMap[functionCallInitLowestLight] = &ObjectLogic{
-		Description:  "执行初始化最低亮度函数调用",
-		FunctionName: "初始化最低亮度函数调用",
-	}
-	logicDataMap[functionCallInitLightingControl] = &ObjectLogic{
-		Description:  "执行初始化开关对灯设备的控制设置",
-		FunctionName: "初始化灯控函数调用",
+
+	logicDataMap[functionCallInitAll] = &ObjectLogic{
+		Description:  "执行系统初始化",
+		FunctionName: "执行系统初始化",
 	}
 
 	logicDataMap[isHandled] = &ObjectLogic{
@@ -113,6 +108,11 @@ func init() {
 		Description:  "在我们的对话中，如果没有找到对应功能，就返回这个对象",
 		FunctionName: "功能开发中",
 	}
+
+	logicDataMap[sendMessage2Speaker] = &ObjectLogic{
+		Description:  "给其他地方音箱发送消息，例如：我在客厅，给爸爸、儿子、或者奶奶发送消息，音箱会播报我要发送的内容，通过判断音箱设备名称和音箱所在区域获取哪个音箱设备。",
+		FunctionName: "消息播报",
+	}
 }
 
 var logicDataMap = make(map[string]*ObjectLogic)
@@ -121,7 +121,7 @@ var logicDataMap = make(map[string]*ObjectLogic)
 var preparePrompts = `根据对话内容，以及我提供的一些功能选项，判断我的意图选择需要执行什么功能，并按照规定的格式返回数据，除了返回的数据格式，禁止有其他内容。
 功能选项：%s
 返回数据格式：{"功能模块":"功能名称"}
-返回数据例子：{"query_scene":"查询场景"}`
+返回数据例子：{"function":"query_device","function_name":"查询设备","sub_function":{"query_offline_number"}}`
 
 // todo: 加入当前对话位置名称，方便操作对应位置的设备
 func prepareCall(messageInput []*chat.ChatMessage, deviceId string) (string, error) {

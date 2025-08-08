@@ -56,8 +56,30 @@ type Script struct {
 var scriptLock sync.Mutex
 var scriptCount int
 
+func RunAutomation(entityId string) error {
+	err := x.Post(ava.Background(), fmt.Sprintf("%s/api/services/automation/trigger", data.GetHassUrl()), data.GetToken(), data.HttpServiceData{
+		EntityId: entityId,
+	}, nil)
+	return err
+}
+
+func RunSript(entityId string) error {
+	err := x.Post(ava.Background(), fmt.Sprintf("%s/api/services/script/turn_on", data.GetHassUrl()), data.GetToken(), data.HttpServiceData{
+		EntityId: entityId,
+	}, nil)
+	return err
+}
+
 func GetScript(uniqueId string, v interface{}) error {
 	err := x.Get(ava.Background(), fmt.Sprintf(prefixUrlCreateScript, data.GetHassUrl(), uniqueId), data.GetToken(), v)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func GetAutomation(uniqueId string, v interface{}) error {
+	err := x.Get(ava.Background(), fmt.Sprintf(prefixUrlCreateAutomation, data.GetHassUrl(), uniqueId), data.GetToken(), v)
 	if err != nil {
 		return err
 	}

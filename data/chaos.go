@@ -66,6 +66,8 @@ type hub struct {
 	// 新增：区域ID映射
 	entityAreaMap map[string][]*Entity // key: 区域ID(AreaID)，value: []*Entity
 
+	deviceState map[string][]*Entity //设备名称：所有实体
+
 	areas    []string
 	areaName map[string]string
 
@@ -73,6 +75,23 @@ type hub struct {
 	notifyPhone []string
 
 	speakersXiaomiHome []string //device_id
+
+	service map[string]interface{}
+}
+
+func GetService() map[string]interface{} {
+	gHub.lock.RLock()
+	data := gHub.service
+	gHub.lock.RUnlock()
+
+	return data
+}
+
+func GetDeviceFirstState() map[string][]*Entity {
+	gHub.lock.RLock()
+	data := gHub.deviceState
+	gHub.lock.RUnlock()
+	return data
 }
 
 func GetSpeakersXiaomiHome() []string {
@@ -145,6 +164,7 @@ func newHub() {
 		xinguang:           make(map[string]string),
 		callbackMapFunc:    make(map[int]func(data []byte)),
 		callbackMapLock:    new(sync.Mutex),
+		deviceState:        make(map[string][]*Entity),
 		speakersXiaomiHome: make([]string, 0),
 	}
 }
@@ -246,7 +266,7 @@ func callback() {
 		}
 
 		if tpe == "event" {
-			//ava.Debugf("--------%s", string(msg))
+			ava.Debugf("--------%s", string(msg))
 			var eventData StateChangedSimple
 			err := x.Unmarshal(msg, &eventData)
 			if err != nil {

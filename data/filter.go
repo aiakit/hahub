@@ -365,6 +365,16 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 		}
 	}
 
+	for _, v := range filtered {
+		name := strings.Split(v.OriginalName, " ")
+		if len(name) == 0 {
+			continue
+		}
+		deviceName := name[0]
+
+		gHub.deviceState[deviceName] = append(gHub.deviceState[deviceName], v)
+	}
+
 	return filtered
 }
 

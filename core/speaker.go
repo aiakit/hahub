@@ -7,6 +7,7 @@ import (
 	"hahub/x"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"context"
@@ -30,6 +31,25 @@ func PlayTextAction(deviceID, message string) {
 	}
 	//暂停，等待播放完成
 	time.Sleep(GetPlaybackDuration(message))
+}
+
+func PlayTextActionWithMemory(deviceID, message string) {
+	entityId, ok := gSpeakerProcess.speakerEntityPlayText[deviceID]
+	if !ok {
+		return
+	}
+
+	err := x.Post(ava.Background(), data.GetHassUrl()+"/api/services/text/set_value", data.GetToken(), &data.HttpServiceData{
+		EntityId: entityId,
+		Value:    message,
+	}, nil)
+	if err != nil {
+		ava.Error(err)
+	}
+	//暂停，等待播放完成
+	time.Sleep(GetPlaybackDuration(message))
+
+	AddXiaoaiMessage(deviceID, message)
 }
 
 func GetPlaybackDuration(message string) time.Duration {
@@ -68,12 +88,30 @@ type speakerProcess struct {
 	// 添加轮询控制
 	pollCancelFuncs map[string]context.CancelFunc
 	pollContexts    map[string]context.Context
+
+	isReceivedLock     sync.RWMutex
+	isReceivedPlayText map[string]int32
+}
+
+func getIsReceivedPlayText(entityId string) bool {
+	gSpeakerProcess.isReceivedLock.RLock()
+	flag := gSpeakerProcess.isReceivedPlayText[entityId]
+	gSpeakerProcess.isReceivedLock.RUnlock()
+	return atomic.LoadInt32(&flag) == 0
+}
+
+func setIsReceivedPlayText(entityId string, f int32) {
+	gSpeakerProcess.isReceivedLock.Lock()
+	flag := gSpeakerProcess.isReceivedPlayText[entityId]
+	atomic.SwapInt32(&flag, f)
+	gSpeakerProcess.isReceivedLock.Unlock()
 }
 
 var gSpeakerProcess *speakerProcess
 
 func chaosSpeaker() {
-	data.RegisterDataHandler(SpeakerAsk2manAction4HomingHandler)
+	data.RegisterDataHandler(SpeakerAsk2ConversationHandler)
+	data.RegisterDataHandler(SpeakerAsk2PlayTextHandler)
 
 	gSpeakerProcess = &speakerProcess{
 		deviceLocks:              make(map[string]*sync.Mutex), // 初始化设备锁map
@@ -85,9 +123,10 @@ func chaosSpeaker() {
 		speakerEntityWakeUp:      make(map[string]string),
 		lastUpdateTime:           make(map[string]time.Time),
 		// 初始化会话状态
-		activeSessions:  make(map[string]bool),
-		pollCancelFuncs: make(map[string]context.CancelFunc),
-		pollContexts:    make(map[string]context.Context),
+		activeSessions:     make(map[string]bool),
+		pollCancelFuncs:    make(map[string]context.CancelFunc),
+		pollContexts:       make(map[string]context.Context),
+		isReceivedPlayText: make(map[string]int64),
 	}
 
 	entitieXiaomiHome, ok := data.GetEntityCategoryMap()[data.CategoryXiaomiHomeSpeaker]
@@ -165,11 +204,14 @@ func (s *speakerProcess) runSpeakerPlayText() {
 			s.lastUpdateTime[message.deviceId] = time.Now()
 			s.sendToRemote(message)
 			deviceLock.Unlock()
+
+			var isHaveHuman bool
 			// 添加消息到历史记录 (使用memory.go中的函数)
 			for _, msg := range message.Conversation {
 				switch msg.Role {
 				case "user":
 					AddUserMessage(message.deviceId, msg.Content)
+					isHaveHuman = true
 				case "assistant":
 					if msg.Name == "jinx" {
 						fmt.Println("----------1111", msg.Content)
@@ -180,6 +222,10 @@ func (s *speakerProcess) runSpeakerPlayText() {
 				case "system":
 					AddSystemMessage(message.deviceId, msg.Content)
 				}
+			}
+
+			if !isHaveHuman {
+				continue
 			}
 
 			//todo: 增加交互优化，如果5秒内没有收到消息，可以主动询问是否需要其他帮助，或者直接终止对话
@@ -234,21 +280,32 @@ func (s *speakerProcess) sendToRemote(conversations *conversationor) {
 	var message string
 
 	defer func() {
-		AddAIMessage(conversations.deviceId, message)
-		fmt.Println("--------4---", "播放")
-
-		// 暂停轮询
-		if cancel, exists := gSpeakerProcess.pollCancelFuncs[conversations.deviceId]; exists && cancel != nil {
-			cancel()
-			gSpeakerProcess.pollCancelFuncs[conversations.deviceId] = nil
-			fmt.Println("--------3---", "暂停轮训")
+		if message == "" {
+			for _, conversation := range conversations.Conversation {
+				if conversation.Role == "assistant" {
+					message = conversation.Content
+					break
+				}
+			}
 		}
-		time.Sleep(time.Second)
-		PlayTextAction(conversations.deviceId, message)
-		PlayTextAction(conversations.deviceId, askMessage[x.Intn(len(askMessage)-1)])
-		gSpeakerProcess.startPolling(conversations.deviceId)
-		fmt.Println("--------8888---", "唤醒")
-		wakeup(conversations.deviceId)
+
+		if message != "" {
+			AddAIMessage(conversations.deviceId, message)
+			fmt.Println("--------4---", "播放")
+
+			// 暂停轮询
+			if cancel, exists := gSpeakerProcess.pollCancelFuncs[conversations.deviceId]; exists && cancel != nil {
+				cancel()
+				gSpeakerProcess.pollCancelFuncs[conversations.deviceId] = nil
+				fmt.Println("--------3---", "暂停轮训")
+			}
+			time.Sleep(time.Second)
+			PlayTextAction(conversations.deviceId, message)
+			PlayTextAction(conversations.deviceId, askMessage[x.Intn(len(askMessage)-1)])
+			gSpeakerProcess.startPolling(conversations.deviceId)
+			fmt.Println("--------8888---", "唤醒")
+			wakeup(conversations.deviceId)
+		}
 	}()
 	// 使用memory.go中的GetHistory函数获取历史记录
 	prepare, err := prepareCall(conversations.Conversation, conversations.deviceId)
@@ -257,18 +314,7 @@ func (s *speakerProcess) sendToRemote(conversations *conversationor) {
 		return
 	}
 
-	message = Call(findFunction(prepare), conversations.deviceId, conversations.Conversation[0].Content)
-}
-
-// 修改:getBusinessID现在处理对话历史数组
-func (s *speakerProcess) getBusinessID(conversations []*chat.ChatMessage) string {
-	// 根据对话内容获取业务 ID
-	for _, conv := range conversations {
-		if conv.Role == "user" {
-			return strings.Split(conv.Content, ",")[0]
-		}
-	}
-	return ""
+	message = Call(findFunction(prepare), conversations.deviceId, conversations.Conversation[0].Content, prepare)
 }
 
 func downPlay(deviceId string) {
@@ -360,8 +406,37 @@ var askMessage = []string{
 	"我在倾听您的要求,请告诉我吧。",
 }
 
+func SpeakerAsk2PlayTextHandler(event *data.StateChangedSimple, body []byte) {
+
+	// 播放文本实体后面是play_text
+	var state chatMessage
+	err := x.Unmarshal(body, &state)
+	if err != nil {
+		ava.Error(err)
+		return
+	}
+
+	if strings.Contains(state.Event.Data.EntityID, "_play_text") && strings.HasPrefix(state.Event.Data.EntityID, "text.") {
+
+		if !getIsReceivedPlayText(state.Event.Data.EntityID) {
+			return
+		}
+
+		en, ok := data.GetEntityIdMap()[state.Event.Data.EntityID]
+		if !ok {
+			return
+		}
+
+		speakerProcessSend(&conversationor{
+			Conversation: []*chat.ChatMessage{{Role: "assistant", Content: state.Event.Data.NewState.State}},
+			entityId:     en.EntityID,
+			deviceId:     en.DeviceID,
+		})
+	}
+}
+
 // 获取对话记录,entity_id相同
-func SpeakerAsk2manAction4HomingHandler(event *data.StateChangedSimple, body []byte) {
+func SpeakerAsk2ConversationHandler(event *data.StateChangedSimple, body []byte) {
 	// 播放文本实体后面是play_text
 	var state chatMessage
 	err := x.Unmarshal(body, &state)

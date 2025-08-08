@@ -172,6 +172,7 @@ type Triggers struct {
 	Above     float64     `json:"above,omitempty"`
 	Below     float64     `json:"below,omitempty"`
 	For       *For        `json:"for,omitempty"`
+	Name      string      `json:"name,omitempty"`
 }
 
 type Conditions struct {
@@ -189,6 +190,7 @@ type Conditions struct {
 	Weekday        []string      `json:"weekday,omitempty"`
 	ConditionChild []interface{} `json:"conditions,omitempty"`
 	State          interface{}   `json:"state,omitempty"`
+	Name           string        `json:"name,omitempty"` //设备名称
 }
 
 type For struct {
@@ -265,6 +267,44 @@ type Response struct {
 }
 
 var deleteAllAutomationSwitch = true
+
+func ChaosAutomation() {
+	c := ava.Background()
+
+	//删除所有自动化
+	if deleteAllAutomationSwitch {
+		DeleteAllAutomations(c)
+	}
+
+	//处理光照数据
+	initEntityIdByLx(ava.Background())
+
+	//人体传感器
+	walkBodySensor(c)
+
+	//人体存在传感器
+	walkPresenceSensor(c)
+	walkPresenceSensorKeting(c)
+
+	//布防
+	defense(c)
+
+	//警报
+	attention(c)
+
+	//灯光控制
+	lightControl(c)
+
+	//插座打开就开灯
+	walkBodySocketSensor(c)
+
+	//重新缓存一遍数据
+	data.CallService()
+
+	//开关自动关闭规则
+	//switchRule()
+	ava.Debugf("all automation created done! |total=%d", automaitionCount)
+}
 
 func Chaos() {
 	c := ava.Background()

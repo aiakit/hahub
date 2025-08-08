@@ -303,7 +303,7 @@ func callServices() {
 			if k == "notify" {
 				v1, ok := v.(map[string]interface{})
 				if ok {
-					for key, _ := range v1 {
+					for key := range v1 {
 						if strings.HasPrefix(key, "mobile_") {
 							gHub.notifyPhone = append(gHub.notifyPhone, key)
 						}
@@ -314,6 +314,7 @@ func callServices() {
 		}
 		initMutex.Lock()
 		initState.servicesLoaded = true
+		gHub.service = data.Result
 		initMutex.Unlock()
 		checkInitComplete()
 	})

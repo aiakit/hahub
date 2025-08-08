@@ -12,14 +12,24 @@ var gFunctionRouter *FunctionRouter
 func CoreChaos() {
 	gFunctionRouter = NewFunctionRouter()
 
+	gFunctionRouter.Register(functionCallInitAll, InitALL)
+	gFunctionRouter.Register(isHandled, IsDone)
+	gFunctionRouter.Register(functionCallInitAll, InitScene)
+	gFunctionRouter.Register(functionCallInitAll, InitAutomation)
 	gFunctionRouter.Register(queryScene, QueryScene)
+	gFunctionRouter.Register(queryAutomation, QueryAutomation)
+	gFunctionRouter.Register(queryDevice, QueryDevice)
+	gFunctionRouter.Register(dailyConversation, Conversation)
+	gFunctionRouter.Register(isInDevelopment, IsInDevelopment)
+	gFunctionRouter.Register(runAutomation, RunAutomation)
+	gFunctionRouter.Register(runScene, RunScene)
+	gFunctionRouter.Register(controlDevice, RunDevice)
 
-	chaosScene()
 	chaosSpeaker()
 }
 
 // 定义函数处理类型
-type FunctionHandler func(message, deviceId string) string
+type FunctionHandler func(message, aiMessage, deviceId string) string
 
 // 函数映射表结构
 type FunctionRouter struct {
@@ -39,9 +49,9 @@ func (fr *FunctionRouter) Register(functionName string, handler FunctionHandler)
 }
 
 // 根据函数名调用对应的函数
-func Call(functionName, deviceId, message string) string {
+func Call(functionName, deviceId, message, aiMessage string) string {
 	if handler, exists := gFunctionRouter.handlers[functionName]; exists {
-		return handler(message, deviceId)
+		return handler(message, aiMessage, deviceId)
 	}
 	// 如果没有找到对应的处理器，返回空字符串或错误信息
 	return "未知指令"

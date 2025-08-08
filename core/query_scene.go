@@ -6,29 +6,10 @@ import (
 	"hahub/intelligent"
 	"hahub/internal/chat"
 	"hahub/x"
-	"strconv"
 	"strings"
 
 	"github.com/aiakit/ava"
 )
-
-// 查询场景信息
-
-var gShortScenes = make(map[string]*shortScene)
-
-func chaosScene() {
-	entities, ok := data.GetEntityCategoryMap()[data.CategoryScript]
-	if !ok {
-		return
-	}
-
-	for _, e := range entities {
-		gShortScenes[e.UniqueID] = &shortScene{
-			Id:    e.EntityID,
-			Alias: e.OriginalName,
-		}
-	}
-}
 
 type shortScene struct {
 	Id    string `json:"id"`
@@ -41,14 +22,28 @@ type script struct {
 	Sequence    []map[string]interface{} `json:"sequence"`    //执行动作
 }
 
-func QueryScene(message, deviceId string) string {
+func QueryScene(message, aiMessage, deviceId string) string {
+
+	var gShortScenes = make(map[string]*shortScene)
+
+	entities, ok := data.GetEntityCategoryMap()[data.CategoryScript]
+	if !ok {
+		return ""
+	}
+
+	for _, e := range entities {
+		gShortScenes[e.UniqueID] = &shortScene{
+			Id:    e.EntityID,
+			Alias: e.OriginalName,
+		}
+	}
 
 	//发送所有场景简短数据给ai
 	result, err := chatCompletionHistory([]*chat.ChatMessage{{
 		Role: "user",
-		Content: fmt.Sprintf(`这是我的全部场景信息%s，根据对话内容将信息返回给我：
+		Content: fmt.Sprintf(`这是我的全部场景信息%s，总数是%d个，根据对话内容将信息返回给我：
 1.查询某个场景："id":""
-2.查询场景数量："场景数量"`, x.MustMarshalEscape2String(gShortScenes)),
+2.查询场景数量："你总共有x个场景"`, x.MustMarshalEscape2String(gShortScenes), len(gShortScenes)),
 	}, {Role: "user", Content: message}}, deviceId)
 	if err != nil {
 		ava.Error(err)
@@ -63,7 +58,7 @@ func QueryScene(message, deviceId string) string {
 	}
 
 	if id == "" {
-		return "主人，你总共有" + strconv.Itoa(len(gShortScenes)) + "个场景"
+		return result
 	}
 
 	//拿到场景名称和id
@@ -77,7 +72,7 @@ func QueryScene(message, deviceId string) string {
 	err = intelligent.GetScript(e.UniqueID, scene)
 	if err != nil {
 		ava.Error(err)
-		return "没有找打哦这个场景"
+		return "没有找到这个场景"
 	}
 
 	//找出场景下的设备名称
@@ -88,7 +83,7 @@ func QueryScene(message, deviceId string) string {
 				if !ok {
 					continue
 				}
-				scene.Sequence[index]["device_name"] = ee.Name
+				scene.Sequence[index]["device_name"] = ee.DeviceName
 			}
 		}
 	}
