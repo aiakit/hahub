@@ -52,8 +52,8 @@ func init() {
 
 	//platform不等于xiaomi_home的设备需要AI操作,例如热水器等
 	logicDataMap[controlDevice] = &ObjectLogic{
-		Description:  "对智能家居设备进行控制",
-		FunctionName: "操作设备",
+		Description:  "对智能家居设备进行控制，直接控制设备，不含任何其他定时、延时等条件。",
+		FunctionName: "控制设备",
 	}
 
 	logicDataMap[queryDevice] = &ObjectLogic{
