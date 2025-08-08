@@ -303,6 +303,8 @@ var (
 	handlerID    = 1                                               // 自增的 handler ID
 )
 
+type EventHandler func(*StateChangedSimple, []byte)
+
 // 注册数据处理函数
 func RegisterDataHandler(handler func(*StateChangedSimple, []byte)) int {
 	gHub.lock.Lock()

@@ -52,7 +52,7 @@ func QueryAutomation(message, aiMessage, deviceId string) string {
 	//拿到自动化名称和id
 	e, ok := data.GetEntityIdMap()[id]
 	if !ok {
-		return "没有找到这个设备"
+		return "没有找到这个自动化"
 	}
 
 	var automation = &intelligent.Automation{}

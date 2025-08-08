@@ -17,8 +17,7 @@ const (
 	queryAutomation            = "query_automation"
 	controlDevice              = "control_device"
 	queryDevice                = "query_device"
-	delayedTask                = "delayed_task"
-	scheduledTask              = "scheduled_task"
+	timingTask                 = "timing_task"
 	dailyConversation          = "daily_conversation"
 	functionCallInitScene      = "function_call_init_scene"
 	functionCallInitAll        = "function_call_init_all"
@@ -38,11 +37,21 @@ func init() {
 	logicDataMap[runScene] = &ObjectLogic{
 		Description:  "通过用户口令或者手动指令触发运行智能场景",
 		FunctionName: "执行场景",
+		SubFunction: []subFunction{
+			{Name: "trigger_time", Description: "触发条件是之后的某个时间点"},
+			{Name: "trigger_scene", Description: "触发条件是某个场景执行之后"},
+			{Name: "trigger_automation", Description: "触发条件是某个自动化执行之后"},
+		},
 	}
 
 	logicDataMap[runAutomation] = &ObjectLogic{
 		Description:  "运行通过一些自然条件（例如：天气、温度、湿度、时间等）或者设备条件（例如：水浸传感器、人体传感器等设备状态）或者某个事件触发（例如：当执行睡觉场景之后就关闭人来亮灯自动化）对智能家居设备一系列的操作",
 		FunctionName: "执行自动化",
+		SubFunction: []subFunction{
+			{Name: "trigger_time", Description: "触发条件是之后的某个时间点"},
+			{Name: "trigger_scene", Description: "触发条件是某个场景执行之后"},
+			{Name: "trigger_automation", Description: "触发条件是某个自动化执行之后"},
+		},
 	}
 
 	logicDataMap[queryAutomation] = &ObjectLogic{
@@ -52,8 +61,13 @@ func init() {
 
 	//platform不等于xiaomi_home的设备需要AI操作,例如热水器等
 	logicDataMap[controlDevice] = &ObjectLogic{
-		Description:  "对智能家居设备进行控制，直接控制设备，不含任何其他定时、延时等条件。",
+		Description:  "对智能家居设备进行控制，直接控制设备，不含任何其他定时、延时等条件。支持延时控制或者其他条件出发控制。",
 		FunctionName: "控制设备",
+		SubFunction: []subFunction{
+			{Name: "trigger_time", Description: "触发条件是之后的某个时间点"},
+			{Name: "trigger_scene", Description: "触发条件是某个场景执行之后"},
+			{Name: "trigger_automation", Description: "触发条件是某个自动化执行之后"},
+		},
 	}
 
 	logicDataMap[queryDevice] = &ObjectLogic{
@@ -69,14 +83,14 @@ func init() {
 		},
 	}
 
-	logicDataMap[delayedTask] = &ObjectLogic{
-		Description:  "创建一个延时的任务",
-		FunctionName: "延时任务",
-	}
-
-	logicDataMap[scheduledTask] = &ObjectLogic{
-		Description:  "创建一个定时任务",
+	logicDataMap[timingTask] = &ObjectLogic{
+		Description:  "创建一个定时任务，周期性执行",
 		FunctionName: "任务",
+		SubFunction: []subFunction{
+			{Name: "control_device", Description: "周期性控制操控某个设备"},
+			{Name: "scene", Description: "周期性运行某个场景"},
+			{Name: "automation", Description: "周期性运行某个自动化"},
+		},
 	}
 
 	logicDataMap[dailyConversation] = &ObjectLogic{
@@ -110,8 +124,12 @@ func init() {
 	}
 
 	logicDataMap[sendMessage2Speaker] = &ObjectLogic{
-		Description:  "给其他地方音箱发送消息，例如：我在客厅，给爸爸、儿子、或者奶奶发送消息，音箱会播报我要发送的内容，通过判断音箱设备名称和音箱所在区域获取哪个音箱设备。",
+		Description:  "给其他地方音箱发送消息，例如：我在客厅，给爸爸、儿子、或者奶奶发送消息，音箱会播报我要发送的内容，通过判断音箱设备名称和音箱所在区域获取哪个音箱设备。类似对讲机的功能。",
 		FunctionName: "消息播报",
+		SubFunction: []subFunction{
+			{Name: "send_message_to_someone", Description: "单播功能，给单个人发送消息"},
+			{Name: "send_message_to_multiple", Description: "广播功能，发送给多人"},
+		},
 	}
 }
 

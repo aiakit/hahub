@@ -33,6 +33,16 @@ func PlayTextAction(deviceID, message string) {
 	time.Sleep(GetPlaybackDuration(message))
 }
 
+func PlayTextActionDirect(entityId, message string) {
+	err := x.Post(ava.Background(), data.GetHassUrl()+"/api/services/text/set_value", data.GetToken(), &data.HttpServiceData{
+		EntityId: entityId,
+		Value:    message,
+	}, nil)
+	if err != nil {
+		ava.Error(err)
+	}
+}
+
 func PlayTextActionWithMemory(deviceID, message string) {
 	entityId, ok := gSpeakerProcess.speakerEntityPlayText[deviceID]
 	if !ok {
@@ -73,16 +83,23 @@ type conversationor struct {
 	deviceId     string
 }
 
+type simpleEntity struct {
+	Id       string `json:"id"`
+	Name     string `json:"name"`      //音箱名称
+	AreaName string `json:"area_name"` //所在区域名称
+}
+
 type speakerProcess struct {
-	lock                     sync.Mutex
-	deviceLocks              map[string]*sync.Mutex // 每个设备独立的锁
-	playTextMessage          chan *conversationor
-	timeout                  time.Duration
-	speakerEntityPlayText    map[string]string //xiaomi_iot_device_id:xiaomi_home
-	speakerEntityDirective   map[string]string //xiaomi_iot_device_id:xiaomi_home
-	speakerEntityMediaPlayer map[string]string //xiaomi_iot_device_id:xiaomi_home
-	speakerEntityWakeUp      map[string]string //xiaomi_iot_device_id:xiaomi_home
-	lastUpdateTime           map[string]time.Time
+	lock                        sync.Mutex
+	deviceLocks                 map[string]*sync.Mutex // 每个设备独立的锁
+	playTextMessage             chan *conversationor
+	timeout                     time.Duration
+	speakerEntityPlayText       map[string]string //xiaomi_iot_device_id:xiaomi_home
+	speakerEntityDirective      map[string]string //xiaomi_iot_device_id:xiaomi_home
+	speakerEntityMediaPlayer    map[string]string //xiaomi_iot_device_id:xiaomi_home
+	speakerEntityWakeUp         map[string]string //xiaomi_iot_device_id:xiaomi_home
+	speakerEntityPlayTextEntity map[string]*simpleEntity
+	lastUpdateTime              map[string]time.Time
 	// 添加会话状态管理
 	activeSessions map[string]bool
 	// 添加轮询控制
@@ -114,19 +131,20 @@ func chaosSpeaker() {
 	data.RegisterDataHandler(SpeakerAsk2PlayTextHandler)
 
 	gSpeakerProcess = &speakerProcess{
-		deviceLocks:              make(map[string]*sync.Mutex), // 初始化设备锁map
-		playTextMessage:          make(chan *conversationor, 5),
-		timeout:                  time.Second * 5,
-		speakerEntityPlayText:    make(map[string]string),
-		speakerEntityDirective:   make(map[string]string),
-		speakerEntityMediaPlayer: make(map[string]string),
-		speakerEntityWakeUp:      make(map[string]string),
-		lastUpdateTime:           make(map[string]time.Time),
+		deviceLocks:                 make(map[string]*sync.Mutex), // 初始化设备锁map
+		playTextMessage:             make(chan *conversationor, 5),
+		timeout:                     time.Second * 5,
+		speakerEntityPlayText:       make(map[string]string),
+		speakerEntityPlayTextEntity: make(map[string]*simpleEntity),
+		speakerEntityDirective:      make(map[string]string),
+		speakerEntityMediaPlayer:    make(map[string]string),
+		speakerEntityWakeUp:         make(map[string]string),
+		lastUpdateTime:              make(map[string]time.Time),
 		// 初始化会话状态
 		activeSessions:     make(map[string]bool),
 		pollCancelFuncs:    make(map[string]context.CancelFunc),
 		pollContexts:       make(map[string]context.Context),
-		isReceivedPlayText: make(map[string]int64),
+		isReceivedPlayText: make(map[string]int32),
 	}
 
 	entitieXiaomiHome, ok := data.GetEntityCategoryMap()[data.CategoryXiaomiHomeSpeaker]
@@ -143,6 +161,11 @@ func chaosSpeaker() {
 		for _, e1 := range entitieXiaomiHome {
 			if e.Name == e1.Name && strings.Contains(e1.EntityID, "_play_text") {
 				gSpeakerProcess.speakerEntityPlayText[e.DeviceID] = e1.EntityID
+				gSpeakerProcess.speakerEntityPlayTextEntity[e.DeviceID] = &simpleEntity{
+					Id:       e.DeviceID,
+					Name:     e1.DeviceName,
+					AreaName: data.SpiltAreaName(e1.AreaName),
+				}
 			}
 
 			if e.Name == e1.Name && strings.Contains(e1.EntityID, "_execute_text_directive") {
@@ -417,8 +440,12 @@ func SpeakerAsk2PlayTextHandler(event *data.StateChangedSimple, body []byte) {
 	}
 
 	if strings.Contains(state.Event.Data.EntityID, "_play_text") && strings.HasPrefix(state.Event.Data.EntityID, "text.") {
+		v, ok := data.GetEntityIdMap()[state.Event.Data.EntityID]
+		if !ok {
+			return
+		}
 
-		if !getIsReceivedPlayText(state.Event.Data.EntityID) {
+		if !getIsReceivedPlayText(v.DeviceID) {
 			return
 		}
 
