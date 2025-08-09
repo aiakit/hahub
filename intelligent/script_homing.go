@@ -2,8 +2,6 @@ package intelligent
 
 import (
 	"hahub/data"
-	"hahub/internal/chat"
-	"hahub/x"
 	"strings"
 
 	"github.com/aiakit/ava"

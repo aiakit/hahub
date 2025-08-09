@@ -22,7 +22,6 @@ var slowestSetting = &Script{
 func init() {
 	data.RegisterEntityCallback(registerLightGradientTime)
 	data.RegisterEntityCallback(lowestBrightness)
-	data.RegisterDataHandler(registerHomingWelcome)
 }
 
 // 初始化灯光

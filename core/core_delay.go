@@ -153,7 +153,7 @@ func registerRunScene(message, AiMessage, deviceId, id string, ff FunctionHandle
 	var done = make(chan struct{})
 	fId := data.RegisterDataHandler(func(simple *data.StateChangedSimple, bytes []byte) {
 		var state chatMessage
-		err := x.Unmarshal(body, &state)
+		err := x.Unmarshal(bytes, &state)
 		if err != nil {
 			ava.Error(err)
 			return
