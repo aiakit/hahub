@@ -2,9 +2,12 @@ package core
 
 import (
 	"fmt"
+	"hahub/data"
 	"hahub/internal/chat"
 	"hahub/x"
 	"strings"
+
+	"github.com/aiakit/ava"
 )
 
 var gFunctionRouter *FunctionRouter
@@ -26,6 +29,8 @@ func CoreChaos() {
 	gFunctionRouter.Register(controlDevice, RunDevice)
 	gFunctionRouter.Register(timingTask, RunTming)
 	gFunctionRouter.Register(dailyConversation, Conversation)
+
+	data.RegisterDataHandler(registerHomingWelcome)
 
 	chaosSpeaker()
 }
@@ -97,4 +102,47 @@ func chatCompletionHistory(msgInput []*chat.ChatMessage, deviceId string) (strin
 	message = append(message, msgInput...)
 
 	return chat.ChatCompletionMessage(message)
+}
+
+func registerHomingWelcome(simple *data.StateChangedSimple, body []byte) {
+
+	if (strings.HasPrefix(simple.Event.Data.NewState.EntityID, "automation.") || strings.HasPrefix(simple.Event.Data.NewState.EntityID, "script.")) &&
+		strings.Contains(simple.Event.Data.NewState.Attributes.FriendlyName, "回家") {
+		result, err := chat.ChatCompletionMessage([]*chat.ChatMessage{{
+			Role:    "user",
+			Content: "你是一个智能家居系统，我是你的主人，我现在回家了，你得想一句俏皮话欢迎我。",
+		}})
+
+		if err != nil {
+			ava.Error(err)
+			return
+		}
+
+		entities, ok := data.GetEntityCategoryMap()[data.CategoryXiaomiHomeSpeaker]
+		if !ok {
+			return
+		}
+
+		var id string
+		for _, e := range entities {
+			if strings.Contains(e.EntityID, "media_player.") && strings.Contains(e.AreaName, "客厅") {
+				id = e.EntityID
+				break
+			}
+		}
+
+		setIsReceivedPlayText(id, 1)
+
+		err = x.Post(ava.Background(), data.GetHassUrl()+"/api/services/text/set_value", data.GetToken(), &data.HttpServiceData{
+			EntityId: id,
+			Value:    result,
+		}, nil)
+		if err != nil {
+			ava.Error(err)
+		}
+
+		x.TimingwheelAfter(GetPlaybackDuration(result), func() {
+			setIsReceivedPlayText(id, 0)
+		})
+	}
 }

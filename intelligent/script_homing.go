@@ -2,6 +2,8 @@ package intelligent
 
 import (
 	"hahub/data"
+	"hahub/internal/chat"
+	"hahub/x"
 	"strings"
 
 	"github.com/aiakit/ava"
@@ -29,6 +31,26 @@ func homingScript() *Script {
 		Alias:       "回家场景",
 		Description: "回家场景执行场景",
 	}
+
+	func() {
+		entities, ok := data.GetEntityCategoryMap()[data.CategoryXiaomiHomeSpeaker]
+		if ok {
+			for _, e := range entities {
+				if strings.Contains(e.OriginalName, "执行文本指令") && strings.Contains(e.AreaName, "客厅") {
+					script.Sequence = append(script.Sequence, ActionNotify{
+						Action: "notify.send_message",
+						Data: struct {
+							Message string `json:"message,omitempty"`
+							Title   string `json:"title,omitempty"`
+						}{Message: "[播放一段轻音乐,false]"},
+						Target: struct {
+							DeviceID string `json:"device_id,omitempty"`
+						}{DeviceID: e.DeviceID},
+					})
+				}
+			}
+		}
+	}()
 
 	//打开客厅所有灯
 	func() {
@@ -103,37 +125,24 @@ func homingScript() *Script {
 		}
 	}()
 
-	//打开插座
 	func() {
-		entities, ok := data.GetEntityCategoryMap()[data.CategorySocket]
+		script.Sequence = append(script.Sequence, ActionTimerDelay{
+			Delay: struct {
+				Hours        int `json:"hours"`
+				Minutes      int `json:"minutes"`
+				Seconds      int `json:"seconds"`
+				Milliseconds int `json:"milliseconds"`
+			}{Seconds: 5},
+		})
+		entities, ok := data.GetEntityCategoryMap()[data.CategoryXiaomiHomeSpeaker]
 		if ok {
 			for _, e := range entities {
-				if strings.Contains(e.AreaName, "客厅") {
-					script.Sequence = append(script.Sequence, ActionCommon{
-						Type:     "turn_on",
-						DeviceID: e.DeviceID,
-						EntityID: e.EntityID,
-						Domain:   "switch",
-					})
-				}
-			}
-		}
-	}()
-
-	//打开电视
-	func() {
-		entities, ok := data.GetEntityCategoryMap()[data.CategoryIrTV]
-		if ok {
-			for _, e := range entities {
-				if strings.Contains(e.AreaName, "客厅") {
-					if strings.Contains(e.OriginalName, "红外电视控制") && strings.Contains(e.OriginalName, "开机") {
-						script.Sequence = append(script.Sequence, ActionCommon{
-							Type:     "press",
-							DeviceID: e.DeviceID,
-							EntityID: e.EntityID,
-							Domain:   "button",
-						})
-					}
+				if strings.Contains(e.EntityID, "media_player.") && strings.Contains(e.AreaName, "客厅") {
+					script.Sequence = append(script.Sequence, ActionService{
+						Action: "media_player.media_pause",
+						Target: &struct {
+							EntityId string `json:"entity_id"`
+						}{EntityId: e.EntityID}})
 				}
 			}
 		}
@@ -157,9 +166,25 @@ func homingScript() *Script {
 		}
 	}()
 
+	var turnOnMessage = "是否需要为你打开"
+
+	//打开电视，直接打开，默认离家场景已经关闭电视了，如果存在传感器很久没人，在弄一个关闭电视的自动化
+	func() {
+		entities, ok := data.GetEntityCategoryMap()[data.CategoryIrTV]
+		if ok {
+			for _, e := range entities {
+				if strings.Contains(e.AreaName, "客厅") {
+					if strings.Contains(e.OriginalName, "红外电视控制") && strings.Contains(e.OriginalName, "开机") {
+						turnOnMessage += "电视，"
+					}
+				}
+			}
+		}
+	}()
+
 	//是否打开空调
 	func() {
-		entities, ok := data.GetEntityCategoryMap()[data.CategoryXiaomiHomeSpeaker]
+		_, ok := data.GetEntityCategoryMap()[data.CategoryXiaomiHomeSpeaker]
 		entitiesAir, okAir := data.GetEntityCategoryMap()[data.CategoryAirConditioner]
 
 		var existAir bool
@@ -174,27 +199,10 @@ func homingScript() *Script {
 		}
 
 		if ok && existAir {
-			for _, e := range entities {
-				if strings.Contains(e.OriginalName, "播放文本") && strings.Contains(e.AreaName, "客厅") {
-					script.Sequence = append(script.Sequence, ActionNotify{
-						Action: "notify.send_message",
-						Data: struct {
-							Message string `json:"message,omitempty"`
-							Title   string `json:"title,omitempty"`
-						}{Message: "是否需要为你打开空调"},
-						Target: struct {
-							DeviceID string `json:"device_id,omitempty"`
-						}{DeviceID: e.DeviceID},
-					})
-				}
-
-				if strings.Contains(e.OriginalName, "唤醒") && strings.Contains(e.AreaName, "客厅") {
-					script.Sequence = append(script.Sequence, ActionCommon{
-						Type:     "press",
-						DeviceID: e.DeviceID,
-						EntityID: e.EntityID,
-						Domain:   "button",
-					})
+			for _, e := range entitiesAir {
+				if strings.Contains(e.AreaName, "客厅") {
+					turnOnMessage += "客厅空调,"
+					break
 				}
 			}
 		}
@@ -213,7 +221,7 @@ func homingScript() *Script {
 						Data: struct {
 							Message string `json:"message,omitempty"`
 							Title   string `json:"title,omitempty"`
-						}{Message: "是否需要为你打开热水"},
+						}{Message: turnOnMessage + "热水器"},
 						Target: struct {
 							DeviceID string `json:"device_id,omitempty"`
 						}{DeviceID: e.DeviceID},
@@ -232,25 +240,7 @@ func homingScript() *Script {
 		}
 	}()
 
-	func() {
-		entities, ok := data.GetEntityCategoryMap()[data.CategoryXiaomiHomeSpeaker]
-		if ok {
-			for _, e := range entities {
-				if strings.Contains(e.OriginalName, "执行文本指令") && strings.Contains(e.AreaName, "客厅") {
-					script.Sequence = append(script.Sequence, ActionNotify{
-						Action: "notify.send_message",
-						Data: struct {
-							Message string `json:"message,omitempty"`
-							Title   string `json:"title,omitempty"`
-						}{Message: "[播放一段轻音乐,false]"},
-						Target: struct {
-							DeviceID string `json:"device_id,omitempty"`
-						}{DeviceID: e.DeviceID},
-					})
-				}
-			}
-		}
-	}()
+	//todo 地暖
 
 	// 撤防
 	script.Sequence = append(script.Sequence, ActionService{
@@ -260,28 +250,6 @@ func homingScript() *Script {
 			EntityId string `json:"entity_id"`
 		}{EntityId: "automation.li_jia_bu_fang"},
 	})
-
-	// 5分钟后关闭音乐
-	func() {
-		script.Sequence = append(script.Sequence, ActionTimerDelay{
-			Delay: struct {
-				Hours        int `json:"hours"`
-				Minutes      int `json:"minutes"`
-				Seconds      int `json:"seconds"`
-				Milliseconds int `json:"milliseconds"`
-			}{Minutes: 5},
-		})
-		entities, ok := data.GetEntityCategoryMap()[data.CategoryXiaomiHomeSpeaker]
-		if ok {
-			for _, e := range entities {
-				if strings.Contains(e.EntityID, "media_player.") && strings.Contains(e.AreaName, "客厅") {
-					script.Sequence = append(script.Sequence, ActionService{Target: &struct {
-						EntityId string `json:"entity_id"`
-					}{EntityId: e.EntityID}})
-				}
-			}
-		}
-	}()
 
 	return script
 }

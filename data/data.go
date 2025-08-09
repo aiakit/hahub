@@ -431,6 +431,9 @@ type StateChangedSimple struct {
 				LastUpdated time.Time `json:"last_updated"`
 			} `json:"old_state"`
 			NewState struct {
+				Attributes struct {
+					FriendlyName string `json:"friendly_name"`
+				} `json:"attributes"`
 				EntityID    string    `json:"entity_id"`
 				State       string    `json:"state"`
 				LastChanged time.Time `json:"last_changed"`

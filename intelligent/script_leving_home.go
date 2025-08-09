@@ -101,6 +101,24 @@ func levingHomeScript() *Script {
 				}
 			}
 		}
+
+		if oktv && !ok {
+			for _, e1 := range tv {
+				var act IfThenELSEAction
+				act.If = append(act.If, ifCondition{
+					Condition: "state",
+					State:     "on",
+					EntityId:  e1.EntityID,
+				})
+				act.Then = append(act.Then, ActionService{
+					Action: "media_player.turn_off",
+					Target: &struct {
+						EntityId string `json:"entity_id"`
+					}{EntityId: e1.EntityID}})
+
+				script.Sequence = append(script.Sequence, act)
+			}
+		}
 	}()
 
 	// 关闭空调
