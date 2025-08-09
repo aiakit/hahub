@@ -144,7 +144,7 @@ func callDeviceList() {
 				d.AreaName = name
 			}
 			filtered = append(filtered, d)
-			deviceMap[d.ID] = d
+			gHub.deviceMap[d.ID] = d
 		}
 		data.Result = filtered
 		data.Total = len(filtered)
@@ -233,6 +233,14 @@ func callEntityList() {
 				continue
 			}
 
+			if strings.Contains(e.OriginalName, "背光") || strings.Contains(e.OriginalName, "指示灯") || strings.Contains(e.OriginalName, "倒计时") {
+				continue
+			}
+
+			if strings.Contains(e.OriginalName, "最大功率开关") || strings.Contains(e.OriginalName, "提醒") || strings.Contains(e.OriginalName, "充电保护") {
+				continue
+			}
+
 			if e.Platform == "hacs" || e.Platform == "hassio" || e.Platform == "sun" || e.Platform == "backup" || e.Platform == "person" ||
 				e.Platform == "shopping_list" || e.Platform == "google_translate" || e.Platform == "met" {
 				continue
@@ -245,7 +253,7 @@ func callEntityList() {
 		writeToFile("entity.json", &data)
 		writeToFile("entity_test.json", &dataALL)
 
-		shortEntities := FilterEntities(filtered, deviceMap)
+		shortEntities := FilterEntities(filtered, GetDevice())
 		shortData := EntityList{ID: data.ID, Type: data.Type, Success: data.Success, Result: shortEntities}
 		shortData.Total = len(shortEntities)
 		for _, d := range shortEntities {

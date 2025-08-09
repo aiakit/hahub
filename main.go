@@ -1,6 +1,7 @@
 package main
 
 import (
+	"hahub/core"
 	"hahub/data"
 	"time"
 
@@ -13,7 +14,7 @@ func main() {
 	data.WaitForInit()
 
 	//启动音箱ai驱动
-	//core.CoreChaos()
+	core.CoreChaos()
 
 	//必须先创建脚本再创建自动化，这里不打开，改为ai驱动
 	//intelligent.Chaos()

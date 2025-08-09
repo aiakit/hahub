@@ -74,12 +74,14 @@ func homingScript() *Script {
 		entities, ok := data.GetEntityCategoryMap()[data.CategorySocket]
 		if ok {
 			for _, e := range entities {
-				script.Sequence = append(script.Sequence, ActionCommon{
-					Type:     "turn_on",
-					DeviceID: e.DeviceID,
-					EntityID: e.EntityID,
-					Domain:   "switch",
-				})
+				if strings.Contains(e.AreaName, "客厅") {
+					script.Sequence = append(script.Sequence, ActionCommon{
+						Type:     "turn_on",
+						DeviceID: e.DeviceID,
+						EntityID: e.EntityID,
+						Domain:   "switch",
+					})
+				}
 			}
 		}
 	}()
@@ -89,12 +91,14 @@ func homingScript() *Script {
 		entities, ok := data.GetEntityCategoryMap()[data.CategoryCurtain]
 		if ok {
 			for _, e := range entities {
-				script.Sequence = append(script.Sequence, ActionCommon{
-					Type:     "close",
-					DeviceID: e.DeviceID,
-					EntityID: e.EntityID,
-					Domain:   "cover",
-				})
+				if strings.Contains(e.AreaName, "客厅") {
+					script.Sequence = append(script.Sequence, ActionCommon{
+						Type:     "close",
+						DeviceID: e.DeviceID,
+						EntityID: e.EntityID,
+						Domain:   "cover",
+					})
+				}
 			}
 		}
 	}()
@@ -104,12 +108,14 @@ func homingScript() *Script {
 		entities, ok := data.GetEntityCategoryMap()[data.CategorySocket]
 		if ok {
 			for _, e := range entities {
-				script.Sequence = append(script.Sequence, ActionCommon{
-					Type:     "turn_on",
-					DeviceID: e.DeviceID,
-					EntityID: e.EntityID,
-					Domain:   "switch",
-				})
+				if strings.Contains(e.AreaName, "客厅") {
+					script.Sequence = append(script.Sequence, ActionCommon{
+						Type:     "turn_on",
+						DeviceID: e.DeviceID,
+						EntityID: e.EntityID,
+						Domain:   "switch",
+					})
+				}
 			}
 		}
 	}()
@@ -119,13 +125,15 @@ func homingScript() *Script {
 		entities, ok := data.GetEntityCategoryMap()[data.CategoryIrTV]
 		if ok {
 			for _, e := range entities {
-				if strings.Contains(e.OriginalName, "红外电视控制") && strings.Contains(e.OriginalName, "开机") {
-					script.Sequence = append(script.Sequence, ActionCommon{
-						Type:     "press",
-						DeviceID: e.DeviceID,
-						EntityID: e.EntityID,
-						Domain:   "button",
-					})
+				if strings.Contains(e.AreaName, "客厅") {
+					if strings.Contains(e.OriginalName, "红外电视控制") && strings.Contains(e.OriginalName, "开机") {
+						script.Sequence = append(script.Sequence, ActionCommon{
+							Type:     "press",
+							DeviceID: e.DeviceID,
+							EntityID: e.EntityID,
+							Domain:   "button",
+						})
+					}
 				}
 			}
 		}
@@ -142,7 +150,7 @@ func homingScript() *Script {
 						Data: struct {
 							Message string `json:"message,omitempty"`
 							Title   string `json:"title,omitempty"`
-						}{Message: "室内温度和湿度是多少，如果检查不到室内情况，就播报室外温度和湿度", Title: ""},
+						}{Message: "[室内温度和湿度是多少，如果检查不到室内情况，就播报室外温度和湿度,false]", Title: ""},
 					})
 				}
 			}
@@ -173,7 +181,7 @@ func homingScript() *Script {
 						Data: struct {
 							Message string `json:"message,omitempty"`
 							Title   string `json:"title,omitempty"`
-						}{Message: "是否需要为你打开空调", Title: ""},
+						}{Message: "是否需要为你打开空调"},
 						Target: struct {
 							DeviceID string `json:"device_id,omitempty"`
 						}{DeviceID: e.DeviceID},
@@ -205,7 +213,7 @@ func homingScript() *Script {
 						Data: struct {
 							Message string `json:"message,omitempty"`
 							Title   string `json:"title,omitempty"`
-						}{Message: "是否需要为你打开空调", Title: ""},
+						}{Message: "是否需要为你打开热水"},
 						Target: struct {
 							DeviceID string `json:"device_id,omitempty"`
 						}{DeviceID: e.DeviceID},
@@ -224,7 +232,6 @@ func homingScript() *Script {
 		}
 	}()
 
-	//播放30秒音乐
 	func() {
 		entities, ok := data.GetEntityCategoryMap()[data.CategoryXiaomiHomeSpeaker]
 		if ok {
@@ -235,7 +242,7 @@ func homingScript() *Script {
 						Data: struct {
 							Message string `json:"message,omitempty"`
 							Title   string `json:"title,omitempty"`
-						}{Message: "播放音乐", Title: ""},
+						}{Message: "[播放一段轻音乐,false]"},
 						Target: struct {
 							DeviceID string `json:"device_id,omitempty"`
 						}{DeviceID: e.DeviceID},
@@ -267,13 +274,10 @@ func homingScript() *Script {
 		entities, ok := data.GetEntityCategoryMap()[data.CategoryXiaomiHomeSpeaker]
 		if ok {
 			for _, e := range entities {
-				if strings.Contains(e.OriginalName, "暂停") && strings.Contains(e.AreaName, "客厅") {
-					script.Sequence = append(script.Sequence, ActionCommon{
-						Type:     "press",
-						DeviceID: e.DeviceID,
-						EntityID: e.EntityID,
-						Domain:   "button",
-					})
+				if strings.Contains(e.EntityID, "media_player.") && strings.Contains(e.AreaName, "客厅") {
+					script.Sequence = append(script.Sequence, ActionService{Target: &struct {
+						EntityId string `json:"entity_id"`
+					}{EntityId: e.EntityID}})
 				}
 			}
 		}

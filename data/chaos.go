@@ -67,6 +67,7 @@ type hub struct {
 	entityAreaMap map[string][]*Entity // key: 区域ID(AreaID)，value: []*Entity
 
 	deviceState map[string][]*Entity //设备名称：所有实体
+	deviceMap   map[string]*device   //设备名称：所有实体
 
 	areas    []string
 	areaName map[string]string
@@ -77,6 +78,14 @@ type hub struct {
 	speakersXiaomiHome []string //device_id
 
 	service map[string]interface{}
+}
+
+func GetDevice() map[string]*device {
+	gHub.lock.RLock()
+	data := gHub.deviceMap
+	gHub.lock.RUnlock()
+
+	return data
 }
 
 func GetService() map[string]interface{} {
@@ -159,6 +168,7 @@ func newHub() {
 		entityCategoryMap:  make(map[string][]*Entity),
 		entityIdMap:        make(map[string]*Entity),
 		entityAreaMap:      make(map[string][]*Entity),
+		deviceMap:          make(map[string]*device),
 		areaName:           make(map[string]string),
 		areas:              make([]string, 0, 2),
 		xinguang:           make(map[string]string),
@@ -238,7 +248,6 @@ func init() {
 // 版本信息，获取版本号，替换缓存数据
 var areaMap = make(map[string]string, 10) // area_id -> name
 var entityShortMap = make(map[string]*Entity, 10)
-var deviceMap = make(map[string]*device, 10)
 var stateMap = make(map[string]*State, 10)
 
 func callback() {

@@ -18,6 +18,11 @@ type commandData struct {
 
 func RunDevice(message, aiMessage, deviceId string) string {
 
+	device, ok := data.GetDevice()[deviceId]
+	if !ok {
+		return "没有找到位置设备"
+	}
+
 	f := func(message, aiMessage, deviceId string) string {
 		var devices = data.GetDeviceFirstState()
 
@@ -70,8 +75,8 @@ func RunDevice(message, aiMessage, deviceId string) string {
 		}
 
 		result, err := chatCompletionHistory([]*chat.ChatMessage{
-			{Role: "user", Content: fmt.Sprintf(`这是我的全部设备信息%s，选择对应的设备信息按照格式返回给我，
-返回格式: [{"name":"设备名称","id":"设备id"}]`, x.MustMarshalEscape2String(entities))},
+			{Role: "user", Content: fmt.Sprintf(`这是我的全部设备信息%s，我所在的位置%s，查找规则，如果是公区可以任意控制，公区不能控制卧室，卧室可以控制公区，选择对应的设备信息按照格式返回给我，
+返回格式: [{"name":"设备名称","id":"设备id"}]`, x.MustMarshalEscape2String(entities), data.GetAreaName(device.AreaID))},
 			{Role: "user", Content: message},
 		}, deviceId)
 		if err != nil {

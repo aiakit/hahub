@@ -29,6 +29,7 @@ const (
 	CategoryHumiditySensor      = "humidity_sensor"       // 湿度传感器
 	CategoryLxSensor            = "lx_sensor"             // 光照传感器
 	CategoryIrTV                = "ir_tv"                 // 红外电视
+	CategoryTV                  = "tv"                    // 红外电视
 	CategoryAutomation          = "automation"            // 自动化
 	CategoryScene               = "scene"                 // 场景
 	CategoryScript              = "script"                // 场景
@@ -121,7 +122,7 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 
 		// 4. 开关,设备和实体都是开关
 		if strings.Contains(e.EntityID, "switch.") {
-			if deviceData != nil && strings.Contains(deviceData.Model, ".switch.") {
+			if deviceData != nil && strings.Contains(deviceData.Model, ".switch.") && !strings.Contains(e.OriginalName, "指示灯") && !strings.Contains(e.OriginalName, "背光") {
 				category = CategorySwitch
 			}
 		}
@@ -216,6 +217,12 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 		if strings.Contains(e.OriginalName, "红外电视") {
 			category = CategoryIrTV
 		}
+
+		// 12.1 电视
+		if strings.Contains(e.OriginalName, "电视") && strings.Contains(e.EntityID, "media_player.") && !strings.Contains(e.OriginalName, "红外") {
+			category = CategoryTV
+		}
+
 		// 13. 自动化
 		if strings.HasPrefix(e.EntityID, "automation.") {
 			category = CategoryAutomation

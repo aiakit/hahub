@@ -12,6 +12,11 @@ import (
 )
 
 func RunAutomation(message, aiMessage, deviceId string) string {
+	device, ok := data.GetDevice()[deviceId]
+	if !ok {
+		return "没有找到位置设备"
+	}
+
 	f := func(message, aiMessage, deviceId string) string {
 		var gShortAutomations = make(map[string]*shortScene)
 		entities, ok := data.GetEntityCategoryMap()[data.CategoryAutomation]
@@ -29,7 +34,7 @@ func RunAutomation(message, aiMessage, deviceId string) string {
 		//发送所有自动化简短数据给ai
 		result, err := chatCompletionHistory([]*chat.ChatMessage{{
 			Role:    "user",
-			Content: fmt.Sprintf(`这是我的全部自动化信息%s，总数是%d个，根据对话内容将信息返回给我："id":""`, x.MustMarshalEscape2String(gShortAutomations), len(gShortAutomations)),
+			Content: fmt.Sprintf(`这是我的全部自动化信息%s，根据对话内容选择最合适的场景返回给我。返回格式："id":""`, x.MustMarshalEscape2String(gShortAutomations), data.GetAreaName(device.AreaID)),
 		}, {Role: "user", Content: message}}, deviceId)
 		if err != nil {
 			ava.Error(err)

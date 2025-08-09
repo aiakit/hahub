@@ -73,18 +73,31 @@ func levingHomeScript() *Script {
 		}
 	}()
 
-	// 关闭电视
+	// 关闭电视逻辑，找到电视机
 	func() {
-		entities, ok := data.GetEntityCategoryMap()[data.CategoryIrTV]
-		if ok {
-			for _, e := range entities {
-				if strings.Contains(e.OriginalName, "红外电视控制") && strings.Contains(e.OriginalName, "关机") {
-					script.Sequence = append(script.Sequence, ActionCommon{
-						Type:     "press",
-						DeviceID: e.DeviceID,
-						EntityID: e.EntityID,
-						Domain:   "button",
-					})
+		tv, oktv := data.GetEntityCategoryMap()[data.CategoryTV]
+		irTV, ok := data.GetEntityCategoryMap()[data.CategoryIrTV]
+		if ok && oktv {
+			for _, e := range irTV {
+				for _, e1 := range tv {
+					if e1.OriginalName == e.DeviceName {
+						if strings.Contains(e.OriginalName, "红外电视控制") && strings.Contains(e.OriginalName, "关机") {
+							var act IfThenELSEAction
+							act.If = append(act.If, ifCondition{
+								Condition: "state",
+								State:     "on",
+								EntityId:  e1.EntityID,
+							})
+							act.Then = append(act.Then, ActionCommon{
+								Type:     "press",
+								DeviceID: e.DeviceID,
+								EntityID: e.EntityID,
+								Domain:   "button",
+							})
+
+							script.Sequence = append(script.Sequence, act)
+						}
+					}
 				}
 			}
 		}
@@ -110,12 +123,14 @@ func levingHomeScript() *Script {
 		entities, ok := data.GetEntityCategoryMap()[data.CategoryWaterHeater]
 		if ok {
 			for _, e := range entities {
-				script.Sequence = append(script.Sequence, ActionService{
-					Action: "water_heater.turn_off",
-					Target: &struct {
-						EntityId string `json:"entity_id"`
-					}{EntityId: e.EntityID},
-				})
+				if strings.Contains(e.OriginalName, "开关") {
+					script.Sequence = append(script.Sequence, ActionService{
+						Action: "water_heater.turn_off",
+						Target: &struct {
+							EntityId string `json:"entity_id"`
+						}{EntityId: e.EntityID},
+					})
+				}
 			}
 		}
 	}()

@@ -12,9 +12,10 @@ import (
 )
 
 type shortDevice struct {
-	Name  string `json:"name"`
-	Id    string `json:"id"`
-	State string `json:"state,omitempty"`
+	Name     string `json:"name"`
+	Id       string `json:"id"`
+	State    string `json:"state,omitempty"`
+	AreaName string `json:"area_name,omitempty"`
 }
 
 func QueryDevice(message, aiMessage, deviceId string) string {

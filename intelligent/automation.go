@@ -77,7 +77,9 @@ type IfThenELSEAction struct {
 
 type ifCondition struct {
 	Condition  string        `json:"condition"`
-	Conditions []interface{} `json:"conditions"`
+	Conditions []interface{} `json:"conditions,omitempty"`
+	State      string        `json:"state,omitempty"`
+	EntityId   string        `json:"entity_id,omitempty"`
 }
 
 // 获取 lxByAreaId 中的值，使用读锁
