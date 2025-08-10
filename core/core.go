@@ -149,7 +149,7 @@ func registerHomingWelcome(simple *data.StateChangedSimple, body []byte) {
 	}
 }
 
-// 语音指令关灯之后，就不要再开灯,直到语音指令开灯
+// 语音指令关灯之后，就不要再自动开灯,直到语音指令开灯
 func registerToggleLight(simple *data.StateChangedSimple, body []byte) {
 	var state chatMessage
 	err := x.Unmarshal(body, &state)
@@ -162,7 +162,7 @@ func registerToggleLight(simple *data.StateChangedSimple, body []byte) {
 		strings.EqualFold(state.Event.Data.NewState.Attributes.EntityClass, "XiaoaiConversationSensor") {
 		//找到所有根据存在传感器自动亮灯的自动化
 		if (strings.Contains(simple.Event.Data.NewState.State, "关") && strings.Contains(simple.Event.Data.NewState.State, "灯")) ||
-			strings.Contains(simple.Event.Data.NewState.State, "晚安") || strings.Contains(simple.Event.Data.NewState.State, "睡觉") {
+			strings.Contains(simple.Event.Data.NewState.State, "晚安") || strings.Contains(simple.Event.Data.NewState.State, "睡觉") || strings.Contains(simple.Event.Data.NewState.State, "午觉") {
 			entity, ok := data.GetEntityIdMap()[simple.Event.Data.EntityID]
 			if !ok {
 				return
