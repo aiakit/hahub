@@ -283,7 +283,7 @@ func presenceSensorOnKeting(entity, lumen *data.Entity, lxMin, lxMax float64, du
 
 	areaName := data.SpiltAreaName(entity.AreaName)
 	auto := &Automation{
-		Alias:       areaName + "光感自动化" + duringName,
+		Alias:       areaName + "存在传感器光感自动亮灯" + duringName,
 		Description: fmt.Sprintf("当光照条件为大于%.2f小于%.2f,且人体传感器检测到有人，自动开灯", lxMin, lxMax),
 		Triggers: []Triggers{{
 			Type:     "occupied",

@@ -3,6 +3,7 @@ package core
 import (
 	"fmt"
 	"hahub/data"
+	"hahub/intelligent"
 	"hahub/internal/chat"
 	"hahub/x"
 	"strings"
@@ -31,6 +32,7 @@ func CoreChaos() {
 	gFunctionRouter.Register(dailyConversation, Conversation)
 
 	data.RegisterDataHandler(registerHomingWelcome)
+	data.RegisterDataHandler(registerToggleLight)
 
 	chaosSpeaker()
 }
@@ -144,5 +146,72 @@ func registerHomingWelcome(simple *data.StateChangedSimple, body []byte) {
 		x.TimingwheelAfter(GetPlaybackDuration(result), func() {
 			setIsReceivedPlayText(id, 0)
 		})
+	}
+}
+
+// 语音指令关灯之后，就不要再开灯,直到语音指令开灯
+func registerToggleLight(simple *data.StateChangedSimple, body []byte) {
+	var state chatMessage
+	err := x.Unmarshal(body, &state)
+	if err != nil {
+		ava.Error(err)
+		return
+	}
+
+	if strings.Contains(state.Event.Data.EntityID, "_conversation") &&
+		strings.EqualFold(state.Event.Data.NewState.Attributes.EntityClass, "XiaoaiConversationSensor") {
+		//找到所有根据存在传感器自动亮灯的自动化
+		if (strings.Contains(simple.Event.Data.NewState.State, "关") && strings.Contains(simple.Event.Data.NewState.State, "灯")) ||
+			strings.Contains(simple.Event.Data.NewState.State, "晚安") || strings.Contains(simple.Event.Data.NewState.State, "睡觉") {
+			entity, ok := data.GetEntityIdMap()[simple.Event.Data.EntityID]
+			if !ok {
+				return
+			}
+			areaName := data.SpiltAreaName(entity.AreaName)
+
+			//查询所有自动化
+			as, ok := data.GetEntityCategoryMap()[data.CategoryAutomation]
+			if !ok {
+				return
+			}
+
+			for _, a := range as {
+				if strings.Contains(a.OriginalName, areaName) && strings.Contains(a.OriginalName, "自动亮灯") {
+					//关闭自动化
+					err = intelligent.TurnOffAutomation(ava.Background(), a.EntityID)
+					if err != nil {
+						ava.Error(err)
+						return
+					}
+				}
+			}
+		}
+
+		if (strings.Contains(simple.Event.Data.NewState.State, "开") && strings.Contains(simple.Event.Data.NewState.State, "灯")) ||
+			strings.Contains(simple.Event.Data.NewState.State, "起床") || strings.Contains(simple.Event.Data.NewState.State, "早安") {
+			{
+				entity, ok := data.GetEntityIdMap()[simple.Event.Data.EntityID]
+				if !ok {
+					return
+				}
+				areaName := data.SpiltAreaName(entity.AreaName)
+
+				//查询所有自动化
+				as, ok := data.GetEntityCategoryMap()[data.CategoryAutomation]
+				if !ok {
+					return
+				}
+
+				for _, a := range as {
+					if strings.Contains(a.OriginalName, areaName) && strings.Contains(a.OriginalName, "自动亮灯") {
+						err = intelligent.TurnOnAutomation(ava.Background(), a.EntityID)
+						if err != nil {
+							ava.Error(err)
+							return
+						}
+					}
+				}
+			}
+		}
 	}
 }

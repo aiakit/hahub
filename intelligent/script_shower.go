@@ -117,7 +117,7 @@ func TakeAShower(c *ava.Context) {
 	//判断是否有浴霸
 	var act IfThenELSEAction
 	for _, e1 := range vv {
-		if strings.HasPrefix(e1.EntityID, "sensor.") && strings.Contains(e.OriginalName, "温度") {
+		if strings.HasPrefix(e1.EntityID, "sensor.") && strings.Contains(e1.OriginalName, "温度") {
 			act.If = append(act.If, ifCondition{
 				Type:      "is_temperature",
 				DeviceId:  e1.DeviceID,

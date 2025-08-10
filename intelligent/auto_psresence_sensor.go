@@ -235,7 +235,7 @@ func presenceSensorOn(entity *data.Entity) (*Automation, error) {
 
 	areaName := data.SpiltAreaName(entity.AreaName)
 	auto := &Automation{
-		Alias:       areaName + "有人亮灯",
+		Alias:       areaName + "有人自动亮灯",
 		Description: "当人体传感器检测到有人，自动打开" + areaName + "灯组和有线开关",
 		Triggers: []Triggers{{
 			Type:     "occupied",
@@ -262,8 +262,8 @@ func presenceSensorOn(entity *data.Entity) (*Automation, error) {
 	if strings.Contains(entity.AreaName, "卧室") {
 		auto.Conditions = append(auto.Conditions, Conditions{
 			Condition: "time",
-			After:     "07:00:00",
-			Before:    "23:00:00",
+			After:     "11:00:00",
+			Before:    "22:00:00",
 			Weekday:   []string{"mon", "tue", "wed", "thu", "fri", "sat", "sun"},
 		})
 	}
