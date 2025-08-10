@@ -51,6 +51,8 @@ func init() {
 			{Name: "trigger_time", Description: "触发条件是之后的某个时间点"},
 			{Name: "trigger_scene", Description: "触发条件是某个场景执行之后"},
 			{Name: "trigger_automation", Description: "触发条件是某个自动化执行之后"},
+			{Name: "turn_on_automation", Description: "开启某个自动化"},
+			{Name: "turn_off_automation", Description: "开启某个自动化"},
 		},
 	}
 
