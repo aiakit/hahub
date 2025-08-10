@@ -37,14 +37,14 @@ var lxAreaConfig = []lxConfig{
 	{"会客", 102, nil},
 	{"阳台", 91, nil},
 	{"客厅", 93, nil},
-	{"卧室", 103, nil},
-	{"主卧", 104, nil},
-	{"次卧", 105, nil},
-	{"小孩房", 106, nil},
-	{"老人房", 107, nil},
-	{"客房", 108, nil},
-	{"厢房", 109, nil},
-	{"儿童房", 110, nil},
+	{"卧室", 60, nil},
+	{"主卧", 60, nil},
+	{"次卧", 60, nil},
+	{"小孩房", 60, nil},
+	{"老人房", 60, nil},
+	{"客房", 60, nil},
+	{"厢房", 60, nil},
+	{"儿童房", 60, nil},
 }
 
 type lx struct {
@@ -80,6 +80,10 @@ type ifCondition struct {
 	Conditions []interface{} `json:"conditions,omitempty"`
 	State      string        `json:"state,omitempty"`
 	EntityId   string        `json:"entity_id,omitempty"`
+	Type       string        `json:"type,omitempty"`
+	DeviceId   string        `json:"device_id,omitempty"`
+	Domain     string        `json:"domain,omitempty"`
+	Above      float64       `json:"above,omitempty"`
 }
 
 // 获取 lxByAreaId 中的值，使用读锁

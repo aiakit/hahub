@@ -75,7 +75,9 @@ func bodySensorOn(entity *data.Entity) (*Automation, error) {
 			if strings.Contains(e.DeviceName, "氛围") {
 				atmosphereLights = append(atmosphereLights, e)
 			} else {
-				normalLights = append(normalLights, e)
+				if !strings.Contains(e.DeviceName, "浴霸") {
+					normalLights = append(normalLights, e)
+				}
 			}
 		}
 		if e.Category == data.CategoryLight && (strings.Contains(e.DeviceName, "彩") || strings.Contains(e.DeviceName, "夜灯")) {

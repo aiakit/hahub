@@ -39,6 +39,7 @@ const (
 	CategoryWaterHeater         = "water_heater"          //热水器
 	CategoryDimming             = "dimming"               //调光旋钮
 	CategoryPowerconsumption    = "power_consumption"     //用电功率
+	CateroyBathroomHeater       = "bathroom_heater"       //浴霸
 )
 
 //过滤实体,并在实体中增加字段标注设备类型，设备数据中也加上，在实体数据中加上设备id,区域id，区域名称
@@ -277,6 +278,11 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 		//22.功率实体
 		if strings.Contains(e.OriginalName, "功耗参数 电功率") && strings.HasPrefix(e.EntityID, "sensor.") {
 			category = CategoryPowerconsumption
+		}
+
+		//23.浴霸
+		if deviceData != nil && strings.Contains(deviceData.Name, "浴霸") {
+			category = CateroyBathroomHeater
 		}
 
 		if deviceData != nil {

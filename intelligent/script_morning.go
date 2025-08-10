@@ -18,14 +18,6 @@ func goodMorningScript(c *ava.Context) {
 	for areaId, v := range entities {
 		areaName := data.SpiltAreaName(data.GetAreaName(areaId))
 
-		// 检查是否是卧室区域
-		isBedroom := strings.Contains(areaName, "卧室")
-
-		// 如果不是卧室，则跳过
-		if !isBedroom {
-			continue
-		}
-
 		// 检查当前区域是否有灯组，如果没有则不创建场景
 		hasLightGroup := false
 		for _, e := range v {

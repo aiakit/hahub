@@ -78,7 +78,9 @@ func presenceSensorOn(entity *data.Entity) (*Automation, error) {
 			if strings.Contains(e.DeviceName, "氛围") {
 				atmosphereLights = append(atmosphereLights, e)
 			} else {
-				normalLights = append(normalLights, e)
+				if !strings.Contains(e.DeviceName, "浴霸") { //浴霸灯不要联动
+					normalLights = append(normalLights, e)
+				}
 			}
 		}
 

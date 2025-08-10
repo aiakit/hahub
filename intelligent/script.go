@@ -43,6 +43,9 @@ func ScriptChaos() {
 	initHoming(c)
 	initLevingHome(c)
 
+	//洗澡
+	TakeAShower(c)
+
 	ava.Debugf("all script created done! |total=%d", scriptCount)
 }
 
