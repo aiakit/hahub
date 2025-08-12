@@ -108,6 +108,7 @@ var switchSelectSameName = make(map[string][]*switchSelect) //key:click once but
 
 // 开关选择:场景按键，开关按键
 type switchSelect struct {
+	DeviceName string `json:"device_name"`
 	ButtonName string `json:"button_name"`
 	Category   string `json:"category"`
 	EntityID   string `json:"entity_id"`
@@ -120,70 +121,89 @@ type switchSelect struct {
 
 func InitSwitchSelect(c *ava.Context) {
 
-	entities := data.GetEntityAreaMap()
-	for areaID, v := range entities {
-		for _, e := range v {
-			if e.Category != data.CategorySwitchScene && e.Category != data.CategorySwitchClickOnce {
-				continue
-			}
-
-			areaName := data.SpiltAreaName(data.GetAreaName(areaID))
+	func() {
+		entities := data.GetEntityCategoryMap()[data.CategorySwitchScene]
+		//场景按键
+		for _, e := range entities {
+			areaName := data.SpiltAreaName(e.AreaName)
 			bn := strings.Trim(e.Name, " ")
 
 			//如果是场景开关
-			if e.Category == data.CategorySwitchScene {
-				var ss = &switchSelect{
-					ButtonName: bn,
-					Category:   data.CategorySwitchScene,
-					EntityID:   e.EntityID,
-					DeviceID:   e.DeviceID,
-					SeqButton:  0,
-					AreaID:     areaID,
-					AreaName:   areaName,
-				}
-				key := areaID + "_" + bn
-				switchSelectSameName[key] = append(switchSelectSameName[key], ss)
+			var ss = &switchSelect{
+				ButtonName: bn,
+				Category:   data.CategorySwitchScene,
+				EntityID:   e.EntityID,
+				DeviceID:   e.DeviceID,
+				SeqButton:  0,
+				AreaID:     e.AreaID,
+				AreaName:   areaName,
+				DeviceName: e.DeviceName,
 			}
-
-			//如果是开关按键
-			if e.Category == data.CategorySwitchClickOnce {
-				name := strings.Split(e.OriginalName, " ")
-				var ss = &switchSelect{
-					Category: data.CategorySwitchClickOnce,
-					EntityID: e.EntityID,
-					DeviceID: e.EntityID,
-					AreaID:   areaID,
-					AreaName: areaName,
-				}
-
-				for _, v1 := range name {
-					if v1 != " " && v1 != "" {
-						ss.ButtonName = v1
-						break
-					}
-				}
-
-				switch {
-				case strings.Contains(e.OriginalName, "按键1"):
-					ss.SeqButton = 1
-				case strings.Contains(e.OriginalName, "按键2"):
-					ss.SeqButton = 2
-				case strings.Contains(e.OriginalName, "按键3"):
-					ss.SeqButton = 3
-				case strings.Contains(e.OriginalName, "按键4"):
-					ss.SeqButton = 4
-				default:
-					break
-				}
-
-				if ss.SeqButton > 0 {
-					ss.Attribute = "按键类型"
-				}
-
-				key := areaID + "_" + ss.ButtonName
-
-				switchSelectSameName[key] = append(switchSelectSameName[key], ss)
-			}
+			key := e.AreaID + "_" + bn
+			switchSelectSameName[key] = append(switchSelectSameName[key], ss)
 		}
-	}
+
+	}()
+
+	func() {
+		entities, ok := data.GetEntityCategoryMap()[data.CategorySwitchClickOnce]
+		if !ok {
+			return
+		}
+
+		//开关按键
+		for _, e := range entities {
+
+			allEntiy, ok := data.GetEntitiesById()[e.DeviceID]
+			if !ok {
+				continue
+			}
+
+			for _, ee := range allEntiy {
+				if ee.Category == data.CategorySwitch {
+					areaName := data.SpiltAreaName(e.AreaName)
+
+					name := strings.Split(ee.OriginalName, " ")
+					var ss = &switchSelect{
+						Category:   data.CategorySwitchClickOnce,
+						EntityID:   e.EntityID,
+						DeviceID:   e.DeviceID,
+						AreaID:     ee.AreaID,
+						AreaName:   areaName,
+						DeviceName: e.DeviceName,
+					}
+
+					for _, v1 := range name {
+						if v1 != " " && v1 != "" {
+							ss.ButtonName = v1
+							break
+						}
+					}
+
+					if strings.Contains(ss.ButtonName, "-") {
+						continue
+					}
+
+					switch {
+					case strings.Contains(ee.OriginalName, "按键1"):
+						ss.SeqButton = 1
+					case strings.Contains(ee.OriginalName, "按键2"):
+						ss.SeqButton = 2
+					case strings.Contains(ee.OriginalName, "按键3"):
+						ss.SeqButton = 3
+					case strings.Contains(ee.OriginalName, "按键4"):
+						ss.SeqButton = 4
+					default:
+						ss.SeqButton = 1
+					}
+
+					ss.Attribute = "按键类型"
+
+					key := ee.AreaID + "_" + ss.ButtonName
+					switchSelectSameName[key] = append(switchSelectSameName[key], ss)
+				}
+			}
+
+		}
+	}()
 }

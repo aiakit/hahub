@@ -64,7 +64,7 @@ func lightControl(c *ava.Context) {
 		// 先收集所有匹配的灯组
 		for _, l := range es {
 			if l.Category == data.CategoryLightGroup {
-				if strings.Contains(l.DeviceName, buttonName) || strings.Contains(buttonName, "开/关") {
+				if strings.Contains(l.DeviceName, buttonName) || strings.Contains(buttonName, "开/关") || strings.Contains(buttonName, "开关") {
 					conditions = append(conditions, Conditions{
 						EntityID:  l.EntityID,
 						State:     "on",
@@ -87,7 +87,7 @@ func lightControl(c *ava.Context) {
 			}
 
 			if l.Category == data.CategoryLight {
-				if (strings.Contains(l.DeviceName, buttonName) || strings.Contains(buttonName, "开/关")) && (strings.Contains(l.DeviceName, "彩") || strings.Contains(l.DeviceName, "夜灯")) {
+				if (strings.Contains(l.DeviceName, buttonName) || strings.Contains(buttonName, "开/关") || strings.Contains(buttonName, "开关")) && (strings.Contains(l.DeviceName, "彩") || strings.Contains(l.DeviceName, "夜灯")) {
 					conditions = append(conditions, Conditions{
 						EntityID:  l.EntityID,
 						State:     "on",

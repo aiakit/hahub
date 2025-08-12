@@ -237,6 +237,10 @@ func callEntityList() {
 				continue
 			}
 
+			if strings.Contains(e.OriginalName, "拓展") {
+				continue
+			}
+
 			if strings.Contains(e.OriginalName, "最大功率开关") || strings.Contains(e.OriginalName, "提醒") || strings.Contains(e.OriginalName, "充电保护") {
 				continue
 			}

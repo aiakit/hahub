@@ -123,7 +123,9 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 
 		// 4. 开关,设备和实体都是开关
 		if strings.Contains(e.EntityID, "switch.") {
-			if deviceData != nil && strings.Contains(deviceData.Model, ".switch.") && !strings.Contains(e.OriginalName, "指示灯") && !strings.Contains(e.OriginalName, "背光") {
+			if deviceData != nil && strings.Contains(deviceData.Model, ".switch.") &&
+				!strings.Contains(e.OriginalName, "指示灯") &&
+				!strings.Contains(e.OriginalName, "背光") && !strings.Contains(e.OriginalName, "拓展") {
 				category = CategorySwitch
 			}
 		}
@@ -215,12 +217,12 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 		}
 
 		// 12. 红外电视
-		if strings.Contains(e.OriginalName, "红外电视") {
+		if strings.Contains(e.OriginalName, "红外电视") && strings.EqualFold(e.Platform, "xiaomi_home") {
 			category = CategoryIrTV
 		}
 
 		// 12.1 电视
-		if strings.Contains(e.OriginalName, "电视") && strings.Contains(e.EntityID, "media_player.") && !strings.Contains(e.OriginalName, "红外") {
+		if strings.Contains(e.Name, "电视") && strings.Contains(e.EntityID, "media_player.") && !strings.Contains(e.OriginalName, "红外") {
 			category = CategoryTV
 		}
 
@@ -379,6 +381,7 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 	}
 
 	for _, v := range filtered {
+		gHub.deviceIdState[v.DeviceID] = append(gHub.deviceIdState[v.DeviceID], v)
 		name := strings.Split(v.OriginalName, " ")
 		if len(name) == 0 {
 			continue

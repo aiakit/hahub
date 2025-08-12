@@ -78,9 +78,7 @@ func presenceSensorOn(entity *data.Entity) (*Automation, error) {
 			if strings.Contains(e.DeviceName, "氛围") {
 				atmosphereLights = append(atmosphereLights, e)
 			} else {
-				if !strings.Contains(e.DeviceName, "浴霸") { //浴霸灯不要联动
-					normalLights = append(normalLights, e)
-				}
+				normalLights = append(normalLights, e)
 			}
 		}
 
@@ -98,10 +96,8 @@ func presenceSensorOn(entity *data.Entity) (*Automation, error) {
 
 		//寻找当前区域所有单灯
 		for _, e := range entities {
-			if !strings.Contains(e.DeviceName, "浴霸") { //浴霸灯不要联动
-				if e.Category == data.CategoryLight {
-					normalLights = append(normalLights, e)
-				}
+			if e.Category == data.CategoryLight {
+				normalLights = append(normalLights, e)
 			}
 		}
 	}
@@ -149,7 +145,7 @@ func presenceSensorOn(entity *data.Entity) (*Automation, error) {
 		actions = append(actions, parallel1)
 	}
 	// 3. 延迟3秒
-	if len(atmosphereLights) > 0 || len(atmosphereSwitches) > 0 {
+	if len(normalLights) > 0 || len(normalSwitches) > 0 {
 		actions = append(actions, ActionTimerDelay{Delay: struct {
 			Hours        int `json:"hours"`
 			Minutes      int `json:"minutes"`
