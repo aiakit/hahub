@@ -85,6 +85,17 @@ func bodySensorOn(entity *data.Entity) (*Automation, error) {
 		}
 	}
 
+	if len(atmosphereLights) == 0 && len(normalLights) == 0 && len(normalSwitches) == 0 && len(atmosphereSwitches) == 0 {
+		//寻找当前区域所有单灯
+		for _, e := range entities {
+			if !strings.Contains(e.DeviceName, "浴霸") { //浴霸灯不要联动
+				if e.Category == data.CategoryLight {
+					normalLights = append(normalLights, e)
+				}
+			}
+		}
+	}
+
 	var condition = make([]Conditions, 0, 2)
 
 	var parallel1 = make(map[string][]interface{})

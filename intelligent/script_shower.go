@@ -163,7 +163,7 @@ func TakeAShower(c *ava.Context) {
 		CreateScript(c, script)
 	}
 
-	if !isExsit {
+	if !isExsit && len(script.Sequence) > 0 {
 		CreateScript(c, script)
 	}
 }

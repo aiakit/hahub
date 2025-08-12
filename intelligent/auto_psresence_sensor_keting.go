@@ -154,6 +154,20 @@ func presenceSensorOnKeting(entity, lumen *data.Entity, lxMin, lxMax float64, du
 		}
 	}
 
+	var isNull = false
+
+	if len(atmosphereLights) == 0 && len(normalLights) == 0 && len(normalSwitches) == 0 && len(atmosphereSwitches) == 0 {
+		isNull = true
+		//寻找当前区域所有单灯
+		for _, e := range entities {
+			if !strings.Contains(e.DeviceName, "浴霸") { //浴霸灯不要联动
+				if e.Category == data.CategoryLight {
+					normalLights = append(normalLights, e)
+				}
+			}
+		}
+	}
+
 	if duringName == "" {
 		duringName = "氛围"
 	}
@@ -162,7 +176,7 @@ func presenceSensorOnKeting(entity, lumen *data.Entity, lxMin, lxMax float64, du
 	var parallel1 = make(map[string][]interface{})
 	// 1. 先开氛围灯
 	for _, l := range atmosphereLights {
-		if prefix != "" {
+		if prefix != "" && !isNull {
 			if !strings.Contains(l.DeviceName, prefix) {
 				continue
 			}
@@ -179,7 +193,7 @@ func presenceSensorOnKeting(entity, lumen *data.Entity, lxMin, lxMax float64, du
 	}
 	// 2. 先开氛围开关
 	for _, s := range atmosphereSwitches {
-		if prefix != "" {
+		if prefix != "" && !isNull {
 			if !strings.Contains(s.DeviceName, prefix) {
 				continue
 			}
@@ -207,7 +221,7 @@ func presenceSensorOnKeting(entity, lumen *data.Entity, lxMin, lxMax float64, du
 	var parallel2 = make(map[string][]interface{})
 	// 4. 再开非氛围灯
 	for _, l := range normalLights {
-		if prefix != "" {
+		if prefix != "" && !isNull {
 			if !strings.Contains(l.DeviceName, prefix) {
 				continue
 			}
@@ -261,7 +275,7 @@ func presenceSensorOnKeting(entity, lumen *data.Entity, lxMin, lxMax float64, du
 	}
 	// 5. 再开非氛围开关
 	for _, s := range normalSwitches {
-		if prefix != "" {
+		if prefix != "" && !isNull {
 			if !strings.Contains(s.DeviceName, prefix) {
 				continue
 			}

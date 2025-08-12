@@ -17,6 +17,8 @@ import (
 
 var defaultToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIwMTZkZmM2ZDEwMTg0ZTRjYjJkMDBkMDUzMTYwNmFmZSIsImlhdCI6MTc1MTM0ODQyNCwiZXhwIjoyMDY2NzA4NDI0fQ.2W03gIpG2mJaYUPuT0OGST8zFN1paJ40ltFE9WG52Yg"
 
+//var defaultToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIxN2RjYzk2NjJlMGU0MDQ4ODJjMjE4MmRhZWFlYzE1NiIsImlhdCI6MTc1NDk2NTg1NCwiZXhwIjoyMDcwMzI1ODU0fQ.TLBye1wzFQTxwb46fI14_PdvUltgYTZDY6_zmsrQ1LE"
+
 // 添加初始化完成信号
 var initDone = make(chan struct{})
 
