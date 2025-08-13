@@ -190,10 +190,10 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 			}
 		}
 		// 10. 温度/湿度
-		if strings.HasPrefix(e.EntityID, "sensor.") && strings.Contains(e.OriginalName, "温度") {
+		if strings.HasPrefix(e.EntityID, "sensor.") && strings.Contains(e.OriginalName, "温湿度传感器 温度") {
 			category = CategoryTemperatureSensor
 		}
-		if strings.HasPrefix(e.EntityID, "sensor.") && strings.Contains(e.OriginalName, "湿度") {
+		if strings.HasPrefix(e.EntityID, "sensor.") && strings.Contains(e.OriginalName, "温湿度传感器 相对湿度") {
 			category = CategoryHumiditySensor
 		}
 		// 11. 光照,如果一个房间有多个，取当前光照值最高的那个

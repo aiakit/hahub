@@ -77,6 +77,7 @@ type ifCondition struct {
 	DeviceId   string        `json:"device_id,omitempty"`
 	Domain     string        `json:"domain,omitempty"`
 	Above      float64       `json:"above,omitempty"`
+	Attribute  string        `json:"attribute,omitempty"`
 }
 
 // 获取 lxByAreaId 中的值，使用读锁

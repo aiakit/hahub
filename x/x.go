@@ -159,7 +159,7 @@ func ChineseToPinyin(s string) string {
 			result = append(result, nonHanziPart)
 		}
 	}
-	return strings.Join(result, "_")
+	return ToLower(strings.Join(result, "_"))
 }
 
 func filterNonAlphaNumeric(s string) string {
@@ -196,4 +196,8 @@ func Intn(n int) int {
 	r := rRand.Intn(n)
 	randLock.Unlock()
 	return r
+}
+
+func ToLower(s string) string {
+	return strings.ToLower(s)
 }

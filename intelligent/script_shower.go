@@ -15,13 +15,13 @@ func TakeAShower(c *ava.Context) {
 	//判断温度，随便找到家里的一个温度设备作为判断标准
 	vv, ok1 := data.GetEntityCategoryMap()[data.CategoryTemperatureSensor]
 	var action []interface{}
-	var alias string
 
+	var reshuiQIName string
 	if ok {
 		//打开热水器开关，开启零冷水
 		for _, e := range v {
+			reshuiQIName = e.DeviceName
 			if strings.Contains(e.OriginalName, "开关") {
-				alias = data.SpiltAreaName(e.AreaID) + e.DeviceName + "热水"
 				var act IfThenELSEAction
 				act.If = append(act.If, ifCondition{
 					State:     "off",
@@ -71,17 +71,29 @@ func TakeAShower(c *ava.Context) {
 								Above:     24, //冬天和夏天分割线
 							})
 
+							//美的插件有bug
+							var tem float64 = 39
+							if e1.Platform == "midea_ac_lan" {
+								tem *= 2
+							}
+
 							act.Then = append(act.Then, ActionService{
 								Action: "water_heater.set_temperature",
-								Data:   map[string]interface{}{"temperature": 39},
+								Data:   map[string]interface{}{"temperature": tem},
 								Target: &struct {
 									EntityId string `json:"entity_id"`
 								}{EntityId: e.EntityID},
 							})
 
+							//美的插件有bug
+							tem = 42
+							if e1.Platform == "midea_ac_lan" {
+								tem *= 2
+							}
+
 							act.Else = append(act.Else, ActionService{
 								Action: "water_heater.set_temperature",
-								Data:   map[string]interface{}{"temperature": 42},
+								Data:   map[string]interface{}{"temperature": tem},
 								Target: &struct {
 									EntityId string `json:"entity_id"`
 								}{EntityId: e.EntityID},
@@ -113,36 +125,27 @@ func TakeAShower(c *ava.Context) {
 		script.Sequence = append(script.Sequence, action...)
 	}
 
-	var isExsit bool
-	//判断是否有浴霸
-	var act IfThenELSEAction
-	for _, e1 := range vv {
-		if strings.HasPrefix(e1.EntityID, "sensor.") && strings.Contains(e1.OriginalName, "温度") {
-			act.If = append(act.If, ifCondition{
-				Type:      "is_temperature",
-				DeviceId:  e1.DeviceID,
-				EntityId:  e1.EntityID,
-				Domain:    "sensor",
-				Condition: "device",
+	//浴霸
+	var deviceName = make(map[string]*IfThenELSEAction)
+	for _, e := range data.GetEntityCategoryMap()[data.CateroyBathroomHeater] {
+		if strings.HasPrefix(e.EntityID, "climate.") {
+			if deviceName[e.DeviceName] == nil {
+				deviceName[e.DeviceName] = new(IfThenELSEAction)
+			}
+
+			deviceName[e.DeviceName].If = append(deviceName[e.DeviceName].If, ifCondition{
+				Attribute: "current_temperature",
+				Condition: "numeric_state",
+				EntityId:  e.EntityID,
 				Above:     24, //冬天和夏天分割线
 			})
-		}
-	}
-
-	//浴霸
-	for _, e := range data.GetEntityCategoryMap()[data.CateroyBathroomHeater] {
-		isExsit = true
-		alia := alias + e.DeviceName + "洗澡场景"
-		if strings.HasPrefix(e.EntityID, "climate.") {
-			act.Else = append(act.Else, ActionService{
+			deviceName[e.DeviceName].Else = append(deviceName[e.DeviceName].Else, ActionService{
 				Action: "climate.set_temperature",
 				Data:   map[string]interface{}{"temperature": 40},
 				Target: &struct {
 					EntityId string `json:"entity_id"`
 				}{EntityId: e.EntityID},
-			})
-
-			act.Else = append(act.Else, ActionService{
+			}, ActionService{
 				Action: "climate.turn_on",
 				Target: &struct {
 					EntityId string `json:"entity_id"`
@@ -150,20 +153,31 @@ func TakeAShower(c *ava.Context) {
 			})
 		}
 
-		if strings.Contains(e.OriginalName, "换气低档") {
-			act.Then = append(act.Then, ActionCommon{
+		if strings.Contains(e.OriginalName, "换气低挡") {
+			if deviceName[e.DeviceName] == nil {
+				deviceName[e.DeviceName] = new(IfThenELSEAction)
+			}
+
+			deviceName[e.DeviceName].Then = append(deviceName[e.DeviceName].Then, ActionCommon{
 				Type:     "press",
 				DeviceID: e.DeviceID,
 				EntityID: e.EntityID,
 				Domain:   "button",
 			})
 		}
-		script.Alias = alia
-		script.Description = data.SpiltAreaName(e.AreaName) + alias
-		CreateScript(c, script)
 	}
 
-	if !isExsit && len(script.Sequence) > 0 {
+	if len(deviceName) > 0 {
+		for k, v3 := range deviceName {
+			script.Alias = "启动" + reshuiQIName + "和" + k + "热水洗澡场景"
+			script.Description = "打开热水器和浴霸，使用热水洗澡场景"
+			script.Sequence = append(script.Sequence, v3)
+			CreateScript(c, script)
+			script.Sequence = make([]interface{}, 0)
+		}
+	} else if len(script.Sequence) > 0 {
+		script.Alias = "启动" + reshuiQIName + "热水场景"
+		script.Description = "打开热水器，使用热水场景"
 		CreateScript(c, script)
 	}
 }

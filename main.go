@@ -17,7 +17,8 @@ func main() {
 	//core.CoreChaos()
 
 	//必须先创建脚本再创建自动化，这里不打开，改为ai驱动
-	intelligent.Chaos()
+	//intelligent.Chaos()
+	intelligent.TakeAShower(ava.Background())
 	ava.Debugf("Starting Hahub ok! |latency=%.2fs", time.Since(now).Seconds())
 	select {}
 }
