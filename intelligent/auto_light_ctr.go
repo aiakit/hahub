@@ -10,7 +10,7 @@ import (
 // 灯控
 // 开/关：表示控制全部
 // 其他：控制名字相同的灯组
-func lightControl(c *ava.Context) {
+func LightControl(c *ava.Context) {
 	entities := data.GetEntityAreaMap()
 	if len(entities) == 0 {
 		return
@@ -18,13 +18,13 @@ func lightControl(c *ava.Context) {
 
 	for bName, v := range switchSelectSameName {
 		bns := strings.Split(bName, "_")
-		if len(bns) != 2 {
+		if len(bns) < 2 {
 			continue
 		}
 
-		areaId := bns[0]
+		areaId := strings.Join(bns[:len(bns)-1], "_")
 		areaName := data.SpiltAreaName(data.GetAreaName(areaId))
-		buttonName := bns[1]
+		buttonName := bns[len(bns)-1]
 
 		//遍历当前区域所有设备
 		//找到所有设备

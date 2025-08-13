@@ -293,7 +293,7 @@ func ChaosAutomation() {
 	attention(c)
 
 	//灯光控制
-	lightControl(c)
+	LightControl(c)
 
 	//插座打开就开灯
 	walkBodySocketSensor(c)
@@ -333,7 +333,7 @@ func Chaos() {
 	attention(c)
 
 	//灯光控制
-	lightControl(c)
+	LightControl(c)
 
 	//插座打开就开灯
 	walkBodySocketSensor(c)

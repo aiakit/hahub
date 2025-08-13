@@ -13,12 +13,14 @@ func main() {
 	// 等待 chaos.go 的初始化完成
 	data.WaitForInit()
 
-	//启动音箱ai驱动
-	//core.CoreChaos()
+	intelligent.InitSwitchSelect(ava.Background())
+	intelligent.LightControl(ava.Background())
 
 	//必须先创建脚本再创建自动化，这里不打开，改为ai驱动
 	//intelligent.Chaos()
-	intelligent.TakeAShower(ava.Background())
+
+	//启动音箱ai驱动
+	//core.CoreChaos()
 	ava.Debugf("Starting Hahub ok! |latency=%.2fs", time.Since(now).Seconds())
 	select {}
 }
