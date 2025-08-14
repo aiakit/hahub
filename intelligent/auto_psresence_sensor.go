@@ -285,6 +285,7 @@ func presenceSensorOn(entity *data.Entity) (*Automation, error) {
 func presenceSensorOff(entity *data.Entity) (*Automation, error) {
 	var (
 		areaID             = entity.AreaID
+		areaName           = data.SpiltAreaName(entity.AreaName)
 		atmosphereSwitches []*data.Entity
 		normalSwitches     []*data.Entity
 		atmosphereLights   []*data.Entity
@@ -375,8 +376,6 @@ func presenceSensorOff(entity *data.Entity) (*Automation, error) {
 		actions = append(actions, parallel2)
 	}
 
-	areaName := data.SpiltAreaName(entity.AreaName)
-
 	var f *For
 	if strings.Contains(areaName, "卧室") {
 		f = &For{
@@ -399,6 +398,26 @@ func presenceSensorOff(entity *data.Entity) (*Automation, error) {
 		}},
 		Actions: actions,
 		Mode:    "single",
+	}
+
+	ss, ok := data.GetEntityCategoryMap()[data.CategoryScript]
+
+	if ok {
+		for _, e := range ss {
+			if (e.OriginalName == "晚安" || e.OriginalName == "睡觉") && strings.Contains(e.OriginalName, areaName) {
+				auto.Conditions = append(auto.Conditions, Conditions{
+					Condition: "state",
+					EntityID:  e.EntityID,
+					State:     "on",
+					Attribute: "last_triggered",
+					For: &For{
+						Hours:   9,
+						Minutes: 0,
+						Seconds: 0,
+					},
+				})
+			}
+		}
 	}
 
 	return auto, nil

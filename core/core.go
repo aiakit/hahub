@@ -76,10 +76,10 @@ func findFunction(message string) string {
 	return "is_in_development"
 }
 
-var systemPrompts = `你是一个智能家居助理，你的中文名:小爱同学,英文名:jax，和你共同工作的另一个AI助理的英文名字叫：jinx,中文名字：金克丝。你的所有回答必须简洁，以下是我们最近的对话记录%s。`
-var systemPromptsNone = `你是一个智能家居助理音箱，你的中文名:小爱同学,英文名:jax，和你共同工作的另一个AI助理的英文名字叫：jinx,中文名字：金克丝。你的所有回答必须简洁。`
+var systemPrompts = `你是一个智能家居助理。你的中文名:小爱同学,英文名:jax，和你共同工作的另一个AI助理的英文名字叫：jinx,中文名字：金克丝。你的所有回答必须简洁，以下是我们最近的对话记录%s。`
+var systemPromptsNone = `你是一个智能家居助理。你的中文名:小爱同学,英文名:jax，和你共同工作的另一个AI助理的英文名字叫：jinx,中文名字：金克丝。你的所有回答必须简洁。`
 
-func chatCompletion(msgInput []*chat.ChatMessage) (string, error) {
+func chatCompletionInternal(msgInput []*chat.ChatMessage) (string, error) {
 	var message = make([]*chat.ChatMessage, 0, 5)
 
 	message = append(message, msgInput...)
@@ -96,9 +96,20 @@ func chatCompletionHistory(msgInput []*chat.ChatMessage, deviceId string) (strin
 		content = fmt.Sprintf(systemPrompts, x.MustMarshal2String(history))
 	}
 
+	var gShortScenes = make(map[string]*shortScene)
+
+	entities, _ := data.GetEntityCategoryMap()[data.CategoryScript]
+
+	for _, e := range entities {
+		gShortScenes[e.UniqueID] = &shortScene{
+			Id:    e.EntityID,
+			Alias: e.OriginalName,
+		}
+	}
+
 	message = append(message, &chat.ChatMessage{
 		Role:    "system",
-		Content: content,
+		Content: content + fmt.Sprintf("你可能用得到我的所有智能家居场景数据：%s", x.MustMarshalEscape2String(entities)),
 	})
 
 	message = append(message, msgInput...)

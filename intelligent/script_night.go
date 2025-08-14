@@ -94,11 +94,11 @@ func goodNightScript(c *ava.Context) {
 		for _, e := range v {
 			if e.Category == data.CategoryAirConditioner {
 				data := make(map[string]interface{})
+				data["hvac_mode"] = "cool"
 				data["temperature"] = 26
-				data["mode"] = "cool"
 
 				script.Sequence = append(script.Sequence, ActionService{
-					Action: "climate.turn_on",
+					Action: "climate.set_temperature",
 					Data:   data,
 					Target: &struct {
 						EntityId string `json:"entity_id"`

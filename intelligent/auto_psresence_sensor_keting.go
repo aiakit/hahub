@@ -315,6 +315,26 @@ func presenceSensorOnKeting(entity, lumen *data.Entity, lxMin, lxMax float64, du
 		Below:     lxMax,
 	})
 
+	ss, ok := data.GetEntityCategoryMap()[data.CategoryScript]
+
+	if ok {
+		for _, e := range ss {
+			if (e.OriginalName == "晚安" || e.OriginalName == "睡觉") && strings.Contains(e.OriginalName, areaName) {
+				auto.Conditions = append(auto.Conditions, Conditions{
+					Condition: "state",
+					EntityID:  e.EntityID,
+					State:     "on",
+					Attribute: "last_triggered",
+					For: &For{
+						Hours:   9,
+						Minutes: 0,
+						Seconds: 0,
+					},
+				})
+			}
+		}
+	}
+
 	return auto, nil
 }
 

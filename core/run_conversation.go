@@ -7,7 +7,7 @@ import (
 )
 
 func Conversation(message, aiMessage, deviceId string) string {
-	result, err := chatCompletion([]*chat.ChatMessage{{
+	result, err := chatCompletionInternal([]*chat.ChatMessage{{
 		Role:    "user",
 		Content: message,
 	}})

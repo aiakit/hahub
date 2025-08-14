@@ -17,7 +17,7 @@ import (
 func CoreDelay(message, aiMessage, deviceId string, f FunctionHandler) string {
 	//1.解析指令
 	if strings.Contains(message, "trigger_time") {
-		result, err := chatCompletion([]*chat.ChatMessage{
+		result, err := chatCompletionInternal([]*chat.ChatMessage{
 			{
 				Role: "user",
 				Content: fmt.Sprintf(`当前时间是%s,根据我的意图，返回延时执行动作的时间点，计算好是多少秒，并且按照格式进行返回，用人性化的语言描述content字段。

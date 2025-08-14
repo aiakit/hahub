@@ -46,6 +46,9 @@ func ScriptChaos() {
 	//洗澡
 	TakeAShower(c)
 
+	//刷新实体
+	data.CallService()
+
 	ava.Debugf("all script created done! |total=%d", scriptCount)
 }
 

@@ -44,7 +44,7 @@ func goodMorningScript(c *ava.Context) {
 
 		// 创建场景部分
 		script := &Script{
-			Alias:       areaName + "早安场景",
+			Alias:       areaName + "早安/起床场景",
 			Description: "执行" + areaName + "早安操作，包括播放音乐、打开窗帘、调节灯光和控制空调",
 		}
 
@@ -94,11 +94,11 @@ func goodMorningScript(c *ava.Context) {
 		for _, e := range v {
 			if e.Category == data.CategoryAirConditioner {
 				data := make(map[string]interface{})
-				data["temperature"] = 24
-				data["mode"] = "auto"
+				data["hvac_mode"] = "cool"
+				data["temperature"] = 26
 
 				script.Sequence = append(script.Sequence, ActionService{
-					Action: "climate.turn_on",
+					Action: "climate.set_temperature",
 					Data:   data,
 					Target: &struct {
 						EntityId string `json:"entity_id"`

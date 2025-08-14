@@ -18,7 +18,7 @@ var speakerMapMutex = new(sync.RWMutex)
 
 func SendMessagePlay(message, aiMessage, deviceId string) string {
 	speakerMapMutex.RLock()
-	result, err := chatCompletion([]*chat.ChatMessage{
+	result, err := chatCompletionInternal([]*chat.ChatMessage{
 		{
 			Role: "user",
 			Content: fmt.Sprintf(`音箱设备数据：%s,名字和位置数据：%s,根据我意图找出目标音箱，你需要将我的话进行整理表达放到content字段中，并按照格式返回给我。
