@@ -404,7 +404,7 @@ func presenceSensorOff(entity *data.Entity) (*Automation, error) {
 
 	if ok {
 		for _, e := range ss {
-			if (e.OriginalName == "晚安" || e.OriginalName == "睡觉") && strings.Contains(e.OriginalName, areaName) {
+			if (e.OriginalName == "晚安" || e.OriginalName == "睡觉" || e.OriginalName == "开/关") && strings.Contains(e.OriginalName, areaName) {
 				auto.Conditions = append(auto.Conditions, Conditions{
 					Condition: "state",
 					EntityID:  e.EntityID,

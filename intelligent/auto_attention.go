@@ -43,7 +43,7 @@ func attention(c *ava.Context) {
 func gas(entity *data.Entity) (*Automation, error) {
 
 	var message = "危险，燃气泄漏了，请立刻处理!!!"
-	var title = "危险，危险，燃气泄漏了"
+	var title = "燃气泄漏"
 	areaName := data.SpiltAreaName(entity.AreaName)
 	auto := &Automation{
 		Alias:       areaName + "发生燃气泄漏",
@@ -73,7 +73,7 @@ func gas(entity *data.Entity) (*Automation, error) {
 func fire(entity *data.Entity) (*Automation, error) {
 
 	var message = "危险，检测到烟雾，请立刻处理!!!"
-	var title = "危险，危险，检测到烟雾"
+	var title = "检测到烟雾"
 	areaName := data.SpiltAreaName(entity.AreaName)
 	auto := &Automation{
 		Alias:       areaName + "检测到烟雾",
@@ -98,7 +98,7 @@ func fire(entity *data.Entity) (*Automation, error) {
 func water(entity *data.Entity) (*Automation, error) {
 
 	var message = "危险,漏水了，请立刻处理!!!"
-	var title = "危险，危险，漏水了"
+	var title = "漏水了"
 	areaName := data.SpiltAreaName(entity.AreaName)
 	auto := &Automation{
 		Alias:       areaName + "漏水",
@@ -164,4 +164,34 @@ func doNotify(title, message string, auto *Automation) {
 			}{message, title},
 		})
 	}
+
+	ve := virtualEventNotify(title)
+	if len(ve) > 0 {
+		for _, v := range ve {
+			auto.Actions = append(auto.Actions, v)
+		}
+	}
+}
+
+// 虚拟事件通知
+func virtualEventNotify(message string) []*ActionCommon {
+	entities, ok := data.GetEntityCategoryMap()[data.CategoryVirtualEvent]
+	if !ok {
+		return nil
+	}
+	var result = make([]*ActionCommon, 0)
+
+	for _, e := range entities {
+		if strings.Contains(e.OriginalName, "产生虚拟事件") && strings.HasPrefix(e.EntityID, "text.") {
+			result = append(result, &ActionCommon{
+				Type:     "set_value",
+				EntityID: e.EntityID,
+				Domain:   "text",
+				DeviceID: e.DeviceID,
+				Value:    message,
+			})
+		}
+	}
+
+	return result
 }

@@ -147,6 +147,94 @@ func goodNightScript(c *ava.Context) {
 			}
 		}
 
+		//如果有床，设置床角度
+		for _, e := range v {
+			if e.Category == data.CategoryBed && strings.Contains(e.OriginalName, "腿部") && strings.HasPrefix(e.EntityID, "number.") {
+				script.Sequence = append(script.Sequence, ActionCommon{
+					Type:     "set_value",
+					DeviceID: e.DeviceID,
+					EntityID: e.EntityID,
+					Domain:   "number",
+					Value:    20,
+				})
+
+				script.Sequence = append(script.Sequence, ActionTimerDelay{
+					Delay: struct {
+						Hours        int `json:"hours"`
+						Minutes      int `json:"minutes"`
+						Seconds      int `json:"seconds"`
+						Milliseconds int `json:"milliseconds"`
+					}{Minutes: 12},
+				})
+
+				script.Sequence = append(script.Sequence, ActionCommon{
+					Type:     "set_value",
+					DeviceID: e.DeviceID,
+					EntityID: e.EntityID,
+					Domain:   "number",
+					Value:    0,
+				})
+
+			}
+
+			if e.Category == data.CategoryBed && strings.Contains(e.OriginalName, "靠背") && strings.HasPrefix(e.EntityID, "number.") {
+				script.Sequence = append(script.Sequence, ActionCommon{
+					Type:     "set_value",
+					DeviceID: e.DeviceID,
+					EntityID: e.EntityID,
+					Domain:   "number",
+					Value:    20,
+				})
+
+				script.Sequence = append(script.Sequence, ActionTimerDelay{
+					Delay: struct {
+						Hours        int `json:"hours"`
+						Minutes      int `json:"minutes"`
+						Seconds      int `json:"seconds"`
+						Milliseconds int `json:"milliseconds"`
+					}{Minutes: 12},
+				})
+				script.Sequence = append(script.Sequence, ActionCommon{
+					Type:     "set_value",
+					DeviceID: e.DeviceID,
+					EntityID: e.EntityID,
+					Domain:   "number",
+					Value:    0,
+				})
+			}
+
+			script.Sequence = append(script.Sequence, ActionTimerDelay{
+				Delay: struct {
+					Hours        int `json:"hours"`
+					Minutes      int `json:"minutes"`
+					Seconds      int `json:"seconds"`
+					Milliseconds int `json:"milliseconds"`
+				}{Minutes: 12},
+			})
+		}
+
+		for _, e := range v {
+			if e.Category == data.CategoryXiaomiHomeSpeaker && strings.HasPrefix(e.EntityID, "text.") && strings.Contains(e.OriginalName, "播放文本") {
+				script.Sequence = append(script.Sequence, ActionCommon{
+					Type:     "set_value",
+					DeviceID: e.DeviceID,
+					EntityID: e.EntityID,
+					Domain:   "text",
+					Value:    "主人，晚安，祝你有个好梦",
+				})
+			}
+
+			if e.Category == data.CategoryXiaomiHomeSpeaker && strings.HasPrefix(e.EntityID, "text.") && strings.Contains(e.OriginalName, "执行文本") {
+				script.Sequence = append(script.Sequence, ActionCommon{
+					Type:     "set_value",
+					DeviceID: e.DeviceID,
+					EntityID: e.EntityID,
+					Domain:   "text",
+					Value:    "[告诉我明天早上天气以及出门需要注意什么,false]",
+				})
+			}
+		}
+
 		// 创建自动化部分
 		if len(script.Sequence) > 0 {
 

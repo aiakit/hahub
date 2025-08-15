@@ -50,13 +50,6 @@ func InitXinGuang(c *ava.Context) {
 			CreateScript(c, s)
 		}
 	}()
-
-	//func() {
-	//	s := InitModeFour(c)
-	//	if s != nil && len(s.Sequence) > 0 {
-	//		CreateScript(c, s)
-	//	}
-	//}()
 }
 
 // 光随影动
@@ -73,7 +66,23 @@ func InitModeOne(c *ava.Context) *Script {
 
 	var script = &Script{
 		Alias:       "馨光光随影动场景",
-		Description: "馨光光随影动模式设置场景",
+		Description: "馨光光随影动模式，光影模式，动感模式场景",
+	}
+
+	//关闭相同区域其他所有灯
+	areaId := entities[0].AreaID
+	allLight, ok := data.GetEntityAreaMap()[areaId]
+	if ok {
+		for _, e := range allLight {
+			if strings.HasPrefix(e.EntityID, "light.") && !strings.Contains(e.DeviceName, "馨光") {
+				script.Sequence = append(script.Sequence, ActionLight{
+					Type:     "turn_off",
+					DeviceID: e.DeviceID,
+					EntityID: e.EntityID,
+					Domain:   "light",
+				})
+			}
+		}
 	}
 
 	//先开机
@@ -90,14 +99,14 @@ func InitModeOne(c *ava.Context) *Script {
 		}
 	}
 
-	//script.Sequence = append(script.Sequence, ActionTimerDelay{
-	//	Delay: struct {
-	//		Hours        int `json:"hours"`
-	//		Minutes      int `json:"minutes"`
-	//		Seconds      int `json:"seconds"`
-	//		Milliseconds int `json:"milliseconds"`
-	//	}{Seconds: 3},
-	//})
+	script.Sequence = append(script.Sequence, ActionTimerDelay{
+		Delay: struct {
+			Hours        int `json:"hours"`
+			Minutes      int `json:"minutes"`
+			Seconds      int `json:"seconds"`
+			Milliseconds int `json:"milliseconds"`
+		}{Seconds: 3},
+	})
 
 	// 主机设置
 	for _, e := range entities {
@@ -178,7 +187,23 @@ func InitModeTwo(c *ava.Context) *Script {
 
 	var script = &Script{
 		Alias:       "馨光音乐律动场景",
-		Description: "馨光音乐律动模式设置场景",
+		Description: "馨光律动模式设置场景",
+	}
+
+	//关闭相同区域其他所有灯
+	areaId := entities[0].AreaID
+	allLight, ok := data.GetEntityAreaMap()[areaId]
+	if ok {
+		for _, e := range allLight {
+			if strings.HasPrefix(e.EntityID, "light.") && !strings.Contains(e.DeviceName, "馨光") {
+				script.Sequence = append(script.Sequence, ActionLight{
+					Type:     "turn_off",
+					DeviceID: e.DeviceID,
+					EntityID: e.EntityID,
+					Domain:   "light",
+				})
+			}
+		}
 	}
 
 	//先开机
@@ -195,14 +220,14 @@ func InitModeTwo(c *ava.Context) *Script {
 		}
 	}
 
-	//script.Sequence = append(script.Sequence, ActionTimerDelay{
-	//	Delay: struct {
-	//		Hours        int `json:"hours"`
-	//		Minutes      int `json:"minutes"`
-	//		Seconds      int `json:"seconds"`
-	//		Milliseconds int `json:"milliseconds"`
-	//	}{Seconds: 3},
-	//})
+	script.Sequence = append(script.Sequence, ActionTimerDelay{
+		Delay: struct {
+			Hours        int `json:"hours"`
+			Minutes      int `json:"minutes"`
+			Seconds      int `json:"seconds"`
+			Milliseconds int `json:"milliseconds"`
+		}{Seconds: 3},
+	})
 
 	// 主机设置
 	for _, e := range entities {
@@ -297,14 +322,14 @@ func InitModeThree(c *ava.Context) *Script {
 		}
 	}
 
-	//script.Sequence = append(script.Sequence, ActionTimerDelay{
-	//	Delay: struct {
-	//		Hours        int `json:"hours"`
-	//		Minutes      int `json:"minutes"`
-	//		Seconds      int `json:"seconds"`
-	//		Milliseconds int `json:"milliseconds"`
-	//	}{Seconds: 3},
-	//})
+	script.Sequence = append(script.Sequence, ActionTimerDelay{
+		Delay: struct {
+			Hours        int `json:"hours"`
+			Minutes      int `json:"minutes"`
+			Seconds      int `json:"seconds"`
+			Milliseconds int `json:"milliseconds"`
+		}{Seconds: 3},
+	})
 
 	// 主机设置
 	for _, e := range entities {

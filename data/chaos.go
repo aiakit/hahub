@@ -70,7 +70,7 @@ type hub struct {
 
 	deviceState   map[string][]*Entity //设备名称：所有实体
 	deviceIdState map[string][]*Entity //设备id：所有实体
-	deviceMap     map[string]*device   //设备名称：所有实体
+	deviceMap     map[string]*device   //设备名称：设备信息
 
 	areas    []string
 	areaName map[string]string

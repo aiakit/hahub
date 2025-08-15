@@ -22,6 +22,7 @@ var slowestSetting = &Script{
 func init() {
 	data.RegisterEntityCallback(registerLightGradientTime)
 	data.RegisterEntityCallback(lowestBrightness)
+	data.RegisterDataHandler(registerVirtualEvent)
 }
 
 // 初始化灯光

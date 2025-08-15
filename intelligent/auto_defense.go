@@ -47,7 +47,7 @@ func defense(c *ava.Context) {
 		}
 	}()
 
-	doNotify("离家布防", "请注意，家里有人！！！", automation)
+	doNotify("家里有人", "请注意，家里有人！！！", automation)
 
 	if len(automation.Triggers) > 0 {
 		CreateAutomation(c, automation)

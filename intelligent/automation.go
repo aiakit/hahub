@@ -6,6 +6,7 @@ import (
 	"hahub/x"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/aiakit/ava"
 )
@@ -77,6 +78,7 @@ type ifCondition struct {
 	DeviceId   string        `json:"device_id,omitempty"`
 	Domain     string        `json:"domain,omitempty"`
 	Above      float64       `json:"above,omitempty"`
+	Below      float64       `json:"below,omitempty"`
 	Attribute  string        `json:"attribute,omitempty"`
 }
 
@@ -298,6 +300,8 @@ func ChaosAutomation() {
 	//插座打开就开灯
 	walkBodySocketSensor(c)
 
+	WalkPresenceSensorAir(c)
+
 	//重新缓存一遍数据
 	data.CallService()
 
@@ -307,43 +311,8 @@ func ChaosAutomation() {
 }
 
 func Chaos() {
-	c := ava.Background()
-
 	ScriptChaos()
-
-	//删除所有自动化
-	if deleteAllAutomationSwitch {
-		DeleteAllAutomations(c)
-	}
-
-	//处理光照数据
-	initEntityIdByLx(ava.Background())
-
-	//人体传感器
-	walkBodySensor(c)
-
-	//人体存在传感器
-	walkPresenceSensor(c)
-	walkPresenceSensorKeting(c)
-
-	//布防
-	defense(c)
-
-	//警报
-	attention(c)
-
-	//灯光控制
-	LightControl(c)
-
-	//插座打开就开灯
-	walkBodySocketSensor(c)
-
-	//重新缓存一遍数据
-	data.CallService()
-
-	//开关自动关闭规则
-	//switchRule()
-	ava.Debugf("all automation created done! |total=%d", automaitionCount)
+	ChaosAutomation()
 }
 
 // 发起自动化创建
@@ -459,4 +428,103 @@ func DeleteAllAutomations(c *ava.Context) {
 			continue
 		}
 	}
+}
+
+// 注册虚拟事件触发自动化或者脚本
+// s_名称，表示场景虚拟化事件,a_名称，表示自动化虚拟化事件
+func registerVirtualEvent(simple *data.StateChangedSimple, body []byte) {
+	var event virtualEvent
+	err := x.Unmarshal(body, &event)
+	if err != nil {
+		return
+	}
+
+	if v, ok := event.Event.Data.NewState.Attributes["event_type"].(string); ok && v == "虚拟事件发生" {
+		name, ok := event.Event.Data.NewState.Attributes["事件名称"].(string)
+		if !ok {
+			return
+		}
+		//获取所有的场景和自动化
+		func() {
+			if strings.HasPrefix(name, "场景") {
+				entities, ok := data.GetEntityCategoryMap()[data.CategoryScript]
+				if !ok {
+					return
+				}
+
+				var index int
+				var tmp float64
+				for k, entity := range entities {
+					s := x.Similarity(name, entity.OriginalName)
+					if s > tmp {
+						index = k
+						tmp = s
+					}
+				}
+
+				e := entities[index]
+				err = RunSript(e.EntityID)
+				if err != nil {
+					ava.Error(err)
+				}
+			}
+		}()
+
+		//获取所有的场景和自动化
+		func() {
+			if strings.HasPrefix(name, "自动化") {
+				entities, ok := data.GetEntityCategoryMap()[data.CategoryAutomation]
+				if !ok {
+					return
+				}
+
+				var index int
+				var tmp float64
+				for k, entity := range entities {
+					s := x.Similarity(name, entity.OriginalName)
+					if s > tmp {
+						index = k
+						tmp = s
+					}
+				}
+
+				e := entities[index]
+				err = RunAutomation(e.EntityID)
+				if err != nil {
+					ava.Error(err)
+				}
+			}
+		}()
+	}
+}
+
+type virtualEvent struct {
+	Type  string `json:"type"`
+	Event struct {
+		EventType string `json:"event_type"`
+		Data      struct {
+			EntityID string `json:"entity_id"`
+			NewState struct {
+				EntityID     string                 `json:"entity_id"`
+				State        time.Time              `json:"state"`
+				Attributes   map[string]interface{} `json:"attributes"`
+				LastChanged  time.Time              `json:"last_changed"`
+				LastReported time.Time              `json:"last_reported"`
+				LastUpdated  time.Time              `json:"last_updated"`
+				Context      struct {
+					ID       string `json:"id"`
+					ParentID any    `json:"parent_id"`
+					UserID   any    `json:"user_id"`
+				} `json:"context"`
+			} `json:"new_state"`
+		} `json:"data"`
+		Origin    string    `json:"origin"`
+		TimeFired time.Time `json:"time_fired"`
+		Context   struct {
+			ID       string `json:"id"`
+			ParentID any    `json:"parent_id"`
+			UserID   any    `json:"user_id"`
+		} `json:"context"`
+	} `json:"event"`
+	ID int `json:"id"`
 }

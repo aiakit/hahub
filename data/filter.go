@@ -40,6 +40,7 @@ const (
 	CategoryDimming             = "dimming"               //调光旋钮
 	CategoryPowerconsumption    = "power_consumption"     //用电功率
 	CateroyBathroomHeater       = "bathroom_heater"       //浴霸
+	CategoryBed                 = "bed"                   //床
 )
 
 //过滤实体,并在实体中增加字段标注设备类型，设备数据中也加上，在实体数据中加上设备id,区域id，区域名称
@@ -117,7 +118,7 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 			category = CategoryAirConditioner
 		}
 		// 3. 虚拟事件
-		if strings.Contains(e.OriginalName, "虚拟事件") {
+		if strings.Contains(e.OriginalName, "虚拟事件") && strings.HasPrefix(e.EntityID, "event.") {
 			category = CategoryVirtualEvent
 		}
 
@@ -285,6 +286,11 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 		//23.浴霸
 		if deviceData != nil && strings.Contains(deviceData.Name, "浴霸") {
 			category = CateroyBathroomHeater
+		}
+
+		//24.床
+		if deviceData != nil && strings.Contains(deviceData.Model, ".bed.") {
+			category = CategoryBed
 		}
 
 		if deviceData != nil {
