@@ -17,6 +17,7 @@ func CoreChaos() {
 	gFunctionRouter = NewFunctionRouter()
 
 	gFunctionRouter.Register(functionCallInitAll, InitALL)
+	gFunctionRouter.Register(evaluate, Evaluate)
 	gFunctionRouter.Register(isHandled, IsDone)
 	gFunctionRouter.Register(functionCallInitAll, InitScene)
 	gFunctionRouter.Register(functionCallInitAll, InitAutomation)

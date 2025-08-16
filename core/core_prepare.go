@@ -25,6 +25,7 @@ const (
 	isHandled                  = "is_handled"
 	isInDevelopment            = "is_in_development"
 	sendMessage2Speaker        = "send_message_to_speaker"
+	evaluate                   = "evaluate"
 )
 
 func init() {
@@ -32,6 +33,11 @@ func init() {
 	logicDataMap[queryScene] = &ObjectLogic{
 		Description:  "通过用户口令或者手动指令触发查询智能场景信息",
 		FunctionName: "查询场景",
+	}
+
+	logicDataMap[evaluate] = &ObjectLogic{
+		Description:  "对当前智能家居系统完善情况进行等级评估",
+		FunctionName: "智能家居完善度评估",
 	}
 
 	logicDataMap[runScene] = &ObjectLogic{
