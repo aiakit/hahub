@@ -80,7 +80,6 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 	for _, dev := range deviceMap {
 		if strings.Contains(dev.Model, ".wifispeaker.") {
 			speakerDeviceIDs[dev.ID] = dev
-			gHub.speakersXiaomiHome = append(gHub.speakersXiaomiHome, dev.ID)
 		}
 	}
 
@@ -118,7 +117,7 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 			category = CategoryAirConditioner
 		}
 		// 3. 虚拟事件
-		if strings.Contains(e.OriginalName, "虚拟事件") && strings.HasPrefix(e.EntityID, "event.") {
+		if deviceData != nil && strings.Contains(e.OriginalName, "虚拟事件") && strings.Contains(deviceData.Model, ".gateway.") {
 			category = CategoryVirtualEvent
 		}
 

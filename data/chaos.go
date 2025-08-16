@@ -78,8 +78,6 @@ type hub struct {
 	xinguang    map[string]string //key:deviceId,value:id
 	notifyPhone []string
 
-	speakersXiaomiHome []string //device_id
-
 	service map[string]interface{}
 }
 
@@ -109,13 +107,6 @@ func GetDeviceFirstState() map[string][]*Entity {
 func GetEntitiesById() map[string][]*Entity {
 	gHub.lock.RLock()
 	data := gHub.deviceIdState
-	gHub.lock.RUnlock()
-	return data
-}
-
-func GetSpeakersXiaomiHome() []string {
-	gHub.lock.RLock()
-	data := gHub.speakersXiaomiHome
 	gHub.lock.RUnlock()
 	return data
 }
@@ -173,20 +164,19 @@ var gHub *hub
 
 func newHub() {
 	gHub = &hub{
-		lock:               new(sync.RWMutex),
-		idLock:             new(sync.Mutex),
-		entityCategoryMap:  make(map[string][]*Entity),
-		entityIdMap:        make(map[string]*Entity),
-		entityAreaMap:      make(map[string][]*Entity),
-		deviceMap:          make(map[string]*device),
-		areaName:           make(map[string]string),
-		areas:              make([]string, 0, 2),
-		xinguang:           make(map[string]string),
-		callbackMapFunc:    make(map[int]func(data []byte)),
-		callbackMapLock:    new(sync.Mutex),
-		deviceState:        make(map[string][]*Entity),
-		deviceIdState:      make(map[string][]*Entity),
-		speakersXiaomiHome: make([]string, 0),
+		lock:              new(sync.RWMutex),
+		idLock:            new(sync.Mutex),
+		entityCategoryMap: make(map[string][]*Entity),
+		entityIdMap:       make(map[string]*Entity),
+		entityAreaMap:     make(map[string][]*Entity),
+		deviceMap:         make(map[string]*device),
+		areaName:          make(map[string]string),
+		areas:             make([]string, 0, 2),
+		xinguang:          make(map[string]string),
+		callbackMapFunc:   make(map[int]func(data []byte)),
+		callbackMapLock:   new(sync.Mutex),
+		deviceState:       make(map[string][]*Entity),
+		deviceIdState:     make(map[string][]*Entity),
 	}
 }
 

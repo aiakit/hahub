@@ -2,6 +2,7 @@ package main
 
 import (
 	"hahub/data"
+	"hahub/intelligent"
 	"time"
 
 	"github.com/aiakit/ava"
@@ -13,8 +14,7 @@ func main() {
 	data.WaitForInit()
 
 	//必须先创建脚本再创建自动化，这里不打开，改为ai驱动
-	//intelligent.Chaos()
-
+	intelligent.Chaos()
 	//启动音箱ai驱动
 	//core.CoreChaos()
 	ava.Debugf("Starting Hahub ok! |latency=%.2fs", time.Since(now).Seconds())

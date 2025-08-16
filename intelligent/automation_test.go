@@ -3,6 +3,7 @@ package intelligent
 import (
 	"fmt"
 	"hahub/data"
+	"hahub/x"
 	"testing"
 
 	"github.com/aiakit/ava"
@@ -28,15 +29,4 @@ func TestTunOn(t *testing.T) {
 		t.Error(err)
 	}
 
-}
-
-func TestSpeaker(t *testing.T) {
-	//go func() {
-	//	time.Sleep(time.Second * 2)
-	//	pausePlay("media_player.xiaomi_cn_865393253_lx06")
-	//}()
-	ChaosSpeaker()
-	//PlayControlAction("cd5be8092557a0dcd20162114ad99de3", "text.xiaomi_cn_865393253_lx06_execute_text_directive_a_5_5", "今天天气怎么样")
-
-	select {}
 }

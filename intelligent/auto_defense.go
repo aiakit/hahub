@@ -8,7 +8,7 @@ import (
 
 // 布防
 // 存在传感器，人体传感器，发送通知
-func defense(c *ava.Context) {
+func Defense(c *ava.Context) {
 	var automation = &Automation{
 		Alias:       "离家布防",
 		Description: "离家之后如果存在传感器，人体传感器感应到人，发送通知",

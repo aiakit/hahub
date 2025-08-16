@@ -135,24 +135,22 @@ func doNotify(title, message string, auto *Automation) {
 	})
 
 	speakers, ok := data.GetEntityCategoryMap()[data.CategoryXiaomiHomeSpeaker]
-	if !ok {
-		return
-	}
 
-	for _, v := range speakers {
-		if !strings.Contains(v.OriginalName, "播放文本") {
-			continue
+	if ok {
+		for _, v := range speakers {
+			if strings.Contains(v.OriginalName, "播放文本") && strings.HasPrefix(v.EntityID, "notify.") {
+				auto.Actions = append(auto.Actions, &ActionNotify{
+					Action: "notify.send_message",
+					Data: struct {
+						Message string `json:"message,omitempty"`
+						Title   string `json:"title,omitempty"`
+					}{message, title},
+					Target: struct {
+						DeviceID string `json:"device_id,omitempty"`
+					}{DeviceID: v.DeviceID},
+				})
+			}
 		}
-		auto.Actions = append(auto.Actions, &ActionNotify{
-			Action: "notify.send_message",
-			Data: struct {
-				Message string `json:"message,omitempty"`
-				Title   string `json:"title,omitempty"`
-			}{message, title},
-			Target: struct {
-				DeviceID string `json:"device_id,omitempty"`
-			}{DeviceID: v.DeviceID},
-		})
 	}
 
 	for _, v := range notifyPhoneId {

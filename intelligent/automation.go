@@ -289,7 +289,7 @@ func ChaosAutomation() {
 	walkPresenceSensorKeting(c)
 
 	//布防
-	defense(c)
+	Defense(c)
 
 	//警报
 	attention(c)
