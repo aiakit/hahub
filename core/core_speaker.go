@@ -211,7 +211,12 @@ func (s *speakerProcess) runSpeakerPlayText() {
 		select {
 		case message := <-s.playTextMessage:
 			//todo: 增加基础指令拦截
+
 			fmt.Println("---------2-2-2----", x.MustMarshalEscape2String(message.Conversation))
+
+			if v := getOrCreateDeviceState(message.deviceId); v != nil && loadPlayingStats(message.deviceId) == 1 {
+				continue
+			}
 
 			// 使用设备独立的锁
 			deviceLock := s.getDeviceLock(message.deviceId)

@@ -188,13 +188,21 @@ func presenceSensorOffAir(entity *data.Entity) (*Automation, error) {
 			if e.AreaID != entity.AreaID {
 				continue
 			}
-			auto.Actions = append(auto.Actions, ActionService{
+			var act IfThenELSEAction
+			act.If = append(act.If, ifCondition{
+				Condition: "state",
+				State:     "off",
+				EntityId:  e.EntityID,
+				Attribute: "hvac_action",
+			})
+			act.Else = append(act.Else, ActionService{
 				Action: "climate.turn_off",
 				Target: &struct {
 					EntityId string `json:"entity_id"`
 				}{EntityId: e.EntityID},
 			})
 
+			auto.Actions = append(auto.Actions, act)
 		}
 	}
 

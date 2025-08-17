@@ -393,10 +393,21 @@ func callStates() {
 	})
 }
 
+// 获取区域名称
 func SpiltAreaName(name string) string {
 	s := strings.Split(name, " ")
 	if len(s) > 1 {
 		return s[1]
+	}
+
+	return s[0]
+}
+
+// 获取家庭名称,如果没有返回房间名称
+func SpiltHomeName(name string) string {
+	s := strings.Split(name, " ")
+	if len(s) > 1 {
+		return s[0]
 	}
 
 	return s[0]

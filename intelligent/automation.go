@@ -348,6 +348,11 @@ func CreateAutomation(c *ava.Context, automation *Automation) {
 			}
 			conflictCount++ //重新建一个
 		}
+
+		//如果前缀一致则不创建,例如：xxx带*和xxx带
+		if strings.HasPrefix(entity.OriginalName, alias) {
+			continue
+		}
 	}
 
 	finalAlias := alias
