@@ -19,6 +19,7 @@ const (
 	CategorySwitchScene         = "scene_switch"          // 开关场景按键
 	CategorySwitchMode          = "switch_mode"           // 开关模式：判断有线开关和无线开关
 	CategoryLight               = "light"                 // 灯
+	CategoryLightModel          = "light_mode"            // 灯
 	CategoryXinGuang            = "xinguang"              // 灯
 	CategoryLightGroup          = "light_group"           // 灯组
 	CategoryCurtain             = "curtain"               // 窗帘
@@ -165,6 +166,10 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 			category = CategoryLightGroup
 		}
 
+		//5.2灯光模式
+		if strings.Contains(e.OriginalName, "默认状态 渐变时间设置，字节[0]开灯渐变时间，字节[1]关灯渐变时间，字节[2]模式渐变时间") {
+			category = CategoryLightModel
+		}
 		// 6. 窗帘
 		if strings.Contains(e.OriginalName, "窗帘") && strings.HasPrefix(e.EntityID, "cover.") {
 			category = CategoryCurtain

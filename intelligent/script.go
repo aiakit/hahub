@@ -142,7 +142,7 @@ func DeleteAllScript(c *ava.Context) {
 			continue
 		}
 
-		if strings.Contains(entity.OriginalName, "*") {
+		if strings.Contains(entity.OriginalName, "*") || entity.Name != "" {
 			continue
 		}
 

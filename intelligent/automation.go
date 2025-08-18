@@ -350,7 +350,7 @@ func CreateAutomation(c *ava.Context, automation *Automation) {
 		}
 
 		//如果前缀一致则不创建,例如：xxx带*和xxx带
-		if strings.HasPrefix(entity.OriginalName, alias) {
+		if strings.HasPrefix(entity.OriginalName, alias) || strings.HasPrefix(entity.Name, alias) {
 			continue
 		}
 	}
@@ -420,7 +420,7 @@ func DeleteAllAutomations(c *ava.Context) {
 			continue
 		}
 
-		if strings.Contains(entity.OriginalName, "*") {
+		if strings.Contains(entity.OriginalName, "*") || entity.Name != "" {
 			continue
 		}
 

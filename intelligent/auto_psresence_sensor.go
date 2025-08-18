@@ -156,7 +156,7 @@ func presenceSensorOn(entity *data.Entity) (*Automation, error) {
 	var parallel2 = make(map[string][]interface{})
 	// 4. 再开非氛围灯
 	for _, l := range normalLights {
-		if strings.Contains(l.DeviceName, "馨光") && strings.Contains(l.DeviceName, "主机") {
+		if l.Category == data.CategoryXinGuang && strings.Contains(l.DeviceName, "主机") {
 			continue
 		}
 		if prefix != "" && !isNull {
@@ -165,7 +165,7 @@ func presenceSensorOn(entity *data.Entity) (*Automation, error) {
 			}
 		}
 
-		if strings.Contains(l.DeviceName, "馨光") && !strings.Contains(l.DeviceName, "主机") {
+		if l.Category == data.CategoryXinGuang && !strings.Contains(l.DeviceName, "主机") {
 			//改为静态模式,不能并行执行，必须优先执行
 			actions = append(actions, &ActionLight{
 				DeviceID: l.DeviceID,

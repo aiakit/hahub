@@ -225,11 +225,11 @@ func presenceSensorOnKeting(entity, lumen *data.Entity, lxMin, lxMax float64, du
 			}
 		}
 		//不打开主机
-		if strings.Contains(l.DeviceName, "馨光") && strings.Contains(l.DeviceName, "主机") {
+		if l.Category == data.CategoryXinGuang && strings.Contains(l.DeviceName, "主机") {
 			continue
 		}
 
-		if strings.Contains(l.DeviceName, "馨光") && !strings.Contains(l.DeviceName, "主机") {
+		if l.Category == data.CategoryXinGuang && !strings.Contains(l.DeviceName, "主机") {
 			//改为静态模式
 			actions = append(actions, &ActionLight{
 				DeviceID: l.DeviceID,

@@ -45,7 +45,7 @@ func InitXinGuang(c *ava.Context) {
 	}()
 
 	func() {
-		s := InitModeThree(c)
+		s := InitModeThree(c, 100)
 		if s != nil && len(s.Sequence) > 0 {
 			CreateScript(c, s)
 		}
@@ -74,7 +74,7 @@ func InitModeOne(c *ava.Context) *Script {
 	allLight, ok := data.GetEntityAreaMap()[areaId]
 	if ok {
 		for _, e := range allLight {
-			if strings.HasPrefix(e.EntityID, "light.") && !strings.Contains(e.DeviceName, "馨光") {
+			if strings.HasPrefix(e.EntityID, "light.") && e.Category == data.CategoryXinGuang {
 				script.Sequence = append(script.Sequence, ActionLight{
 					Type:     "turn_off",
 					DeviceID: e.DeviceID,
@@ -195,7 +195,7 @@ func InitModeTwo(c *ava.Context) *Script {
 	allLight, ok := data.GetEntityAreaMap()[areaId]
 	if ok {
 		for _, e := range allLight {
-			if strings.HasPrefix(e.EntityID, "light.") && !strings.Contains(e.DeviceName, "馨光") {
+			if strings.HasPrefix(e.EntityID, "light.") && e.Category != data.CategoryXinGuang {
 				script.Sequence = append(script.Sequence, ActionLight{
 					Type:     "turn_off",
 					DeviceID: e.DeviceID,
@@ -292,7 +292,7 @@ func InitModeTwo(c *ava.Context) *Script {
 }
 
 // 静态模式
-func InitModeThree(c *ava.Context) *Script {
+func InitModeThree(c *ava.Context, BrightnessPct float64) *Script {
 	//初始化馨光主机
 	entities, ok := data.GetEntityCategoryMap()[data.CategoryXinGuang]
 	if !ok {
@@ -308,28 +308,29 @@ func InitModeThree(c *ava.Context) *Script {
 		Description: "馨光静态模式设置场景",
 	}
 
-	//先开机
-	for _, e := range entities {
-		//注意元数据中有空格
-		if strings.HasPrefix(e.EntityID, "light.") {
-			script.Sequence = append(script.Sequence, ActionLight{
-				Type:          "turn_on",
-				DeviceID:      e.DeviceID,
-				EntityID:      e.EntityID,
-				Domain:        "light",
-				BrightnessPct: 100,
-			})
-		}
-	}
+	////先开机
+	//for _, e := range entities {
+	//	//注意元数据中有空格
+	//	if strings.HasPrefix(e.EntityID, "light.") {
+	//		script.Sequence = append(script.Sequence, ActionLight{
+	//			Action: "light.turn_on",
+	//			Data: &actionLightData{
+	//				BrightnessPct: BrightnessPct,
+	//				RgbColor:      GetRgbColor(5000),
+	//			},
+	//			Target: &targetLightData{DeviceId: e.DeviceID},
+	//		})
+	//	}
+	//}
 
-	script.Sequence = append(script.Sequence, ActionTimerDelay{
-		Delay: struct {
-			Hours        int `json:"hours"`
-			Minutes      int `json:"minutes"`
-			Seconds      int `json:"seconds"`
-			Milliseconds int `json:"milliseconds"`
-		}{Seconds: 3},
-	})
+	//script.Sequence = append(script.Sequence, ActionTimerDelay{
+	//	Delay: struct {
+	//		Hours        int `json:"hours"`
+	//		Minutes      int `json:"minutes"`
+	//		Seconds      int `json:"seconds"`
+	//		Milliseconds int `json:"milliseconds"`
+	//	}{Seconds: 3},
+	//})
 
 	// 主机设置
 	for _, e := range entities {
