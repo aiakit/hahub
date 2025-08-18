@@ -39,6 +39,9 @@ func ScriptChaos() {
 	dimmmingIncrease(c)
 	dimmmingReduce(c)
 
+	//客厅灯光按照序号开启
+	Display(c)
+
 	//回家离家
 	initHoming(c)
 	initLevingHome(c)

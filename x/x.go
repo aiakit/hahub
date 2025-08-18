@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"math/rand"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -200,4 +201,30 @@ func Intn(n int) int {
 
 func ToLower(s string) string {
 	return strings.ToLower(s)
+}
+
+// ExtractAndCombineNumbers 从字符串中提取所有数字并组合成一个整数
+func ExtractAndCombineNumbers(input string) int {
+	currentNumber := ""
+
+	for i, char := range input {
+		if unicode.IsSpace(char) { // 检查是否有空格
+			// 如果空格在数字前面，返回 0
+			if currentNumber == "" && i > 0 && !unicode.IsSpace(rune(input[i-1])) {
+				return 0
+			}
+		} else if char >= '0' && char <= '9' { // 判断字符是否为数字
+			currentNumber += string(char) // 追加数字字符
+		}
+	}
+
+	// 将构建的字符串数字转换为整数
+	if currentNumber != "" {
+		num, err := strconv.Atoi(currentNumber)
+		if err == nil {
+			return num
+		}
+	}
+
+	return 0 // 如果没有找到数字，返回 0
 }
