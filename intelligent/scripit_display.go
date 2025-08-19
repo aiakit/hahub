@@ -49,7 +49,13 @@ func Display(c *ava.Context) {
 	sXinguang := InitModeThree(c, 1)
 
 	if sXinguang != nil && len(sXinguang.Sequence) > 0 {
-		script.Sequence = append(script.Sequence, sXinguang.Sequence...)
+		var parallel = make(map[string][]interface{})
+		for _, e := range sXinguang.Sequence {
+			parallel["parallel"] = append(parallel["parallel"], e)
+		}
+		if len(parallel) > 0 {
+			script.Sequence = append(script.Sequence, parallel)
+		}
 	}
 
 	// 找出所有灯带编号，按照从1开始顺序加入到一个数组中
@@ -78,28 +84,36 @@ func Display(c *ava.Context) {
 	})
 
 	//先把灯设置成开灯很快
+	var parallel1 = make(map[string][]interface{})
+
 	for _, s := range lightStripNumbers {
 		if v, ok := entityMapMode[s.Entity.DeviceID]; ok {
 			actionCommon := handleDefaultGradientTimeSettings(v, 2)
 			if actionCommon != nil {
-				script.Sequence = append(script.Sequence, actionCommon)
+				parallel1["parallel"] = append(parallel1["parallel"], actionCommon)
 			}
 		}
 	}
 
+	if len(parallel1) > 0 {
+		script.Sequence = append(script.Sequence, parallel1)
+	}
+
 	//开灯
+	var sequence = make(map[string][]interface{}, 2)
+	var unified = make([]interface{}, 0)
 	for index, s := range lightStripNumbers {
-		script.Sequence = append(script.Sequence, ActionTimerDelay{
+		sequence["sequence"] = append(sequence["sequence"], ActionTimerDelay{
 			Delay: struct {
 				Hours        int `json:"hours"`
 				Minutes      int `json:"minutes"`
 				Seconds      int `json:"seconds"`
 				Milliseconds int `json:"milliseconds"`
-			}{Milliseconds: 100},
+			}{Milliseconds: 700},
 		})
 
 		if strings.Contains(s.Entity.DeviceName, "彩") || strings.Contains(s.Entity.DeviceName, "楼梯") {
-			script.Sequence = append(script.Sequence, ActionLight{
+			sequence["sequence"] = append(sequence["sequence"], ActionLight{
 				Action: "light.turn_on",
 				Data: &actionLightData{
 					BrightnessPct: 100,
@@ -115,10 +129,18 @@ func Display(c *ava.Context) {
 			if index%2 == 1 {
 				colorTemp = 2700
 			}
-			script.Sequence = append(script.Sequence, ActionLight{
+			sequence["sequence"] = append(sequence["sequence"], ActionLight{
 				Action: "light.turn_on",
 				Data: &actionLightData{
 					ColorTempKelvin: colorTemp,
+					BrightnessPct:   100,
+				},
+				Target: &targetLightData{DeviceId: entity.DeviceID},
+			})
+			unified = append(unified, ActionLight{
+				Action: "light.turn_on",
+				Data: &actionLightData{
+					ColorTempKelvin: 5800,
 					BrightnessPct:   100,
 				},
 				Target: &targetLightData{DeviceId: entity.DeviceID},
@@ -127,7 +149,7 @@ func Display(c *ava.Context) {
 		}
 
 		if s.Entity.Category == data.CategoryXinGuang {
-			script.Sequence = append(script.Sequence, ActionLight{
+			sequence["sequence"] = append(sequence["sequence"], ActionLight{
 				Action: "light.turn_on",
 				Data: &actionLightData{
 					BrightnessPct: 100,
@@ -138,14 +160,47 @@ func Display(c *ava.Context) {
 		}
 	}
 
-	//再改回去
-	for _, s := range lightStripNumbers {
-		if v, ok := entityMapMode[s.Entity.DeviceID]; ok {
-			actionCommon := handleDefaultGradientTimeSettings(v, 1)
-			if actionCommon != nil {
-				script.Sequence = append(script.Sequence, actionCommon)
+	if len(sequence) > 0 {
+		script.Sequence = append(script.Sequence, ActionTimerDelay{
+			Delay: struct {
+				Hours        int `json:"hours"`
+				Minutes      int `json:"minutes"`
+				Seconds      int `json:"seconds"`
+				Milliseconds int `json:"milliseconds"`
+			}{Seconds: 2},
+		})
+
+		sequence["sequence"] = append(sequence["sequence"], ActionTimerDelay{
+			Delay: struct {
+				Hours        int `json:"hours"`
+				Minutes      int `json:"minutes"`
+				Seconds      int `json:"seconds"`
+				Milliseconds int `json:"milliseconds"`
+			}{Seconds: 2},
+		})
+
+		var parallel2 = make(map[string][]interface{})
+		//再改回去
+		for _, s := range lightStripNumbers {
+			if v, ok := entityMapMode[s.Entity.DeviceID]; ok {
+				actionCommon := handleDefaultGradientTimeSettings(v, 2)
+				if actionCommon != nil {
+					parallel2["parallel"] = append(parallel2["parallel"], actionCommon)
+				}
 			}
 		}
+
+		if len(unified) > 0 {
+			for _, e := range unified {
+				parallel2["parallel"] = append(parallel2["parallel"], e)
+			}
+		}
+
+		if len(parallel2) > 0 {
+			sequence["sequence"] = append(sequence["sequence"], parallel2)
+		}
+
+		script.Sequence = append(script.Sequence, sequence)
 	}
 
 	if len(script.Sequence) > 0 {
