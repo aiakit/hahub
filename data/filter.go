@@ -12,6 +12,7 @@ const (
 	CategoryXiaomiMiotSpeaker   = "xiaomi_miot_speaker"   // 小米MIOT音箱
 	CategoryAppleTV             = "apple_tv"              // Apple TV
 	CategoryAirConditioner      = "air_conditioner"       // 空调
+	CategoryFloorHeating        = "floor_heating"         // 地暖
 	CategoryVirtualEvent        = "virtual_event"         // 虚拟事件
 	CategorySwitch              = "switch"                // 开关
 	CategoryWiredSwitch         = "wired_switch"          // 有线开关
@@ -117,6 +118,12 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 		if strings.HasPrefix(e.EntityID, "climate.") && strings.Contains(e.OriginalName, "空调") {
 			category = CategoryAirConditioner
 		}
+
+		// 2. 地暖
+		if strings.HasPrefix(e.EntityID, "climate.") && strings.Contains(e.OriginalName, "地暖") {
+			category = CategoryFloorHeating
+		}
+
 		// 3. 虚拟事件
 		if deviceData != nil && strings.Contains(e.OriginalName, "虚拟事件") && strings.Contains(deviceData.Model, ".gateway.") {
 			category = CategoryVirtualEvent
