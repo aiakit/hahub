@@ -52,38 +52,57 @@ func homingScript() *Script {
 
 	//打开客厅所有灯
 	func() {
-		entities, ok := data.GetEntityCategoryMap()[data.CategoryLightGroup]
+		entitiesScript, ok := data.GetEntityCategoryMap()[data.CategoryScript]
+		var isOpen bool
 		if ok {
-			//先开氛围灯
-			for _, v := range entities {
-				if strings.Contains(v.AreaName, "客厅") {
-					if strings.Contains(v.DeviceName, "氛围") {
-						script.Sequence = append(script.Sequence, ActionLight{
-							Action: "light.turn_on",
-							Data: &actionLightData{
-								ColorTempKelvin: 5800,
-								BrightnessPct:   100,
-							},
-							Target: &targetLightData{DeviceId: v.DeviceID},
-						})
-					}
-
+			for _, e := range entitiesScript {
+				if strings.Contains(e.OriginalName, "逐个") {
+					script.Sequence = append(script.Sequence, ActionService{
+						Action: "script.turn_on",
+						Target: &struct {
+							EntityId string `json:"entity_id"`
+						}{EntityId: e.EntityID},
+					})
+					isOpen = true
 				}
 			}
+		}
 
-			for _, v := range entities {
-				if strings.Contains(v.AreaName, "客厅") {
-					if !strings.Contains(v.DeviceName, "氛围") {
-						script.Sequence = append(script.Sequence, ActionLight{
-							Action: "light.turn_on",
-							Data: &actionLightData{
-								ColorTempKelvin: 5800,
-								BrightnessPct:   100,
-							},
-							Target: &targetLightData{DeviceId: v.DeviceID},
-						})
+		if !isOpen {
+			//判断是否有展示脚本,如果有，使用展示脚本
+			entities, ok := data.GetEntityCategoryMap()[data.CategoryLightGroup]
+			if ok {
+				//先开氛围灯
+				for _, v := range entities {
+					if strings.Contains(v.AreaName, "客厅") {
+						if strings.Contains(v.DeviceName, "氛围") {
+							script.Sequence = append(script.Sequence, ActionLight{
+								Action: "light.turn_on",
+								Data: &actionLightData{
+									ColorTempKelvin: 5800,
+									BrightnessPct:   100,
+								},
+								Target: &targetLightData{DeviceId: v.DeviceID},
+							})
+						}
+
 					}
+				}
 
+				for _, v := range entities {
+					if strings.Contains(v.AreaName, "客厅") {
+						if !strings.Contains(v.DeviceName, "氛围") {
+							script.Sequence = append(script.Sequence, ActionLight{
+								Action: "light.turn_on",
+								Data: &actionLightData{
+									ColorTempKelvin: 5800,
+									BrightnessPct:   100,
+								},
+								Target: &targetLightData{DeviceId: v.DeviceID},
+							})
+						}
+
+					}
 				}
 			}
 		}

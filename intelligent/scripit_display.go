@@ -205,5 +205,6 @@ func Display(c *ava.Context) {
 
 	if len(script.Sequence) > 0 {
 		CreateScript(c, script)
+		data.CallService()
 	}
 }
