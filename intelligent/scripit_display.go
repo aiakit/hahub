@@ -149,6 +149,13 @@ func Display(c *ava.Context) {
 		}
 
 		if s.Entity.Category == data.CategoryXinGuang {
+			sequence["sequence"] = append(sequence["sequence"], &ActionLight{
+				DeviceID: s.Entity.DeviceID,
+				Domain:   "select",
+				EntityID: data.GetXinGuang(s.Entity.DeviceID),
+				Type:     "select_option",
+				Option:   "静态模式",
+			})
 			sequence["sequence"] = append(sequence["sequence"], ActionLight{
 				Action: "light.turn_on",
 				Data: &actionLightData{

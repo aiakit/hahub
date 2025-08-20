@@ -25,6 +25,7 @@ func main() {
 	//必须先创建脚本再创建自动化，这里不打开，改为ai驱动
 	//intelligent.InitSwitchSelect(ava.Background())
 	//intelligent.LightControl(ava.Background())
+	//intelligent.WalkPresenceSensorAir(ava.Background())
 	intelligent.Chaos()
 
 	//启动音箱ai驱动

@@ -111,6 +111,9 @@ func lightScene(c *ava.Context, simpleName string, brightness float64, kelvin in
 			}
 		}()
 
+		var actions []interface{}
+		var parallel2 = make(map[string][]interface{})
+
 		// 添加设备操作到场景中
 		for _, e1 := range v {
 			if e1.Category == data.CategoryLightGroup {
@@ -122,6 +125,28 @@ func lightScene(c *ava.Context, simpleName string, brightness float64, kelvin in
 					},
 					Target: &targetLightData{DeviceId: e1.DeviceID},
 				})
+			}
+
+			if strings.HasPrefix(e1.EntityID, "light.") && e1.Category == data.CategoryXinGuang && !strings.Contains(e1.DeviceName, "主机") {
+				//改为静态模式,不能并行执行，必须优先执行
+				actions = append(actions, &ActionLight{
+					DeviceID: e1.DeviceID,
+					Domain:   "select",
+					EntityID: data.GetXinGuang(e1.DeviceID),
+					Type:     "select_option",
+					Option:   "静态模式",
+				})
+
+				//修改颜色
+				parallel2["parallel"] = append(parallel2["parallel"], &ActionLight{
+					Action: "light.turn_on",
+					Data: &actionLightData{
+						BrightnessPct: brightness,
+						RgbColor:      GetRgbColor(kelvin),
+					},
+					Target: &targetLightData{DeviceId: e1.DeviceID},
+				})
+				continue
 			}
 
 			if e1.Category == data.CategoryLight {
@@ -146,6 +171,14 @@ func lightScene(c *ava.Context, simpleName string, brightness float64, kelvin in
 					})
 				}
 			}
+		}
+
+		if len(actions) > 0 {
+			script.Sequence = append(script.Sequence, actions)
+		}
+
+		if len(parallel2) > 0 {
+			script.Sequence = append(script.Sequence, parallel2)
 		}
 
 		if len(script.Sequence) > 0 {
