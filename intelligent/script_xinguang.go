@@ -108,10 +108,16 @@ func InitModeOne(c *ava.Context) *Script {
 		}{Seconds: 3},
 	})
 
+	var areaName string
+
 	// 主机设置
 	for _, e := range entities {
 		if !strings.Contains(e.DeviceName, "主机") {
 			continue
+		}
+
+		if areaName == "" {
+			areaName = data.SpiltAreaName(e.AreaName)
 		}
 
 		if strings.Contains(e.OriginalName, "动态模式效果") {
@@ -139,6 +145,10 @@ func InitModeOne(c *ava.Context) *Script {
 	for _, e := range entities {
 		if strings.Contains(e.DeviceName, "主机") {
 			continue
+		}
+
+		if areaName == "" {
+			areaName = data.SpiltAreaName(e.AreaName)
 		}
 
 		script.Sequence = append(script.Sequence, ActionLight{
@@ -169,6 +179,7 @@ func InitModeOne(c *ava.Context) *Script {
 			script.Sequence = append(script.Sequence, ActionCommon{Domain: "select", DeviceID: e.DeviceID, EntityID: e.EntityID, Type: "select_option", Option: "动态模式"})
 		}
 	}
+	script.Alias = areaName + script.Alias
 
 	return script
 }
@@ -229,10 +240,16 @@ func InitModeTwo(c *ava.Context) *Script {
 		}{Seconds: 3},
 	})
 
+	var areaName string
+
 	// 主机设置
 	for _, e := range entities {
 		if !strings.Contains(e.DeviceName, "主机") {
 			continue
+		}
+
+		if areaName == "" {
+			areaName = data.SpiltAreaName(e.AreaName)
 		}
 
 		if strings.Contains(e.OriginalName, "动态模式效果") {
@@ -266,6 +283,10 @@ func InitModeTwo(c *ava.Context) *Script {
 			continue
 		}
 
+		if areaName == "" {
+			areaName = data.SpiltAreaName(e.AreaName)
+		}
+
 		if strings.Contains(e.OriginalName, "动态模式效果") {
 			script.Sequence = append(script.Sequence, ActionCommon{Domain: "number", DeviceID: e.DeviceID, EntityID: e.EntityID, Type: "set_value", Value: 5})
 		}
@@ -287,6 +308,7 @@ func InitModeTwo(c *ava.Context) *Script {
 			script.Sequence = append(script.Sequence, ActionCommon{Domain: "select", DeviceID: e.DeviceID, EntityID: e.EntityID, Type: "select_option", Option: "律动模式"})
 		}
 	}
+	script.Alias = areaName + script.Alias
 
 	return script
 }
@@ -332,10 +354,15 @@ func InitModeThree(c *ava.Context, BrightnessPct float64) *Script {
 	//	}{Seconds: 3},
 	//})
 
+	var areaName string
 	// 主机设置
 	for _, e := range entities {
 		if !strings.Contains(e.DeviceName, "主机") {
 			continue
+		}
+
+		if areaName == "" {
+			areaName = data.SpiltAreaName(e.AreaName)
 		}
 
 		if strings.Contains(e.OriginalName, "动态模式效果") {
@@ -353,8 +380,13 @@ func InitModeThree(c *ava.Context, BrightnessPct float64) *Script {
 
 	//灯带设置
 	for _, e := range entities {
+
 		if strings.Contains(e.DeviceName, "主机") {
 			continue
+		}
+
+		if areaName == "" {
+			areaName = data.SpiltAreaName(e.AreaName)
 		}
 
 		if strings.Contains(e.OriginalName, "饱和度") {
@@ -369,6 +401,7 @@ func InitModeThree(c *ava.Context, BrightnessPct float64) *Script {
 			script.Sequence = append(script.Sequence, ActionCommon{Domain: "select", DeviceID: e.DeviceID, EntityID: e.EntityID, Type: "select_option", Option: "静态模式"})
 		}
 	}
+	script.Alias = areaName + script.Alias
 
 	return script
 }

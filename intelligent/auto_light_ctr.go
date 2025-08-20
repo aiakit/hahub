@@ -34,7 +34,7 @@ func LightControl(c *ava.Context) {
 		}
 
 		auto := &Automation{
-			Alias:       areaName + buttonName + "灯开关",
+			Alias:       areaName + "按键" + buttonName + "控制灯",
 			Description: "对" + areaName + "区域的" + buttonName + "做对应的灯控",
 			Mode:        "single",
 		}

@@ -246,7 +246,7 @@ func presenceSensorOn(entity *data.Entity) (*Automation, error) {
 
 	areaName := data.SpiltAreaName(entity.AreaName)
 	auto := &Automation{
-		Alias:       areaName + "有人自动亮灯",
+		Alias:       areaName + "有人亮灯",
 		Description: "当人体传感器检测到有人，自动打开" + areaName + "灯组和有线开关",
 		Triggers: []Triggers{{
 			Type:     "occupied",
@@ -277,6 +277,28 @@ func presenceSensorOn(entity *data.Entity) (*Automation, error) {
 			Before:    "22:00:00",
 			Weekday:   []string{"mon", "tue", "wed", "thu", "fri", "sat", "sun"},
 		})
+	}
+
+	ss, ok := data.GetEntityCategoryMap()[data.CategoryScript]
+
+	if ok {
+		for _, e := range ss {
+			if (strings.Contains(e.OriginalName, "晚安场景") || strings.Contains(e.OriginalName, "睡觉") || strings.Contains(e.OriginalName, "开/关") ||
+				strings.Contains(e.OriginalName, "开关")) && strings.Contains(e.OriginalName, areaName) {
+
+				auto.Conditions = append(auto.Conditions, Conditions{
+					Condition: "state",
+					EntityID:  e.EntityID,
+					State:     "on",
+					Attribute: "last_triggered",
+					For: &For{
+						Hours:   9,
+						Minutes: 0,
+						Seconds: 0,
+					},
+				})
+			}
+		}
 	}
 
 	return auto, nil
@@ -398,26 +420,6 @@ func presenceSensorOff(entity *data.Entity) (*Automation, error) {
 		}},
 		Actions: actions,
 		Mode:    "single",
-	}
-
-	ss, ok := data.GetEntityCategoryMap()[data.CategoryScript]
-
-	if ok {
-		for _, e := range ss {
-			if (e.OriginalName == "晚安" || e.OriginalName == "睡觉" || e.OriginalName == "开/关") && strings.Contains(e.OriginalName, areaName) {
-				auto.Conditions = append(auto.Conditions, Conditions{
-					Condition: "state",
-					EntityID:  e.EntityID,
-					State:     "on",
-					Attribute: "last_triggered",
-					For: &For{
-						Hours:   9,
-						Minutes: 0,
-						Seconds: 0,
-					},
-				})
-			}
-		}
 	}
 
 	return auto, nil

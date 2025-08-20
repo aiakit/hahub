@@ -34,7 +34,7 @@ func CoreChaos() {
 	gFunctionRouter.Register(dailyConversation, Conversation)
 
 	data.RegisterDataHandler(registerHomingWelcome)
-	data.RegisterDataHandler(registerToggleLight)
+	//data.RegisterDataHandler(registerToggleLight)
 
 	chaosSpeaker()
 }
@@ -173,7 +173,7 @@ func registerToggleLight(simple *data.StateChangedSimple, body []byte) {
 
 	if strings.Contains(state.Event.Data.EntityID, "_conversation") &&
 		strings.EqualFold(state.Event.Data.NewState.Attributes.EntityClass, "XiaoaiConversationSensor") {
-		//找到所有根据存在传感器自动亮灯的自动化
+		//找到所有根据存在传感器有人亮灯的自动化
 		if (strings.Contains(simple.Event.Data.NewState.State, "关") && strings.Contains(simple.Event.Data.NewState.State, "灯")) ||
 			strings.Contains(simple.Event.Data.NewState.State, "晚安") || strings.Contains(simple.Event.Data.NewState.State, "睡觉") || strings.Contains(simple.Event.Data.NewState.State, "午觉") {
 			entity, ok := data.GetEntityIdMap()[simple.Event.Data.EntityID]
@@ -189,7 +189,7 @@ func registerToggleLight(simple *data.StateChangedSimple, body []byte) {
 			}
 
 			for _, a := range as {
-				if strings.Contains(a.OriginalName, areaName) && strings.Contains(a.OriginalName, "自动亮灯") {
+				if strings.Contains(a.OriginalName, areaName) && strings.Contains(a.OriginalName, "有人亮灯") {
 					//关闭自动化
 					err = intelligent.TurnOffAutomation(ava.Background(), a.EntityID)
 					if err != nil {
@@ -216,7 +216,7 @@ func registerToggleLight(simple *data.StateChangedSimple, body []byte) {
 				}
 
 				for _, a := range as {
-					if strings.Contains(a.OriginalName, areaName) && strings.Contains(a.OriginalName, "自动亮灯") {
+					if strings.Contains(a.OriginalName, areaName) && strings.Contains(a.OriginalName, "有人亮灯") {
 						err = intelligent.TurnOnAutomation(ava.Background(), a.EntityID)
 						if err != nil {
 							ava.Error(err)
