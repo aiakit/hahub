@@ -9,7 +9,7 @@ import (
 	"github.com/aiakit/ava"
 )
 
-func walkPresenceSensor(c *ava.Context) {
+func WalkPresenceSensor(c *ava.Context) {
 	entity, ok := data.GetEntityCategoryMap()[data.CategoryHumanPresenceSensor]
 	if !ok {
 		return
@@ -121,7 +121,7 @@ func presenceSensorOn(entity *data.Entity) (*Automation, error) {
 		}
 
 		if strings.Contains(l.DeviceName, "彩") {
-			act.Data = &actionLightData{}
+			act.Data = &actionLightData{BrightnessStepPct: 100}
 		}
 
 		parallel1["parallel"] = append(parallel1["parallel"], act)

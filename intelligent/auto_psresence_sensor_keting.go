@@ -179,15 +179,20 @@ func presenceSensorOnKeting(entity, lumen *data.Entity, lxMin, lxMax float64, du
 				continue
 			}
 		}
-
-		parallel1["parallel"] = append(parallel1["parallel"], &ActionLight{
+		var act = &ActionLight{
 			Action: "light.turn_on",
 			Data: &actionLightData{
 				ColorTempKelvin: kelvin,
 				BrightnessPct:   100,
 			},
 			Target: &targetLightData{DeviceId: l.DeviceID},
-		})
+		}
+
+		if strings.Contains(l.DeviceName, "彩") {
+			act.Data = &actionLightData{BrightnessStepPct: 100}
+		}
+
+		parallel1["parallel"] = append(parallel1["parallel"], act)
 	}
 	// 2. 先开氛围开关
 	for _, s := range atmosphereSwitches {

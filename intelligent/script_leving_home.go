@@ -7,7 +7,7 @@ import (
 	"github.com/aiakit/ava"
 )
 
-func initLevingHome(c *ava.Context) {
+func InitLevingHome(c *ava.Context) {
 	// 创建离家场景
 	script := levingHomeScript()
 	if script != nil && len(script.Sequence) > 0 {
@@ -153,23 +153,23 @@ func levingHomeScript() *Script {
 		}
 	}()
 
-	// 播放离家提醒（通过音箱）
-	func() {
-		entities, ok := data.GetEntityCategoryMap()[data.CategoryXiaomiHomeSpeaker]
-		if ok {
-			for _, e := range entities {
-				if strings.Contains(e.OriginalName, "执行文本指令") && strings.Contains(e.AreaName, "客厅") {
-					script.Sequence = append(script.Sequence, ActionNotify{
-						Action: "notify.send_message",
-						Data: struct {
-							Message string `json:"message,omitempty"`
-							Title   string `json:"title,omitempty"`
-						}{Message: "主人即将离家，请检查是否关闭所有电器设备", Title: ""},
-					})
-				}
-			}
-		}
-	}()
+	//// 播放离家提醒（通过音箱）
+	//func() {
+	//	entities, ok := data.GetEntityCategoryMap()[data.CategoryXiaomiHomeSpeaker]
+	//	if ok {
+	//		for _, e := range entities {
+	//			if strings.Contains(e.OriginalName, "执行文本指令") && strings.Contains(e.AreaName, "客厅") {
+	//				script.Sequence = append(script.Sequence, ActionNotify{
+	//					Action: "notify.send_message",
+	//					Data: struct {
+	//						Message string `json:"message,omitempty"`
+	//						Title   string `json:"title,omitempty"`
+	//					}{Message: "主人即将离家，请检查是否关闭所有电器设备", Title: ""},
+	//				})
+	//			}
+	//		}
+	//	}
+	//}()
 
 	//关闭插座
 	func() {
@@ -185,6 +185,19 @@ func levingHomeScript() *Script {
 			}
 		}
 	}()
+
+	entities, ok := data.GetEntityCategoryMap()[data.CategoryXiaomiHomeSpeaker]
+	if ok {
+		for _, e := range entities {
+			if strings.HasPrefix(e.EntityID, "media_player.") {
+				script.Sequence = append(script.Sequence, ActionService{
+					Action: "media_player.media_pause",
+					Target: &struct {
+						EntityId string `json:"entity_id"`
+					}{EntityId: e.EntityID}})
+			}
+		}
+	}
 
 	// 布防
 	script.Sequence = append(script.Sequence, ActionService{

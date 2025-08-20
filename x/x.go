@@ -228,3 +228,18 @@ func ExtractAndCombineNumbers(input string) int {
 
 	return 0 // 如果没有找到数字，返回 0
 }
+
+func GetPlaybackDuration(message string) time.Duration {
+	// 每个字符需要0.3秒播报
+	charDuration := 90 * time.Millisecond
+
+	// 计算总播报时间
+	totalDuration := time.Duration(len(message)) * charDuration
+
+	// 确保最短播报时间为1秒
+	if totalDuration < 1*time.Second {
+		totalDuration = 1 * time.Second
+	}
+
+	return totalDuration
+}

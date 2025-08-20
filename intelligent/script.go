@@ -31,9 +31,9 @@ func ScriptChaos() {
 	//初始化灯光场景
 	lightScriptSetting(c)
 	//卧室睡觉场景
-	goodNightScript(c)
+	GoodNightScript(c)
 	//起床场景
-	goodMorningScript(c)
+	GoodMorningScript(c)
 
 	//调光场景
 	dimmmingIncrease(c)
@@ -43,8 +43,8 @@ func ScriptChaos() {
 	Display(c)
 
 	//回家离家
-	initHoming(c)
-	initLevingHome(c)
+	InitHoming(c)
+	InitLevingHome(c)
 
 	//洗澡
 	TakeAShower(c)

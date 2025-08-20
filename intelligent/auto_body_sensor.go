@@ -112,8 +112,9 @@ func bodySensorOn(entity *data.Entity) (*Automation, error) {
 		}
 
 		if strings.Contains(e.DeviceName, "彩") {
-			act.Data = &actionLightData{}
+			act.Data = &actionLightData{BrightnessStepPct: 100}
 		}
+
 		condition = append(condition, Conditions{
 			Condition: "device",
 			Type:      "is_off",

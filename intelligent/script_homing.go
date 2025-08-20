@@ -7,7 +7,7 @@ import (
 	"github.com/aiakit/ava"
 )
 
-func initHoming(c *ava.Context) {
+func InitHoming(c *ava.Context) {
 	// 创建回家场景
 	script := homingScript()
 	if script != nil && len(script.Sequence) > 0 {
@@ -30,21 +30,71 @@ func homingScript() *Script {
 		Description: "回家场景执行场景",
 	}
 
+	// 撤防
+	script.Sequence = append(script.Sequence, ActionService{
+		Action: "automation.turn_off",
+		Data:   map[string]interface{}{"stop_actions": true},
+		Target: &struct {
+			EntityId string `json:"entity_id"`
+		}{EntityId: "automation.li_jia_bu_fang"},
+	})
+
+	var sequence = make(map[string][]interface{})
+
+	var xiaomiHomeSpeakerDeviceId string
 	func() {
 		entities, ok := data.GetEntityCategoryMap()[data.CategoryXiaomiHomeSpeaker]
 		if ok {
 			for _, e := range entities {
-				if strings.Contains(e.OriginalName, "执行文本指令") && strings.Contains(e.AreaName, "客厅") {
+				if strings.Contains(e.OriginalName, "播放文本") && strings.Contains(e.AreaName, "客厅") && strings.HasPrefix(e.EntityID, "notify.") {
+					script.Sequence = append(script.Sequence, ActionTimerDelay{
+						Delay: struct {
+							Hours        int `json:"hours"`
+							Minutes      int `json:"minutes"`
+							Seconds      int `json:"seconds"`
+							Milliseconds int `json:"milliseconds"`
+						}{Seconds: 3},
+					})
+
 					script.Sequence = append(script.Sequence, ActionNotify{
 						Action: "notify.send_message",
 						Data: struct {
 							Message string `json:"message,omitempty"`
 							Title   string `json:"title,omitempty"`
-						}{Message: "[播放一段轻音乐,false]"},
+						}{Message: "欢迎主人回家"},
 						Target: struct {
 							DeviceID string `json:"device_id,omitempty"`
 						}{DeviceID: e.DeviceID},
 					})
+					script.Sequence = append(script.Sequence, ActionTimerDelay{
+						Delay: struct {
+							Hours        int `json:"hours"`
+							Minutes      int `json:"minutes"`
+							Seconds      int `json:"seconds"`
+							Milliseconds int `json:"milliseconds"`
+						}{Seconds: 3},
+					})
+
+					xiaomiHomeSpeakerDeviceId = e.DeviceID
+					break
+				}
+			}
+		}
+
+		for _, e := range entities {
+			if e.DeviceID == xiaomiHomeSpeakerDeviceId {
+				if strings.Contains(e.OriginalName, "执行文本指令") && strings.Contains(e.AreaName, "客厅") && strings.HasPrefix(e.EntityID, "text.") {
+					script.Sequence = append(script.Sequence, ActionNotify{
+						Action: "notify.send_message",
+						Data: struct {
+							Message string `json:"message,omitempty"`
+							Title   string `json:"title,omitempty"`
+						}{Message: "[播放一段轻音乐,true]"},
+						Target: struct {
+							DeviceID string `json:"device_id,omitempty"`
+						}{DeviceID: e.DeviceID},
+					})
+					break
 				}
 			}
 		}
@@ -125,41 +175,18 @@ func homingScript() *Script {
 		}
 	}()
 
-	//关闭窗帘
+	//打开窗帘
 	func() {
 		entities, ok := data.GetEntityCategoryMap()[data.CategoryCurtain]
 		if ok {
 			for _, e := range entities {
 				if strings.Contains(e.AreaName, "客厅") {
 					script.Sequence = append(script.Sequence, ActionCommon{
-						Type:     "close",
+						Type:     "open",
 						DeviceID: e.DeviceID,
 						EntityID: e.EntityID,
 						Domain:   "cover",
 					})
-				}
-			}
-		}
-	}()
-
-	func() {
-		script.Sequence = append(script.Sequence, ActionTimerDelay{
-			Delay: struct {
-				Hours        int `json:"hours"`
-				Minutes      int `json:"minutes"`
-				Seconds      int `json:"seconds"`
-				Milliseconds int `json:"milliseconds"`
-			}{Seconds: 5},
-		})
-		entities, ok := data.GetEntityCategoryMap()[data.CategoryXiaomiHomeSpeaker]
-		if ok {
-			for _, e := range entities {
-				if strings.Contains(e.EntityID, "media_player.") && strings.Contains(e.AreaName, "客厅") {
-					script.Sequence = append(script.Sequence, ActionService{
-						Action: "media_player.media_pause",
-						Target: &struct {
-							EntityId string `json:"entity_id"`
-						}{EntityId: e.EntityID}})
 				}
 			}
 		}
@@ -170,14 +197,40 @@ func homingScript() *Script {
 		entities, ok := data.GetEntityCategoryMap()[data.CategoryXiaomiHomeSpeaker]
 		if ok {
 			for _, e := range entities {
-				if strings.Contains(e.OriginalName, "执行文本指令") && strings.Contains(e.AreaName, "客厅") {
-					script.Sequence = append(script.Sequence, ActionNotify{
-						Action: "notify.send_message",
-						Data: struct {
-							Message string `json:"message,omitempty"`
-							Title   string `json:"title,omitempty"`
-						}{Message: "[室内温度和湿度是多少，如果检查不到室内情况，就播报室外温度和湿度,false]", Title: ""},
-					})
+				if e.DeviceID == xiaomiHomeSpeakerDeviceId {
+					if strings.Contains(e.OriginalName, "执行文本指令") && strings.Contains(e.AreaName, "客厅") && strings.HasPrefix(e.EntityID, "text.") {
+						sequence["sequence"] = append(sequence["sequence"], ActionNotify{
+							Action: "notify.send_message",
+							Data: struct {
+								Message string `json:"message,omitempty"`
+								Title   string `json:"title,omitempty"`
+							}{Message: "[室内湿度,false]", Title: ""},
+							Target: struct {
+								DeviceID string `json:"device_id,omitempty"`
+							}{DeviceID: e.DeviceID},
+						})
+
+						sequence["sequence"] = append(sequence["sequence"], ActionTimerDelay{
+							Delay: struct {
+								Hours        int `json:"hours"`
+								Minutes      int `json:"minutes"`
+								Seconds      int `json:"seconds"`
+								Milliseconds int `json:"milliseconds"`
+							}{Seconds: 4},
+						})
+
+						sequence["sequence"] = append(sequence["sequence"], ActionNotify{
+							Action: "notify.send_message",
+							Data: struct {
+								Message string `json:"message,omitempty"`
+								Title   string `json:"title,omitempty"`
+							}{Message: "[室内温度,false]", Title: ""},
+							Target: struct {
+								DeviceID string `json:"device_id,omitempty"`
+							}{DeviceID: e.DeviceID},
+						})
+						break
+					}
 				}
 			}
 		}
@@ -218,7 +271,7 @@ func homingScript() *Script {
 		if ok && existAir {
 			for _, e := range entitiesAir {
 				if strings.Contains(e.AreaName, "客厅") {
-					turnOnMessage += "客厅空调,"
+					turnOnMessage += "客厅空调，"
 					break
 				}
 			}
@@ -232,41 +285,91 @@ func homingScript() *Script {
 
 		if ok && okAir {
 			for _, e := range entities {
-				if strings.Contains(e.OriginalName, "播放文本") && strings.Contains(e.AreaName, "客厅") {
-					script.Sequence = append(script.Sequence, ActionNotify{
-						Action: "notify.send_message",
-						Data: struct {
-							Message string `json:"message,omitempty"`
-							Title   string `json:"title,omitempty"`
-						}{Message: turnOnMessage + "热水器"},
-						Target: struct {
-							DeviceID string `json:"device_id,omitempty"`
-						}{DeviceID: e.DeviceID},
-					})
-				}
+				if e.DeviceID == xiaomiHomeSpeakerDeviceId {
+					if strings.Contains(e.OriginalName, "播放文本") && strings.Contains(e.AreaName, "客厅") && strings.HasPrefix(e.EntityID, "notify.") {
+						sequence["sequence"] = append(sequence["sequence"], ActionTimerDelay{
+							Delay: struct {
+								Hours        int `json:"hours"`
+								Minutes      int `json:"minutes"`
+								Seconds      int `json:"seconds"`
+								Milliseconds int `json:"milliseconds"`
+							}{Seconds: 4},
+						})
 
-				if strings.Contains(e.OriginalName, "唤醒") && strings.Contains(e.AreaName, "客厅") {
-					script.Sequence = append(script.Sequence, ActionCommon{
-						Type:     "press",
-						DeviceID: e.DeviceID,
-						EntityID: e.EntityID,
-						Domain:   "button",
-					})
+						sequence["sequence"] = append(sequence["sequence"], ActionNotify{
+							Action: "notify.send_message",
+							Data: struct {
+								Message string `json:"message,omitempty"`
+								Title   string `json:"title,omitempty"`
+							}{Message: turnOnMessage + "热水器"},
+							Target: struct {
+								DeviceID string `json:"device_id,omitempty"`
+							}{DeviceID: e.DeviceID},
+						})
+					}
+				}
+			}
+
+			for _, e := range entities {
+				if e.DeviceID == xiaomiHomeSpeakerDeviceId {
+					if strings.Contains(e.OriginalName, "唤醒") && strings.Contains(e.AreaName, "客厅") {
+						sequence["sequence"] = append(sequence["sequence"], ActionTimerDelay{
+							Delay: struct {
+								Hours        int `json:"hours"`
+								Minutes      int `json:"minutes"`
+								Seconds      int `json:"seconds"`
+								Milliseconds int `json:"milliseconds"`
+							}{Seconds: 6},
+						})
+
+						sequence["sequence"] = append(sequence["sequence"], ActionCommon{
+							Type:     "press",
+							DeviceID: e.DeviceID,
+							EntityID: e.EntityID,
+							Domain:   "button",
+						})
+					}
 				}
 			}
 		}
 	}()
 
-	//todo 地暖
+	func() {
+		sequence["sequence"] = append(sequence["sequence"], ActionTimerDelay{
+			Delay: struct {
+				Hours        int `json:"hours"`
+				Minutes      int `json:"minutes"`
+				Seconds      int `json:"seconds"`
+				Milliseconds int `json:"milliseconds"`
+			}{Seconds: 60},
+		})
+		entities, ok := data.GetEntityCategoryMap()[data.CategoryXiaomiHomeSpeaker]
+		if ok {
+			for _, e := range entities {
+				if e.DeviceID == xiaomiHomeSpeakerDeviceId {
+					if strings.HasPrefix(e.EntityID, "media_player.") && strings.Contains(e.AreaName, "客厅") {
+						sequence["sequence"] = append(sequence["sequence"], ActionService{
+							Action: "media_player.media_pause",
+							Target: &struct {
+								EntityId string `json:"entity_id"`
+							}{EntityId: e.EntityID}})
+					}
+				}
+			}
+		}
+	}()
 
-	// 撤防
-	script.Sequence = append(script.Sequence, ActionService{
-		Action: "automation.turn_off",
-		Data:   map[string]interface{}{"stop_actions": true},
-		Target: &struct {
-			EntityId string `json:"entity_id"`
-		}{EntityId: "automation.li_jia_bu_fang"},
-	})
+	if len(sequence) > 0 {
+		script.Sequence = append(script.Sequence, ActionTimerDelay{
+			Delay: struct {
+				Hours        int `json:"hours"`
+				Minutes      int `json:"minutes"`
+				Seconds      int `json:"seconds"`
+				Milliseconds int `json:"milliseconds"`
+			}{Seconds: 6},
+		})
+		script.Sequence = append(script.Sequence, sequence)
+	}
 
 	return script
 }

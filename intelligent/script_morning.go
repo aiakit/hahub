@@ -2,13 +2,14 @@ package intelligent
 
 import (
 	"hahub/data"
+	"hahub/x"
 	"strings"
 
 	"github.com/aiakit/ava"
 )
 
-// 早安场景
-func goodMorningScript(c *ava.Context) {
+// 起床场景
+func GoodMorningScript(c *ava.Context) {
 	var entities = data.GetEntityAreaMap()
 
 	if len(entities) == 0 {
@@ -17,6 +18,14 @@ func goodMorningScript(c *ava.Context) {
 
 	for areaId, v := range entities {
 		areaName := data.SpiltAreaName(data.GetAreaName(areaId))
+
+		// 检查是否是卧室区域
+		isBedroom := strings.Contains(areaName, "卧室")
+
+		// 如果不是卧室，则跳过
+		if !isBedroom {
+			continue
+		}
 
 		// 检查当前区域是否有灯组，如果没有则不创建场景
 		hasLightGroup := false
@@ -32,11 +41,11 @@ func goodMorningScript(c *ava.Context) {
 			continue
 		}
 
-		// 查找早安场景开关
+		// 查找晚起床景开关
 		var switchEntities []*data.Entity
 		for _, e := range v {
 			if e.Category == data.CategorySwitchScene {
-				if strings.Contains(e.OriginalName, "早安") || strings.Contains(e.OriginalName, "起床") {
+				if strings.Contains(e.OriginalName, "起床") || strings.Contains(e.OriginalName, "早安") {
 					switchEntities = append(switchEntities, e)
 				}
 			}
@@ -44,27 +53,76 @@ func goodMorningScript(c *ava.Context) {
 
 		// 创建场景部分
 		script := &Script{
-			Alias:       areaName + "早安/起床场景",
-			Description: "执行" + areaName + "早安操作，包括播放音乐、打开窗帘、调节灯光和控制空调",
+			Alias:       areaName + "早安场景",
+			Description: "执行" + areaName + "早安场景，包括播放音乐、打开窗帘、调节灯光",
 		}
 
-		// 1. 播放30秒轻音乐
+		var xiaomiHomeSpeakerDeviceId string
+		// 1. 播放轻音乐
 		func() {
 			speakers, ok := data.GetEntityCategoryMap()[data.CategoryXiaomiHomeSpeaker]
 			if ok {
 				for _, e := range speakers {
 					if e.AreaID == areaId {
-						if strings.Contains(e.AreaName, areaName) && strings.Contains(e.OriginalName, "执行文本指令") {
-							script.Sequence = append(script.Sequence, ExecuteTextCommand(e.EntityID, "播放一段轻快的音乐", true))
+						if strings.Contains(e.AreaName, areaName) && strings.Contains(e.OriginalName, "执行文本指令") && strings.HasPrefix(e.EntityID, "notify.") {
+							script.Sequence = append(script.Sequence, ExecuteTextCommand(e.DeviceID, "播放一段轻音乐", true))
+							script.Sequence = append(script.Sequence, ActionTimerDelay{
+								Delay: struct {
+									Hours        int `json:"hours"`
+									Minutes      int `json:"minutes"`
+									Seconds      int `json:"seconds"`
+									Milliseconds int `json:"milliseconds"`
+								}{Seconds: 5},
+							})
+							xiaomiHomeSpeakerDeviceId = e.DeviceID
 							break
 						}
 					}
 				}
+
+				for _, e := range speakers {
+					if e.AreaID == areaId {
+						var message = `主人，早安！愿这清新的晨光带给您无限的活力与希望。愿您在新的一天中与美好相遇，拥抱每一个温馨的瞬间。相信今天会是充满机遇的一天！`
+						if strings.Contains(e.AreaName, areaName) && strings.Contains(e.OriginalName, "播放文本") && strings.HasPrefix(e.EntityID, "notify.") {
+							if e.DeviceID == xiaomiHomeSpeakerDeviceId {
+								script.Sequence = append(script.Sequence, PlayText(e.EntityID, message))
+								script.Sequence = append(script.Sequence, ActionTimerDelay{
+									Delay: struct {
+										Hours        int `json:"hours"`
+										Minutes      int `json:"minutes"`
+										Seconds      int `json:"seconds"`
+										Milliseconds int `json:"milliseconds"`
+									}{Seconds: int(x.GetPlaybackDuration(message).Seconds())},
+								})
+								break
+							}
+						}
+					}
+				}
+
+				for _, e := range speakers {
+					if e.AreaID == areaId {
+						if strings.Contains(e.AreaName, areaName) && strings.Contains(e.OriginalName, "执行文本指令") && strings.HasPrefix(e.EntityID, "notify.") {
+							if e.DeviceID == xiaomiHomeSpeakerDeviceId {
+								script.Sequence = append(script.Sequence, ExecuteTextCommand(e.DeviceID, "告诉我今天早上天气怎么样出门需要注意什么", false))
+								script.Sequence = append(script.Sequence, ActionTimerDelay{
+									Delay: struct {
+										Hours        int `json:"hours"`
+										Minutes      int `json:"minutes"`
+										Seconds      int `json:"seconds"`
+										Milliseconds int `json:"milliseconds"`
+									}{Seconds: 3},
+								})
+								break
+							}
+						}
+					}
+				}
+
 			}
 		}()
 
 		// 添加设备操作到场景中
-		// 1. 打开窗帘
 		for _, e := range v {
 			if e.Category == data.CategoryCurtain {
 				script.Sequence = append(script.Sequence, ActionCommon{
@@ -76,33 +134,53 @@ func goodMorningScript(c *ava.Context) {
 			}
 		}
 
-		// 2. 设置灯的色温
 		for _, e := range v {
 			if e.Category == data.CategoryLightGroup {
 				script.Sequence = append(script.Sequence, ActionLight{
 					Action: "light.turn_on",
 					Data: &actionLightData{
-						BrightnessPct:   75,   // 调至75%亮度
-						ColorTempKelvin: 5000, // 清醒色温
+						BrightnessPct:   10,   // 先调至50%亮度
+						ColorTempKelvin: 3000, // 温馨色温
 					},
 					Target: &targetLightData{DeviceId: e.DeviceID},
 				})
 			}
 		}
 
-		// 3. 设置空调
-		for _, e := range v {
-			if e.Category == data.CategoryAirConditioner {
-				data := make(map[string]interface{})
-				data["hvac_mode"] = "cool"
-				data["temperature"] = 26
+		//// 3. 设置空调
+		//for _, e := range v {
+		//	if e.Category == data.CategoryAirConditioner {
+		//		data := make(map[string]interface{})
+		//		data["hvac_mode"] = "cool"
+		//		data["temperature"] = 26
+		//
+		//		script.Sequence = append(script.Sequence, ActionService{
+		//			Action: "climate.set_temperature",
+		//			Data:   data,
+		//			Target: &struct {
+		//				EntityId string `json:"entity_id"`
+		//			}{EntityId: e.EntityID},
+		//		})
+		//	}
+		//}
 
-				script.Sequence = append(script.Sequence, ActionService{
-					Action: "climate.set_temperature",
-					Data:   data,
-					Target: &struct {
-						EntityId string `json:"entity_id"`
-					}{EntityId: e.EntityID},
+		script.Sequence = append(script.Sequence, ActionTimerDelay{
+			Delay: struct {
+				Hours        int `json:"hours"`
+				Minutes      int `json:"minutes"`
+				Seconds      int `json:"seconds"`
+				Milliseconds int `json:"milliseconds"`
+			}{Seconds: 10},
+		})
+
+		for _, e := range v {
+			if e.Category == data.CategoryLightGroup {
+				script.Sequence = append(script.Sequence, ActionLight{
+					Action: "light.turn_on",
+					Data: &actionLightData{
+						BrightnessPct: 25, // 降低亮度到25%
+					},
+					Target: &targetLightData{DeviceId: e.DeviceID},
 				})
 			}
 		}
@@ -113,16 +191,13 @@ func goodMorningScript(c *ava.Context) {
 				Minutes      int `json:"minutes"`
 				Seconds      int `json:"seconds"`
 				Milliseconds int `json:"milliseconds"`
-			}{Seconds: 30}, // 等待30秒
+			}{Seconds: 10},
 		})
 
 		for _, e := range v {
 			if e.Category == data.CategoryLightGroup {
 				script.Sequence = append(script.Sequence, ActionLight{
-					Action: "light.turn_on",
-					Data: &actionLightData{
-						BrightnessPct: 100, // 提高亮度到100%
-					},
+					Action: "light.turn_off",
 					Target: &targetLightData{DeviceId: e.DeviceID},
 				})
 			}
@@ -138,6 +213,24 @@ func goodMorningScript(c *ava.Context) {
 					Domain:   "number",
 					Value:    20,
 				})
+
+				script.Sequence = append(script.Sequence, ActionTimerDelay{
+					Delay: struct {
+						Hours        int `json:"hours"`
+						Minutes      int `json:"minutes"`
+						Seconds      int `json:"seconds"`
+						Milliseconds int `json:"milliseconds"`
+					}{Minutes: 5},
+				})
+
+				script.Sequence = append(script.Sequence, ActionCommon{
+					Type:     "set_value",
+					DeviceID: e.DeviceID,
+					EntityID: e.EntityID,
+					Domain:   "number",
+					Value:    0,
+				})
+
 			}
 
 			if e.Category == data.CategoryBed && strings.Contains(e.OriginalName, "靠背") && strings.HasPrefix(e.EntityID, "number.") {
@@ -146,7 +239,7 @@ func goodMorningScript(c *ava.Context) {
 					DeviceID: e.DeviceID,
 					EntityID: e.EntityID,
 					Domain:   "number",
-					Value:    5,
+					Value:    20,
 				})
 
 				script.Sequence = append(script.Sequence, ActionTimerDelay{
@@ -155,74 +248,48 @@ func goodMorningScript(c *ava.Context) {
 						Minutes      int `json:"minutes"`
 						Seconds      int `json:"seconds"`
 						Milliseconds int `json:"milliseconds"`
-					}{Seconds: 5}, // 等待30秒
+					}{Minutes: 5},
 				})
-
 				script.Sequence = append(script.Sequence, ActionCommon{
 					Type:     "set_value",
 					DeviceID: e.DeviceID,
 					EntityID: e.EntityID,
 					Domain:   "number",
-					Value:    5,
-				})
-
-				script.Sequence = append(script.Sequence, ActionTimerDelay{
-					Delay: struct {
-						Hours        int `json:"hours"`
-						Minutes      int `json:"minutes"`
-						Seconds      int `json:"seconds"`
-						Milliseconds int `json:"milliseconds"`
-					}{Seconds: 5}, // 等待30秒
-				})
-
-				script.Sequence = append(script.Sequence, ActionCommon{
-					Type:     "set_value",
-					DeviceID: e.DeviceID,
-					EntityID: e.EntityID,
-					Domain:   "number",
-					Value:    5,
-				})
-
-				script.Sequence = append(script.Sequence, ActionTimerDelay{
-					Delay: struct {
-						Hours        int `json:"hours"`
-						Minutes      int `json:"minutes"`
-						Seconds      int `json:"seconds"`
-						Milliseconds int `json:"milliseconds"`
-					}{Seconds: 5}, // 等待30秒
-				})
-
-				script.Sequence = append(script.Sequence, ActionCommon{
-					Type:     "set_value",
-					DeviceID: e.DeviceID,
-					EntityID: e.EntityID,
-					Domain:   "number",
-					Value:    5,
+					Value:    0,
 				})
 			}
 		}
 
-		for _, e := range v {
-			if e.Category == data.CategoryXiaomiHomeSpeaker && strings.HasPrefix(e.EntityID, "text.") && strings.Contains(e.OriginalName, "播放文本") {
-				script.Sequence = append(script.Sequence, ActionCommon{
-					Type:     "set_value",
-					DeviceID: e.DeviceID,
-					EntityID: e.EntityID,
-					Domain:   "text",
-					Value:    "主人，早安，又是元气满满的一天",
-				})
-			}
+		func() {
 
-			if e.Category == data.CategoryXiaomiHomeSpeaker && strings.HasPrefix(e.EntityID, "text.") && strings.Contains(e.OriginalName, "执行文本") {
-				script.Sequence = append(script.Sequence, ActionCommon{
-					Type:     "set_value",
-					DeviceID: e.DeviceID,
-					EntityID: e.EntityID,
-					Domain:   "text",
-					Value:    "[告诉我今天早上天气以及出门需要注意什么,false]",
-				})
+			speakers, ok := data.GetEntityCategoryMap()[data.CategoryXiaomiHomeSpeaker]
+			if ok {
+				for _, e := range speakers {
+					if e.AreaID == areaId {
+						if e.DeviceID == xiaomiHomeSpeakerDeviceId {
+							if strings.HasPrefix(e.EntityID, "media_player.") {
+
+								script.Sequence = append(script.Sequence, ActionTimerDelay{
+									Delay: struct {
+										Hours        int `json:"hours"`
+										Minutes      int `json:"minutes"`
+										Seconds      int `json:"seconds"`
+										Milliseconds int `json:"milliseconds"`
+									}{Seconds: 120},
+								})
+
+								script.Sequence = append(script.Sequence, ActionService{
+									Action: "media_player.media_pause",
+									Target: &struct {
+										EntityId string `json:"entity_id"`
+									}{EntityId: e.EntityID}})
+							}
+							break
+						}
+					}
+				}
 			}
-		}
+		}()
 
 		// 创建自动化部分
 		if len(script.Sequence) > 0 {
@@ -231,11 +298,11 @@ func goodMorningScript(c *ava.Context) {
 
 			auto := &Automation{
 				Alias:       areaName + "早安自动化",
-				Description: "执行" + areaName + "早安场景，包括播放音乐、打开窗帘、调节灯光和控制空调",
+				Description: "执行" + areaName + "早安场景，包括播放音乐、打开窗帘、调节灯光",
 				Mode:        "single",
 			}
 
-			//条件：名字中带有"早安"或"起床"的开关按键和场景按键
+			//条件：名字中带有"起床"/“早安”的开关按键和场景按键
 			func() {
 				for bName, v := range switchSelectSameName {
 					bns := strings.Split(bName, "_")
