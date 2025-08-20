@@ -403,7 +403,7 @@ func bodySocketSensorOff(en *data.Entity) (*Automation, error) {
 	}
 
 	auto := &Automation{
-		Alias:       areaName + prefix + suffixStr + "插座关闭就关灯",
+		Alias:       areaName + "插座关闭就关灯",
 		Description: "当插座关闭时，关闭" + areaName + "下同名前缀的灯和开关",
 		Triggers: []Triggers{{
 			Type:     "power",

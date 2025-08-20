@@ -110,7 +110,33 @@ func LightControl(c *ava.Context) {
 		}
 
 		if len(conditions) == 0 || len(actionsOn) == 0 {
-			continue
+			for _, l := range es {
+				if l.Category == data.CategoryLight {
+					if strings.Contains(l.DeviceName, buttonName) || strings.Contains(buttonName, "开/关") || strings.Contains(buttonName, "开关") {
+						conditions = append(conditions, Conditions{
+							EntityID:  l.EntityID,
+							State:     "on",
+							Condition: "state",
+						})
+						actionsOn = append(actionsOn, ActionLight{
+							Action: "light.turn_on",
+							Data: &actionLightData{
+								ColorTempKelvin: 4500,
+								BrightnessPct:   100,
+							},
+							Target: &targetLightData{DeviceId: l.DeviceID},
+						})
+						actionsOff = append(actionsOff, ActionLight{
+							Action: "light.turn_off",
+							Target: &targetLightData{DeviceId: l.DeviceID},
+						})
+					}
+				}
+			}
+
+			if len(conditions) == 0 || len(actionsOn) == 0 {
+				continue
+			}
 		}
 
 		var act IfThenELSEAction

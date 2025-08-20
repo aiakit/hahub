@@ -16,11 +16,9 @@ func TakeAShower(c *ava.Context) {
 	vv, ok1 := data.GetEntityCategoryMap()[data.CategoryTemperatureSensor]
 	var action []interface{}
 
-	var reshuiQIName string
 	if ok {
 		//打开热水器开关，开启零冷水
 		for _, e := range v {
-			reshuiQIName = e.DeviceName
 			if strings.Contains(e.OriginalName, "开关") {
 				var act IfThenELSEAction
 				act.If = append(act.If, ifCondition{
@@ -127,11 +125,13 @@ func TakeAShower(c *ava.Context) {
 
 	//浴霸
 	var deviceName = make(map[string]*IfThenELSEAction)
+	var areaName string
 	for _, e := range data.GetEntityCategoryMap()[data.CateroyBathroomHeater] {
 		if strings.HasPrefix(e.EntityID, "climate.") {
 			if deviceName[e.DeviceName] == nil {
 				deviceName[e.DeviceName] = new(IfThenELSEAction)
 			}
+			areaName = data.SpiltAreaName(e.AreaName)
 
 			deviceName[e.DeviceName].If = append(deviceName[e.DeviceName].If, ifCondition{
 				Attribute: "current_temperature",
@@ -168,15 +168,15 @@ func TakeAShower(c *ava.Context) {
 	}
 
 	if len(deviceName) > 0 {
-		for k, v3 := range deviceName {
-			script.Alias = "启动" + reshuiQIName + "和" + k + "热水洗澡场景"
+		for _, v3 := range deviceName {
+			script.Alias = areaName + "洗澡场景"
 			script.Description = "打开热水器和浴霸，使用热水洗澡场景"
 			script.Sequence = append(script.Sequence, v3)
 			CreateScript(c, script)
 			script.Sequence = make([]interface{}, 0)
 		}
 	} else if len(script.Sequence) > 0 {
-		script.Alias = "启动" + reshuiQIName + "热水场景"
+		script.Alias = areaName + "热水场景"
 		script.Description = "打开热水器，使用热水场景"
 		CreateScript(c, script)
 	}

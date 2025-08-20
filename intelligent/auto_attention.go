@@ -46,7 +46,7 @@ func gas(entity *data.Entity) (*Automation, error) {
 	var title = "燃气泄漏"
 	areaName := data.SpiltAreaName(entity.AreaName)
 	auto := &Automation{
-		Alias:       areaName + "发生燃气泄漏",
+		Alias:       areaName + "燃气泄漏告警",
 		Description: "当" + areaName + "发生燃气泄露时，提醒家人",
 		Triggers: []Triggers{{
 			Type:     "value",
@@ -73,7 +73,7 @@ func gas(entity *data.Entity) (*Automation, error) {
 func fire(entity *data.Entity) (*Automation, error) {
 
 	var message = "危险，检测到烟雾，请立刻处理!!!"
-	var title = "检测到烟雾"
+	var title = "检测到烟雾告警"
 	areaName := data.SpiltAreaName(entity.AreaName)
 	auto := &Automation{
 		Alias:       areaName + "检测到烟雾",
@@ -101,7 +101,7 @@ func water(entity *data.Entity) (*Automation, error) {
 	var title = "漏水了"
 	areaName := data.SpiltAreaName(entity.AreaName)
 	auto := &Automation{
-		Alias:       areaName + "漏水",
+		Alias:       areaName + "漏水告警",
 		Description: "当" + areaName + "发生漏水时，提醒家人",
 		Triggers: []Triggers{{
 			Type:     "moist",

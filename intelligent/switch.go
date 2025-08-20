@@ -158,8 +158,41 @@ func InitSwitchSelect(c *ava.Context) {
 			if !ok {
 				continue
 			}
+			//处理单开
+			var entityMap = make(map[string][]*data.Entity)
+			for _, ee := range allEntiy {
+				if ee.Category == data.CategorySwitch {
+					entityMap[ee.DeviceID] = append(entityMap[ee.DeviceID], ee)
+				}
+			}
 
 			for _, ee := range allEntiy {
+				// 处理单开
+				//if len(entityMap[ee.DeviceID]) == 1 {
+				//	areaName := data.SpiltAreaName(e.AreaName)
+				//	var ss = &switchSelect{
+				//		Category:   data.CategorySwitchClickOnce,
+				//		EntityID:   e.EntityID,
+				//		DeviceID:   e.DeviceID,
+				//		AreaID:     ee.AreaID,
+				//		AreaName:   areaName,
+				//		DeviceName: e.DeviceName,
+				//	}
+				//
+				//	ss.ButtonName = ee.DeviceName
+				//
+				//	if strings.Contains(ss.ButtonName, "-") {
+				//		continue
+				//	}
+				//
+				//	ss.SeqButton = 1
+				//
+				//	ss.Attribute = "按键类型"
+				//
+				//	key := ee.AreaID + "_" + ss.ButtonName
+				//	switchSelectSameName[key] = append(switchSelectSameName[key], ss)
+				//}
+
 				if ee.Category == data.CategorySwitch {
 					areaName := data.SpiltAreaName(e.AreaName)
 
@@ -178,6 +211,10 @@ func InitSwitchSelect(c *ava.Context) {
 							ss.ButtonName = v1
 							break
 						}
+					}
+
+					if len(entityMap[ee.DeviceID]) == 1 {
+						ss.ButtonName = ee.DeviceName
 					}
 
 					if strings.Contains(ss.ButtonName, "-") {
@@ -203,7 +240,6 @@ func InitSwitchSelect(c *ava.Context) {
 					switchSelectSameName[key] = append(switchSelectSameName[key], ss)
 				}
 			}
-
 		}
 	}()
 }
