@@ -146,100 +146,107 @@ func InitSwitchSelect(c *ava.Context) {
 	}()
 
 	func() {
-		entities, ok := data.GetEntityCategoryMap()[data.CategorySwitchClickOnce]
+		entitiesClick, ok := data.GetEntityCategoryMap()[data.CategorySwitchClickOnce]
 		if !ok {
 			return
 		}
 
-		//开关按键
-		for _, e := range entities {
+		var entitiesMap = map[string][]*data.Entity{}
+		for _, e := range entitiesClick {
+			entitiesMap[e.DeviceID] = append(entitiesMap[e.DeviceID], e)
+		}
 
-			allEntiy, ok := data.GetEntitiesById()[e.DeviceID]
-			if !ok {
+		entitiesSwitch, ok := data.GetEntityCategoryMap()[data.CategorySwitch]
+		if !ok {
+			return
+		}
+
+		for _, e := range entitiesSwitch {
+			if !strings.Contains(e.OriginalName, "键") {
 				continue
 			}
-			//处理单开
-			var entityMap = make(map[string][]*data.Entity)
-			for _, ee := range allEntiy {
-				if ee.Category == data.CategorySwitch {
-					entityMap[ee.DeviceID] = append(entityMap[ee.DeviceID], ee)
+			entitiesMap[e.DeviceID] = append(entitiesMap[e.DeviceID], e)
+		}
+
+		//处理单开
+		var entityMap = make(map[string][]*data.Entity)
+		for _, ee := range entitiesSwitch {
+			if ee.Category == data.CategorySwitch {
+				entityMap[ee.DeviceID] = append(entityMap[ee.DeviceID], ee)
+			}
+		}
+
+		for _, e := range entitiesSwitch {
+			if strings.Contains(e.OriginalName, "-") {
+				continue
+			}
+			name := strings.Split(e.OriginalName, " ")
+			buttonName := ""
+			buttonFlag := ""
+			areaName := data.SpiltAreaName(e.AreaName)
+			SeqButton := 1
+
+			var ss = &switchSelect{
+				Category:   data.CategorySwitchClickOnce,
+				EntityID:   e.EntityID,
+				DeviceID:   e.DeviceID,
+				AreaID:     e.AreaID,
+				AreaName:   areaName,
+				DeviceName: e.DeviceName,
+				ButtonName: buttonName,
+				Attribute:  "按键类型",
+			}
+
+			for _, v1 := range name {
+				if v1 != " " && v1 != "" {
+					buttonName = v1
+					break
 				}
 			}
 
-			for _, ee := range allEntiy {
-				// 处理单开
-				//if len(entityMap[ee.DeviceID]) == 1 {
-				//	areaName := data.SpiltAreaName(e.AreaName)
-				//	var ss = &switchSelect{
-				//		Category:   data.CategorySwitchClickOnce,
-				//		EntityID:   e.EntityID,
-				//		DeviceID:   e.DeviceID,
-				//		AreaID:     ee.AreaID,
-				//		AreaName:   areaName,
-				//		DeviceName: e.DeviceName,
-				//	}
-				//
-				//	ss.ButtonName = ee.DeviceName
-				//
-				//	if strings.Contains(ss.ButtonName, "-") {
-				//		continue
-				//	}
-				//
-				//	ss.SeqButton = 1
-				//
-				//	ss.Attribute = "按键类型"
-				//
-				//	key := ee.AreaID + "_" + ss.ButtonName
-				//	switchSelectSameName[key] = append(switchSelectSameName[key], ss)
-				//}
+			if len(name) >= 1 {
+				buttonFlag = name[len(name)-1]
+			} else {
+				continue
+			}
 
-				if ee.Category == data.CategorySwitch {
-					areaName := data.SpiltAreaName(e.AreaName)
+			ss.ButtonName = buttonName
 
-					name := strings.Split(ee.OriginalName, " ")
-					var ss = &switchSelect{
-						Category:   data.CategorySwitchClickOnce,
-						EntityID:   e.EntityID,
-						DeviceID:   e.DeviceID,
-						AreaID:     ee.AreaID,
-						AreaName:   areaName,
-						DeviceName: e.DeviceName,
+			if len(entityMap[e.DeviceID]) == 1 {
+				ss.ButtonName = e.DeviceName
+			}
+
+			switch {
+			case strings.Contains(e.OriginalName, "按键1"):
+				SeqButton = 1
+			case strings.Contains(e.OriginalName, "按键2"):
+				SeqButton = 2
+			case strings.Contains(e.OriginalName, "按键3"):
+				SeqButton = 3
+			case strings.Contains(e.OriginalName, "按键4"):
+				SeqButton = 4
+			}
+
+			ss.SeqButton = SeqButton
+
+			if strings.Contains(e.OriginalName, "按键") || buttonFlag == "开关" {
+				for _, ee := range entitiesMap[e.DeviceID] {
+					if strings.Contains(ee.OriginalName, "开关传感器 单击") {
+						key := ee.AreaID + "_" + ss.ButtonName
+						switchSelectSameName[key] = append(switchSelectSameName[key], ss)
+						break
 					}
-
-					for _, v1 := range name {
-						if v1 != " " && v1 != "" {
-							ss.ButtonName = v1
-							break
-						}
+				}
+			} else {
+				for _, ee := range entitiesMap[e.DeviceID] {
+					if strings.Contains(ee.OriginalName, buttonFlag) {
+						key := ee.AreaID + "_" + ss.ButtonName
+						switchSelectSameName[key] = append(switchSelectSameName[key], ss)
+						break
 					}
-
-					if len(entityMap[ee.DeviceID]) == 1 {
-						ss.ButtonName = ee.DeviceName
-					}
-
-					if strings.Contains(ss.ButtonName, "-") {
-						continue
-					}
-
-					switch {
-					case strings.Contains(ee.OriginalName, "按键1"):
-						ss.SeqButton = 1
-					case strings.Contains(ee.OriginalName, "按键2"):
-						ss.SeqButton = 2
-					case strings.Contains(ee.OriginalName, "按键3"):
-						ss.SeqButton = 3
-					case strings.Contains(ee.OriginalName, "按键4"):
-						ss.SeqButton = 4
-					default:
-						ss.SeqButton = 1
-					}
-
-					ss.Attribute = "按键类型"
-
-					key := ee.AreaID + "_" + ss.ButtonName
-					switchSelectSameName[key] = append(switchSelectSameName[key], ss)
 				}
 			}
 		}
+
 	}()
 }
