@@ -10,7 +10,7 @@ import (
 	"github.com/aiakit/ava"
 )
 
-func walkPresenceSensorKeting(c *ava.Context) {
+func WalkPresenceSensorKeting(c *ava.Context) {
 	entity, ok := data.GetEntityCategoryMap()[data.CategoryHumanPresenceSensor]
 	if !ok {
 		return
@@ -94,6 +94,7 @@ func presenceSensorOnKeting(entity, lumen *data.Entity, lxMin, lxMax float64, du
 		normalSwitches     []*data.Entity
 		atmosphereLights   []*data.Entity
 		normalLights       []*data.Entity
+		xinguangLights     []*data.Entity
 	)
 
 	// 1. 取entity.Name中'-'前的前缀
@@ -148,8 +149,14 @@ func presenceSensorOnKeting(entity, lumen *data.Entity, lxMin, lxMax float64, du
 		}
 
 		if e.Category == data.CategoryLight {
-			if strings.Contains(e.DeviceName, "彩") || strings.Contains(e.DeviceName, "夜灯") {
+			if strings.Contains(e.DeviceName, "彩") || strings.Contains(e.DeviceName, "夜灯") || strings.Contains(e.DeviceName, "馨光") {
 				atmosphereLights = append(atmosphereLights, e)
+			}
+		}
+
+		if e.Category == data.CategoryXinGuang {
+			if !strings.Contains(e.DeviceName, "主机") && strings.HasPrefix(e.EntityID, "light.") {
+				xinguangLights = append(xinguangLights, e)
 			}
 		}
 	}
@@ -194,6 +201,33 @@ func presenceSensorOnKeting(entity, lumen *data.Entity, lxMin, lxMax float64, du
 
 		parallel1["parallel"] = append(parallel1["parallel"], act)
 	}
+
+	// 1. 开馨光
+	for _, l := range xinguangLights {
+		if data.GetXinGuang(l.DeviceID) == "" {
+			continue
+		}
+
+		//改为静态模式,不能并行执行，必须优先执行
+		actions = append(actions, &ActionLight{
+			DeviceID: l.DeviceID,
+			Domain:   "select",
+			EntityID: data.GetXinGuang(l.DeviceID),
+			Type:     "select_option",
+			Option:   "静态模式",
+		})
+
+		//修改颜色
+		parallel1["parallel"] = append(parallel1["parallel"], &ActionLight{
+			Action: "light.turn_on",
+			Data: &actionLightData{
+				BrightnessPct: 100,
+				RgbColor:      GetRgbColor(kelvin),
+			},
+			Target: &targetLightData{DeviceId: l.DeviceID},
+		})
+	}
+
 	// 2. 先开氛围开关
 	for _, s := range atmosphereSwitches {
 		if prefix != "" && !isNull {
@@ -228,32 +262,6 @@ func presenceSensorOnKeting(entity, lumen *data.Entity, lxMin, lxMax float64, du
 			if !strings.Contains(l.DeviceName, prefix) {
 				continue
 			}
-		}
-		//不打开主机
-		if l.Category == data.CategoryXinGuang && strings.Contains(l.DeviceName, "主机") {
-			continue
-		}
-
-		if l.Category == data.CategoryXinGuang && !strings.Contains(l.DeviceName, "主机") {
-			//改为静态模式
-			actions = append(actions, &ActionLight{
-				DeviceID: l.DeviceID,
-				Domain:   "select",
-				EntityID: data.GetXinGuang(l.DeviceID),
-				Type:     "select_option",
-				Option:   "静态模式",
-			})
-
-			//修改颜色
-			parallel2["parallel"] = append(parallel2["parallel"], &ActionLight{
-				Action: "light.turn_on",
-				Data: &actionLightData{
-					BrightnessPct: 100,
-					RgbColor:      GetRgbColor(kelvin),
-				},
-				Target: &targetLightData{DeviceId: l.DeviceID},
-			})
-			continue
 		}
 
 		if strings.Contains(l.DeviceName, "夜灯") {

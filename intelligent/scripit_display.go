@@ -35,7 +35,7 @@ func Display(c *ava.Context) {
 	}
 
 	for _, e := range entities2 {
-		if strings.HasPrefix(e.EntityID, "light.") {
+		if strings.HasPrefix(e.EntityID, "light.") && !strings.Contains(e.DeviceName, "主机") {
 			entities = append(entities, e)
 		}
 	}
@@ -149,6 +149,9 @@ func Display(c *ava.Context) {
 		}
 
 		if s.Entity.Category == data.CategoryXinGuang {
+			if data.GetXinGuang(s.Entity.DeviceID) == "" {
+				continue
+			}
 			sequence["sequence"] = append(sequence["sequence"], &ActionLight{
 				DeviceID: s.Entity.DeviceID,
 				Domain:   "select",

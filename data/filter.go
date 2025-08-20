@@ -248,14 +248,15 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 		}
 
 		//15.在自动化设置中，馨光设备id，找到设置灯光模式的id,而不是entityid
-		if strings.Contains(e.OriginalName, "LED运行模式") {
+		if strings.Contains(e.OriginalName, "LED运行模式") && strings.HasPrefix(e.EntityID, "select.") {
 			if deviceData != nil && strings.Contains(deviceData.Name, "馨光") {
-				gHub.xinguang[e.DeviceID] = e.ID
+				gHub.xinguang[e.DeviceID] = e.EntityID
 			}
 		}
 
 		//15.馨光类型,场景设置中需要实体id
 		if deviceData != nil && strings.Contains(deviceData.Name, "馨光") {
+			//这里会把上面面light普通灯类型覆盖掉，所以light中不含有馨光，要注意
 			category = CategoryXinGuang
 		}
 

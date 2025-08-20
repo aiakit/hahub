@@ -51,6 +51,7 @@ func presenceSensorOn(entity *data.Entity) (*Automation, error) {
 		normalSwitches     []*data.Entity
 		atmosphereLights   []*data.Entity
 		normalLights       []*data.Entity
+		xinguangLights     []*data.Entity
 		ColorTempKelvin            = 3000
 		BrightnessPct      float64 = 100
 	)
@@ -87,6 +88,12 @@ func presenceSensorOn(entity *data.Entity) (*Automation, error) {
 				atmosphereLights = append(atmosphereLights, e)
 			}
 		}
+
+		if e.Category == data.CategoryXinGuang {
+			if !strings.Contains(e.DeviceName, "主机") && strings.HasPrefix(e.EntityID, "light.") {
+				xinguangLights = append(xinguangLights, e)
+			}
+		}
 	}
 
 	var isNull = false
@@ -104,6 +111,8 @@ func presenceSensorOn(entity *data.Entity) (*Automation, error) {
 
 	var actions []interface{}
 	var parallel1 = make(map[string][]interface{})
+	var parallel2 = make(map[string][]interface{})
+
 	// 1. 先开氛围灯
 	for _, l := range atmosphereLights {
 		if prefix != "" && !isNull {
@@ -111,6 +120,7 @@ func presenceSensorOn(entity *data.Entity) (*Automation, error) {
 				continue
 			}
 		}
+
 		act := &ActionLight{
 			Action: "light.turn_on",
 			Data: &actionLightData{
@@ -126,6 +136,33 @@ func presenceSensorOn(entity *data.Entity) (*Automation, error) {
 
 		parallel1["parallel"] = append(parallel1["parallel"], act)
 	}
+
+	// 1. 开馨光
+	for _, l := range xinguangLights {
+		if data.GetXinGuang(l.DeviceID) == "" {
+			continue
+		}
+
+		//改为静态模式,不能并行执行，必须优先执行
+		actions = append(actions, &ActionLight{
+			DeviceID: l.DeviceID,
+			Domain:   "select",
+			EntityID: data.GetXinGuang(l.DeviceID),
+			Type:     "select_option",
+			Option:   "静态模式",
+		})
+
+		//修改颜色
+		parallel1["parallel"] = append(parallel1["parallel"], &ActionLight{
+			Action: "light.turn_on",
+			Data: &actionLightData{
+				BrightnessPct: BrightnessPct,
+				RgbColor:      GetRgbColor(3000),
+			},
+			Target: &targetLightData{DeviceId: l.DeviceID},
+		})
+	}
+
 	// 2. 先开氛围开关
 	for _, s := range atmosphereSwitches {
 		if prefix != "" && !isNull {
@@ -153,38 +190,13 @@ func presenceSensorOn(entity *data.Entity) (*Automation, error) {
 			Milliseconds int `json:"milliseconds"`
 		}{Hours: 0, Minutes: 0, Seconds: 3, Milliseconds: 0}})
 	}
-	var parallel2 = make(map[string][]interface{})
 	// 4. 再开非氛围灯
 	for _, l := range normalLights {
-		if l.Category == data.CategoryXinGuang && strings.Contains(l.DeviceName, "主机") {
-			continue
-		}
+
 		if prefix != "" && !isNull {
 			if !strings.Contains(l.DeviceName, prefix) {
 				continue
 			}
-		}
-
-		if l.Category == data.CategoryXinGuang && !strings.Contains(l.DeviceName, "主机") {
-			//改为静态模式,不能并行执行，必须优先执行
-			actions = append(actions, &ActionLight{
-				DeviceID: l.DeviceID,
-				Domain:   "select",
-				EntityID: data.GetXinGuang(l.DeviceID),
-				Type:     "select_option",
-				Option:   "静态模式",
-			})
-
-			//修改颜色
-			parallel2["parallel"] = append(parallel2["parallel"], &ActionLight{
-				Action: "light.turn_on",
-				Data: &actionLightData{
-					BrightnessPct: BrightnessPct,
-					RgbColor:      GetRgbColor(3000),
-				},
-				Target: &targetLightData{DeviceId: l.DeviceID},
-			})
-			continue
 		}
 
 		// 夜灯特殊逻辑

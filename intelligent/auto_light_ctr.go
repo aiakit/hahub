@@ -61,12 +61,19 @@ func LightControl(c *ava.Context) {
 		var conditions []interface{}
 		var actionsOn []interface{}
 		var actionsOff []interface{}
+		var xinguangLights []*data.Entity
+
 		// 先收集所有匹配的灯组
-		for _, l := range es {
-			if l.Category == data.CategoryLightGroup {
-				if strings.Contains(l.DeviceName, buttonName) || strings.Contains(buttonName, "开/关") || strings.Contains(buttonName, "开关") {
+		for _, e := range es {
+			if e.Category == data.CategoryXinGuang {
+				if !strings.Contains(e.DeviceName, "主机") && strings.HasPrefix(e.EntityID, "light.") && (strings.Contains(e.DeviceName, buttonName) || strings.Contains(buttonName, "开/关") || strings.Contains(buttonName, "开关")) {
+					xinguangLights = append(xinguangLights, e)
+				}
+			}
+			if e.Category == data.CategoryLightGroup {
+				if strings.Contains(e.DeviceName, buttonName) || strings.Contains(buttonName, "开/关") || strings.Contains(buttonName, "开关") {
 					conditions = append(conditions, Conditions{
-						EntityID:  l.EntityID,
+						EntityID:  e.EntityID,
 						State:     "on",
 						Condition: "state",
 					})
@@ -77,19 +84,19 @@ func LightControl(c *ava.Context) {
 							ColorTempKelvin: 4500,
 							BrightnessPct:   100,
 						},
-						Target: &targetLightData{DeviceId: l.DeviceID},
+						Target: &targetLightData{DeviceId: e.DeviceID},
 					})
 					actionsOff = append(actionsOff, ActionLight{
 						Action: "light.turn_off",
-						Target: &targetLightData{DeviceId: l.DeviceID},
+						Target: &targetLightData{DeviceId: e.DeviceID},
 					})
 				}
 			}
 
-			if l.Category == data.CategoryLight {
-				if (strings.Contains(l.DeviceName, buttonName) || strings.Contains(buttonName, "开/关") || strings.Contains(buttonName, "开关")) && (strings.Contains(l.DeviceName, "彩") || strings.Contains(l.DeviceName, "夜灯")) {
+			if e.Category == data.CategoryLight {
+				if (strings.Contains(e.DeviceName, buttonName) || strings.Contains(buttonName, "开/关") || strings.Contains(buttonName, "开关")) && (strings.Contains(e.DeviceName, "彩") || strings.Contains(e.DeviceName, "夜灯")) {
 					conditions = append(conditions, Conditions{
-						EntityID:  l.EntityID,
+						EntityID:  e.EntityID,
 						State:     "on",
 						Condition: "state",
 					})
@@ -99,18 +106,65 @@ func LightControl(c *ava.Context) {
 							ColorTempKelvin: 4500,
 							BrightnessPct:   100,
 						},
-						Target: &targetLightData{DeviceId: l.DeviceID},
+						Target: &targetLightData{DeviceId: e.DeviceID},
 					})
 					actionsOff = append(actionsOff, ActionLight{
 						Action: "light.turn_off",
-						Target: &targetLightData{DeviceId: l.DeviceID},
+						Target: &targetLightData{DeviceId: e.DeviceID},
 					})
 				}
 			}
 		}
 
+		// 重构馨光灯的控制逻辑，使用conditions, actionsOn, actionsOff方式
+		if len(xinguangLights) > 0 {
+			// 为馨光灯添加条件检查
+			for _, l := range xinguangLights {
+				if data.GetXinGuang(l.DeviceID) != "" {
+					conditions = append(conditions, Conditions{
+						EntityID:  l.EntityID,
+						State:     "on",
+						Condition: "state",
+					})
+				}
+			}
+
+			// 构建开启馨光灯的动作
+			for _, l := range xinguangLights {
+				if data.GetXinGuang(l.DeviceID) == "" {
+					continue
+				}
+
+				// 改为静态模式,不能并行执行，必须优先执行
+				actionsOn = append(actionsOn, &ActionLight{
+					DeviceID: l.DeviceID,
+					Domain:   "select",
+					EntityID: data.GetXinGuang(l.DeviceID),
+					Type:     "select_option",
+					Option:   "静态模式",
+				})
+
+				// 修改颜色
+				actionsOn = append(actionsOn, &ActionLight{
+					Action: "light.turn_on",
+					Data: &actionLightData{
+						BrightnessPct: 100,
+						RgbColor:      GetRgbColor(4000),
+					},
+					Target: &targetLightData{DeviceId: l.DeviceID},
+				})
+
+				// 关闭馨光灯的动作
+				actionsOff = append(actionsOff, &ActionLight{
+					Action: "light.turn_off",
+					Target: &targetLightData{DeviceId: l.DeviceID},
+				})
+			}
+		}
+
 		if len(conditions) == 0 || len(actionsOn) == 0 {
 			for _, l := range es {
+				//如果没有就开启单灯
 				if l.Category == data.CategoryLight {
 					if strings.Contains(l.DeviceName, buttonName) || strings.Contains(buttonName, "开/关") || strings.Contains(buttonName, "开关") {
 						conditions = append(conditions, Conditions{

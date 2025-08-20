@@ -286,7 +286,7 @@ func ChaosAutomation() {
 
 	//人体存在传感器
 	WalkPresenceSensor(c)
-	walkPresenceSensorKeting(c)
+	WalkPresenceSensorKeting(c)
 
 	//布防
 	Defense(c)

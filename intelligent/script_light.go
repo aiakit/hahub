@@ -125,9 +125,13 @@ func lightScene(c *ava.Context, simpleName string, brightness float64, kelvin in
 					},
 					Target: &targetLightData{DeviceId: e1.DeviceID},
 				})
+				continue
 			}
 
 			if strings.HasPrefix(e1.EntityID, "light.") && e1.Category == data.CategoryXinGuang && !strings.Contains(e1.DeviceName, "主机") {
+				if data.GetXinGuang(e1.DeviceID) == "" {
+					continue
+				}
 				//改为静态模式,不能并行执行，必须优先执行
 				actions = append(actions, &ActionLight{
 					DeviceID: e1.DeviceID,
@@ -174,7 +178,7 @@ func lightScene(c *ava.Context, simpleName string, brightness float64, kelvin in
 		}
 
 		if len(actions) > 0 {
-			script.Sequence = append(script.Sequence, actions)
+			script.Sequence = append(script.Sequence, actions...)
 		}
 
 		if len(parallel2) > 0 {
