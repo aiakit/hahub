@@ -49,11 +49,12 @@ func lightScene(c *ava.Context, simpleName string, brightness float64, kelvin in
 
 		// 检查是否是客厅区域或者卧室区域
 		isLivingRoom := strings.Contains(areaName, "客厅")
-		isBedroom := strings.Contains(areaName, "卧室")
 
-		// 如果不是客厅也不是卧室，则跳过
-		if !isLivingRoom && !isBedroom {
-			continue
+		// 如果不是客厅，则只创建限定场景
+		if !isLivingRoom {
+			if !bedroomScenes[simpleName] {
+				continue
+			}
 		}
 
 		// 检查当前区域是否有灯组，如果没有则不创建场景
@@ -68,13 +69,6 @@ func lightScene(c *ava.Context, simpleName string, brightness float64, kelvin in
 		// 如果没有灯组，则不创建任何场景
 		if !hasLightGroup {
 			continue
-		}
-
-		// 如果是卧室区域，检查是否是限定的场景
-		if isBedroom {
-			if !bedroomScenes[simpleName] {
-				continue
-			}
 		}
 
 		// 为每个区域创建独立的en和meta map

@@ -322,7 +322,7 @@ var coverExistAutomation = true //是否覆盖名称相关自动化
 
 var automaitionCount int
 
-func CreateAutomation(c *ava.Context, automation *Automation) {
+func CreateAutomation(c *ava.Context, automation *Automation) string {
 	// 自动化名称和实体ID检测，确保唯一
 	alias := automation.Alias
 	entityMap := data.GetEntityIdMap()
@@ -338,7 +338,7 @@ func CreateAutomation(c *ava.Context, automation *Automation) {
 		}
 
 		if entity.OriginalName == alias && skipExistAutomation { //名称相同则不创建
-			return
+			return ""
 		}
 
 		// 名称冲突
@@ -367,7 +367,7 @@ func CreateAutomation(c *ava.Context, automation *Automation) {
 	err := x.Post(c, fmt.Sprintf(prefixUrlCreateAutomation, data.GetHassUrl(), finalEntityId), data.GetToken(), automation, &response)
 	if err != nil {
 		c.Error(err)
-		return
+		return ""
 	}
 
 	if response.Result != "ok" {
@@ -375,16 +375,18 @@ func CreateAutomation(c *ava.Context, automation *Automation) {
 	}
 
 	if strings.Contains(automation.Alias, "布防") || strings.Contains(automation.Alias, "撤防") {
-		return
+		return finalEntityId
 	}
 
 	err = TurnOnAutomation(c, finalEntityId)
 	if err != nil {
 		c.Error(err)
-		return
+		return ""
 	}
 
 	automaitionCount++
+
+	return finalEntityId
 }
 
 func TurnOnAutomation(c *ava.Context, entityId string) error {

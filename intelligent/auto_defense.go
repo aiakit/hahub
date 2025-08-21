@@ -50,6 +50,20 @@ func Defense(c *ava.Context) {
 	doNotify("家里有人", "请注意，家里有人！！！", automation)
 
 	if len(automation.Triggers) > 0 {
-		CreateAutomation(c, automation)
+		entitryId := CreateAutomation(c, automation)
+		s := &Script{
+			Alias:       "撤防",
+			Description: "撤去家里的防御机制",
+			Sequence:    make([]interface{}, 0),
+		}
+
+		s.Sequence = append(s.Sequence, &ActionService{
+			Action: "automation.turn_off",
+			Data:   map[string]interface{}{"stop_actions": true},
+			Target: &struct {
+				EntityId string `json:"entity_id"`
+			}{EntityId: entitryId},
+		})
+		CreateScript(c, s)
 	}
 }
