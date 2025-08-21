@@ -35,7 +35,7 @@ func dimmmingIncrease(c *ava.Context) {
 			}
 
 			if en.Category == data.CategoryLight {
-				if !strings.Contains(en.DeviceName, "彩") && !strings.Contains(en.DeviceName, "夜灯") {
+				if !strings.Contains(en.DeviceName, "彩") && !strings.Contains(en.DeviceName, "夜") {
 					continue
 				}
 			}

@@ -94,7 +94,7 @@ func LightControl(c *ava.Context) {
 			}
 
 			if e.Category == data.CategoryLight {
-				if (strings.Contains(e.DeviceName, buttonName) || strings.Contains(buttonName, "开/关") || strings.Contains(buttonName, "开关")) && (strings.Contains(e.DeviceName, "彩") || strings.Contains(e.DeviceName, "夜灯")) {
+				if (strings.Contains(e.DeviceName, buttonName) || strings.Contains(buttonName, "开/关") || strings.Contains(buttonName, "开关")) && (strings.Contains(e.DeviceName, "彩") || strings.Contains(e.DeviceName, "夜")) {
 					conditions = append(conditions, Conditions{
 						EntityID:  e.EntityID,
 						State:     "on",

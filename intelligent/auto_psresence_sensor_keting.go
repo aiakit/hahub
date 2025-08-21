@@ -97,11 +97,11 @@ func presenceSensorOnKeting(entity, lumen *data.Entity, lxMin, lxMax float64, du
 		xinguangLights     []*data.Entity
 	)
 
-	// 1. 取entity.Name中'-'前的前缀
-	prefix := entity.DeviceName
-	if idx := strings.Index(prefix, "-"); idx > 0 {
-		prefix = prefix[:idx]
-	}
+	//// 1. 取entity.Name中'-'前的前缀
+	//prefix := entity.DeviceName
+	//if idx := strings.Index(prefix, "-"); idx > 0 {
+	//	prefix = prefix[:idx]
+	//}
 
 	var duringName string
 	// 查找同区域所有实体
@@ -149,7 +149,7 @@ func presenceSensorOnKeting(entity, lumen *data.Entity, lxMin, lxMax float64, du
 		}
 
 		if e.Category == data.CategoryLight {
-			if strings.Contains(e.DeviceName, "彩") || strings.Contains(e.DeviceName, "夜灯") || strings.Contains(e.DeviceName, "馨光") {
+			if strings.Contains(e.DeviceName, "彩") || strings.Contains(e.DeviceName, "夜") || strings.Contains(e.DeviceName, "馨光") {
 				atmosphereLights = append(atmosphereLights, e)
 			}
 		}
@@ -161,10 +161,10 @@ func presenceSensorOnKeting(entity, lumen *data.Entity, lxMin, lxMax float64, du
 		}
 	}
 
-	var isNull = false
+	//var isNull = false
 
 	if len(atmosphereLights) == 0 && len(normalLights) == 0 && len(normalSwitches) == 0 && len(atmosphereSwitches) == 0 {
-		isNull = true
+		//isNull = true
 		//寻找当前区域所有单灯
 		for _, e := range entities {
 			if e.Category == data.CategoryLight {
@@ -181,11 +181,11 @@ func presenceSensorOnKeting(entity, lumen *data.Entity, lxMin, lxMax float64, du
 	var parallel1 = make(map[string][]interface{})
 	// 1. 先开氛围灯
 	for _, l := range atmosphereLights {
-		if prefix != "" && !isNull {
-			if !strings.Contains(l.DeviceName, prefix) {
-				continue
-			}
-		}
+		//if prefix != "" && !isNull {
+		//	if !strings.Contains(l.DeviceName, prefix) {
+		//		continue
+		//	}
+		//}
 		var act = &ActionLight{
 			Action: "light.turn_on",
 			Data: &actionLightData{
@@ -230,11 +230,11 @@ func presenceSensorOnKeting(entity, lumen *data.Entity, lxMin, lxMax float64, du
 
 	// 2. 先开氛围开关
 	for _, s := range atmosphereSwitches {
-		if prefix != "" && !isNull {
-			if !strings.Contains(s.DeviceName, prefix) {
-				continue
-			}
-		}
+		//if prefix != "" && !isNull {
+		//	if !strings.Contains(s.DeviceName, prefix) {
+		//		continue
+		//	}
+		//}
 
 		parallel1["parallel"] = append(parallel1["parallel"], &ActionCommon{
 			Type:     "turn_on",
@@ -258,13 +258,13 @@ func presenceSensorOnKeting(entity, lumen *data.Entity, lxMin, lxMax float64, du
 	var parallel2 = make(map[string][]interface{})
 	// 4. 再开非氛围灯
 	for _, l := range normalLights {
-		if prefix != "" && !isNull {
-			if !strings.Contains(l.DeviceName, prefix) {
-				continue
-			}
-		}
+		//if prefix != "" && !isNull {
+		//	if !strings.Contains(l.DeviceName, prefix) {
+		//		continue
+		//	}
+		//}
 
-		if strings.Contains(l.DeviceName, "夜灯") {
+		if strings.Contains(l.DeviceName, "夜") {
 			parallel2["parallel"] = append(parallel2["parallel"], &ActionLight{
 				Action: "light.turn_on",
 				Data: &actionLightData{
@@ -286,11 +286,11 @@ func presenceSensorOnKeting(entity, lumen *data.Entity, lxMin, lxMax float64, du
 	}
 	// 5. 再开非氛围开关
 	for _, s := range normalSwitches {
-		if prefix != "" && !isNull {
-			if !strings.Contains(s.DeviceName, prefix) {
-				continue
-			}
-		}
+		//if prefix != "" && !isNull {
+		//	if !strings.Contains(s.DeviceName, prefix) {
+		//		continue
+		//	}
+		//}
 		parallel2["parallel"] = append(parallel2["parallel"], &ActionCommon{
 			Type:     "turn_on",
 			DeviceID: s.DeviceID,
@@ -383,7 +383,7 @@ func presenceSensorOffKeting(entity *data.Entity) (*Automation, error) {
 		}
 
 		if e.Category == data.CategoryLight {
-			if strings.Contains(e.DeviceName, "彩") || strings.Contains(e.DeviceName, "夜灯") {
+			if strings.Contains(e.DeviceName, "彩") || strings.Contains(e.DeviceName, "夜") {
 				atmosphereLights = append(atmosphereLights, e)
 			}
 		}

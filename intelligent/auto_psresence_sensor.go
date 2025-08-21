@@ -84,7 +84,7 @@ func presenceSensorOn(entity *data.Entity) (*Automation, error) {
 		}
 
 		if e.Category == data.CategoryLight {
-			if strings.Contains(e.DeviceName, "彩") || strings.Contains(e.DeviceName, "夜灯") {
+			if strings.Contains(e.DeviceName, "彩") || strings.Contains(e.DeviceName, "夜") {
 				atmosphereLights = append(atmosphereLights, e)
 			}
 		}
@@ -200,7 +200,7 @@ func presenceSensorOn(entity *data.Entity) (*Automation, error) {
 		}
 
 		// 夜灯特殊逻辑
-		if strings.Contains(l.DeviceName, "夜灯") {
+		if strings.Contains(l.DeviceName, "夜") {
 			parallel2["parallel"] = append(parallel2["parallel"], &ActionLight{
 				Action: "light.turn_on",
 				Data: &actionLightData{
@@ -348,7 +348,7 @@ func presenceSensorOff(entity *data.Entity) (*Automation, error) {
 		}
 
 		if e.Category == data.CategoryLight {
-			if strings.Contains(e.DeviceName, "彩") || strings.Contains(e.DeviceName, "夜灯") {
+			if strings.Contains(e.DeviceName, "彩") || strings.Contains(e.DeviceName, "夜") {
 				atmosphereLights = append(atmosphereLights, e)
 			}
 		}

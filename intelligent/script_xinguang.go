@@ -45,7 +45,7 @@ func InitXinGuang(c *ava.Context) {
 	}()
 
 	func() {
-		s := InitModeThree(c, 100)
+		s := InitModeThree(c, 100, 4000)
 		if s != nil && len(s.Sequence) > 0 {
 			CreateScript(c, s)
 		}
@@ -54,6 +54,11 @@ func InitXinGuang(c *ava.Context) {
 
 // 光随影动
 func InitModeOne(c *ava.Context) *Script {
+	var script = &Script{
+		Alias:       "馨光光随影动场景",
+		Description: "馨光光随影动模式，光影模式，动感模式场景",
+	}
+
 	//初始化馨光主机
 	entities, ok := data.GetEntityCategoryMap()[data.CategoryXinGuang]
 	if !ok {
@@ -64,10 +69,7 @@ func InitModeOne(c *ava.Context) *Script {
 		return nil
 	}
 
-	var script = &Script{
-		Alias:       "馨光光随影动场景",
-		Description: "馨光光随影动模式，光影模式，动感模式场景",
-	}
+	var areaId = entities[0].AreaID
 
 	////关闭相同区域其他所有灯
 	//areaId := entities[0].AreaID
@@ -84,6 +86,27 @@ func InitModeOne(c *ava.Context) *Script {
 	//		}
 	//	}
 	//}
+	//关闭所有灯
+	func() {
+		entitiesSpeakers, ok := data.GetEntityCategoryMap()[data.CategoryXiaomiHomeSpeaker]
+		if ok {
+			for _, e := range entitiesSpeakers {
+				if strings.Contains(e.OriginalName, "执行文本指令") && strings.HasPrefix(e.EntityID, "notify.") && e.AreaID == areaId {
+					act := ExecuteTextCommand(e.DeviceID, "关闭所有灯", true)
+					script.Sequence = append(script.Sequence, ActionTimerDelay{
+						Delay: struct {
+							Hours        int `json:"hours"`
+							Minutes      int `json:"minutes"`
+							Seconds      int `json:"seconds"`
+							Milliseconds int `json:"milliseconds"`
+						}{Seconds: 3},
+					})
+					script.Sequence = append(script.Sequence, act)
+					break
+				}
+			}
+		}
+	}()
 
 	//先开机
 	for _, e := range entities {
@@ -201,6 +224,8 @@ func InitModeTwo(c *ava.Context) *Script {
 		Description: "馨光律动模式设置场景",
 	}
 
+	var areaId = entities[0].AreaID
+
 	////关闭相同区域其他所有灯
 	//areaId := entities[0].AreaID
 	//allLight, ok := data.GetEntityAreaMap()[areaId]
@@ -216,6 +241,28 @@ func InitModeTwo(c *ava.Context) *Script {
 	//		}
 	//	}
 	//}
+
+	//关闭所有灯
+	func() {
+		entitiesSpeakers, ok := data.GetEntityCategoryMap()[data.CategoryXiaomiHomeSpeaker]
+		if ok {
+			for _, e := range entitiesSpeakers {
+				if strings.Contains(e.OriginalName, "执行文本指令") && strings.HasPrefix(e.EntityID, "notify.") && e.AreaID == areaId {
+					act := ExecuteTextCommand(e.DeviceID, "关闭所有灯", true)
+					script.Sequence = append(script.Sequence, ActionTimerDelay{
+						Delay: struct {
+							Hours        int `json:"hours"`
+							Minutes      int `json:"minutes"`
+							Seconds      int `json:"seconds"`
+							Milliseconds int `json:"milliseconds"`
+						}{Seconds: 3},
+					})
+					script.Sequence = append(script.Sequence, act)
+					break
+				}
+			}
+		}
+	}()
 
 	//先开机
 	for _, e := range entities {
@@ -314,7 +361,7 @@ func InitModeTwo(c *ava.Context) *Script {
 }
 
 // 静态模式
-func InitModeThree(c *ava.Context, BrightnessPct float64) *Script {
+func InitModeThree(c *ava.Context, BrightnessPct float64, kelvin int) *Script {
 	//初始化馨光主机
 	entities, ok := data.GetEntityCategoryMap()[data.CategoryXinGuang]
 	if !ok {
@@ -338,7 +385,7 @@ func InitModeThree(c *ava.Context, BrightnessPct float64) *Script {
 				Action: "light.turn_on",
 				Data: &actionLightData{
 					BrightnessPct: BrightnessPct,
-					RgbColor:      GetRgbColor(5000),
+					RgbColor:      GetRgbColor(kelvin),
 				},
 				Target: &targetLightData{DeviceId: e.DeviceID},
 			})

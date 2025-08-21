@@ -80,7 +80,7 @@ func bodySensorOn(entity *data.Entity) (*Automation, error) {
 				}
 			}
 		}
-		if e.Category == data.CategoryLight && (strings.Contains(e.DeviceName, "彩") || strings.Contains(e.DeviceName, "夜灯")) {
+		if e.Category == data.CategoryLight && (strings.Contains(e.DeviceName, "彩") || strings.Contains(e.DeviceName, "夜")) {
 			atmosphereLights = append(atmosphereLights, e)
 		}
 	}
@@ -159,7 +159,7 @@ func bodySensorOn(entity *data.Entity) (*Automation, error) {
 			continue
 		}
 		// 夜灯特殊逻辑
-		if strings.Contains(e.DeviceName, "夜灯") {
+		if strings.Contains(e.DeviceName, "夜") {
 			parallel2["parallel"] = append(parallel2["parallel"], &ActionLight{
 				Action: "light.turn_on",
 				Data: &actionLightData{
@@ -307,6 +307,9 @@ func bodySensorOn(entity *data.Entity) (*Automation, error) {
 		}},
 		Actions: actions,
 		Mode:    "single",
+	}
+	if strings.Contains(prefix, "夜") {
+		auto.Alias = areaName + "起夜场景"
 	}
 	auto.Actions = actions
 

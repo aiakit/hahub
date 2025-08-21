@@ -164,7 +164,7 @@ func lightScene(c *ava.Context, simpleName string, brightness float64, kelvin in
 					})
 				}
 
-				if strings.Contains(e1.DeviceName, "夜灯") {
+				if strings.Contains(e1.DeviceName, "夜") {
 					script.Sequence = append(script.Sequence, ActionLight{
 						Action: "light.turn_on",
 						Data: &actionLightData{
