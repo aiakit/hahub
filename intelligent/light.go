@@ -158,13 +158,14 @@ func turnOnLights(entities []*data.Entity, brightnessPct float64, kelvin int, op
 
 		// 对于馨光设备，需要先设置为静态模式
 		if strings.Contains(e.DeviceName, "馨光") {
-			e1, ok := data.GetEntitiesById()[e.EntityID]
+			e1, ok := data.GetEntitiesById()[e.DeviceID]
 			if !ok {
 				continue
 			}
 			for _, e2 := range e1 {
 				a := setXinGuangDeviceToStaticMode(e2)
 				if a != nil {
+
 					actions = append(actions, a)
 				}
 			}
@@ -189,6 +190,17 @@ func turnOnLights(entities []*data.Entity, brightnessPct float64, kelvin int, op
 				}
 			}
 		}
+	}
+
+	if len(actions) > 0 {
+		actions = append(actions, &ActionLight{
+			Delay: &delay{
+				Hours:        0,
+				Minutes:      0,
+				Seconds:      2,
+				Milliseconds: 0,
+			},
+		})
 	}
 
 	for _, e := range entities {

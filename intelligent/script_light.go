@@ -7,7 +7,7 @@ import (
 	"github.com/aiakit/ava"
 )
 
-func lightScriptSetting(c *ava.Context) {
+func LightScriptSetting(c *ava.Context) {
 	lightScene(c, "会客", 80, 6000)
 	lightScene(c, "观影", 20, 3800)
 	lightScene(c, "游戏", 100, 4800)
@@ -105,78 +105,24 @@ func lightScene(c *ava.Context, simpleName string, brightness float64, kelvin in
 			}
 		}()
 
-		var actions []interface{}
-		var parallel2 = make(map[string][]interface{})
+		var actions = make([]interface{}, 0, 2)
 
-		// 添加设备操作到场景中
-		for _, e1 := range v {
-			if e1.Category == data.CategoryLightGroup {
-				script.Sequence = append(script.Sequence, ActionLight{
-					Action: "light.turn_on",
-					Data: &actionLightData{
-						BrightnessPct:   brightness,
-						ColorTempKelvin: kelvin,
-					},
-					Target: &targetLightData{DeviceId: e1.DeviceID},
-				})
-				continue
-			}
+		entityFilter := findLightsWithOutLightCategory("", v)
+		if len(entityFilter) == 0 {
+			continue
+		}
 
-			if strings.HasPrefix(e1.EntityID, "light.") && e1.Category == data.CategoryXinGuang && !strings.Contains(e1.DeviceName, "主机") {
-				if data.GetXinGuang(e1.DeviceID) == "" {
-					continue
-				}
-				//改为静态模式,不能并行执行，必须优先执行
-				actions = append(actions, &ActionLight{
-					DeviceID: e1.DeviceID,
-					Domain:   "select",
-					EntityID: data.GetXinGuang(e1.DeviceID),
-					Type:     "select_option",
-					Option:   "静态模式",
-				})
+		action := turnOnLights(entityFilter, brightness, kelvin, false)
+		if len(action) == 0 {
+			continue
+		}
 
-				//修改颜色
-				parallel2["parallel"] = append(parallel2["parallel"], &ActionLight{
-					Action: "light.turn_on",
-					Data: &actionLightData{
-						BrightnessPct: brightness,
-						RgbColor:      GetRgbColor(kelvin),
-					},
-					Target: &targetLightData{DeviceId: e1.DeviceID},
-				})
-				continue
-			}
-
-			if e1.Category == data.CategoryLight {
-				if strings.Contains(e1.DeviceName, "彩") {
-					script.Sequence = append(script.Sequence, ActionLight{
-						Action: "light.turn_on",
-						Data: &actionLightData{
-							BrightnessPct: brightness,
-						},
-						Target: &targetLightData{DeviceId: e1.DeviceID},
-					})
-				}
-
-				if strings.Contains(e1.DeviceName, "夜") {
-					script.Sequence = append(script.Sequence, ActionLight{
-						Action: "light.turn_on",
-						Data: &actionLightData{
-							BrightnessPct:   brightness,
-							ColorTempKelvin: kelvin,
-						},
-						Target: &targetLightData{DeviceId: e1.DeviceID},
-					})
-				}
-			}
+		for _, e := range action {
+			actions = append(actions, e)
 		}
 
 		if len(actions) > 0 {
 			script.Sequence = append(script.Sequence, actions...)
-		}
-
-		if len(parallel2) > 0 {
-			script.Sequence = append(script.Sequence, parallel2)
 		}
 
 		if len(script.Sequence) > 0 {

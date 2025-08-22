@@ -29,7 +29,7 @@ func ScriptChaos() {
 	//馨光灯初始化
 	InitXinGuang(c)
 	//初始化灯光场景
-	lightScriptSetting(c)
+	LightScriptSetting(c)
 	//卧室睡觉场景
 	GoodNightScript(c)
 	//起床场景

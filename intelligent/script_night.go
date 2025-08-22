@@ -135,18 +135,20 @@ func GoodNightScript(c *ava.Context) {
 			}
 		}
 
-		// 2. 设置灯的色温
-		for _, e := range v {
-			if e.Category == data.CategoryLightGroup {
-				script.Sequence = append(script.Sequence, ActionLight{
-					Action: "light.turn_on",
-					Data: &actionLightData{
-						BrightnessPct:   50,   // 先调至50%亮度
-						ColorTempKelvin: 3000, // 温馨色温
-					},
-					Target: &targetLightData{DeviceId: e.DeviceID},
-				})
-			}
+		var actions = make([]interface{}, 0, 2)
+
+		entityFilter := findLightsWithOutLightCategory("", v)
+		if len(entityFilter) == 0 {
+			continue
+		}
+
+		action := turnOnLights(entityFilter, 50, 3000, false)
+		if len(action) == 0 {
+			continue
+		}
+
+		for _, e := range action {
+			actions = append(actions, e)
 		}
 
 		//// 3. 设置空调
@@ -175,16 +177,9 @@ func GoodNightScript(c *ava.Context) {
 			}{Seconds: 10},
 		})
 
-		for _, e := range v {
-			if e.Category == data.CategoryLightGroup {
-				script.Sequence = append(script.Sequence, ActionLight{
-					Action: "light.turn_on",
-					Data: &actionLightData{
-						BrightnessPct: 25, // 降低亮度到25%
-					},
-					Target: &targetLightData{DeviceId: e.DeviceID},
-				})
-			}
+		for _, e := range action {
+			e.Data.BrightnessStepPct = 25
+			actions = append(actions, e)
 		}
 
 		script.Sequence = append(script.Sequence, ActionTimerDelay{
@@ -196,13 +191,17 @@ func GoodNightScript(c *ava.Context) {
 			}{Seconds: 10},
 		})
 
-		for _, e := range v {
-			if e.Category == data.CategoryLightGroup {
-				script.Sequence = append(script.Sequence, ActionLight{
-					Action: "light.turn_off",
-					Target: &targetLightData{DeviceId: e.DeviceID},
-				})
-			}
+		actionOff := turnOffLights(entityFilter)
+		if len(actionOff) == 0 {
+			continue
+		}
+
+		for _, e := range actionOff {
+			actions = append(actions, e)
+		}
+
+		if len(actions) > 0 {
+			script.Sequence = append(script.Sequence, actions...)
 		}
 
 		//如果有床，设置床角度

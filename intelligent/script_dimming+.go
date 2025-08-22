@@ -10,27 +10,18 @@ import (
 // 调光旋钮工作,每次亮度减少20%
 // 只调当前打开的灯，关闭的灯忽略
 func dimmmingIncrease(c *ava.Context) {
-	entities, ok := data.GetEntityCategoryMap()[data.CategoryDimming]
-	if !ok {
-		return
-	}
-
-	for _, e := range entities {
-		ens, ok := data.GetEntityAreaMap()[e.AreaID]
-		if !ok {
-			continue
-		}
+	for areaId, ens := range data.GetEntityAreaMap() {
 
 		var script = &Script{
-			Alias:       data.SpiltAreaName(data.GetAreaName(e.AreaID)) + "调高灯光亮度",
-			Description: "对" + data.SpiltAreaName(data.GetAreaName(e.AreaID)) + "区域开着的灯进行亮度加调节",
+			Alias:       data.SpiltAreaName(data.GetAreaName(areaId)) + "调高灯光亮度",
+			Description: "对" + data.SpiltAreaName(data.GetAreaName(areaId)) + "区域开着的灯进行亮度加调节",
 			Sequence:    make([]interface{}, 0, 2),
 		}
 
 		// 收集所有符合条件的灯具
 		var validLights []*data.Entity
 		for _, en := range ens {
-			if en.Category != data.CategoryLight && en.Category != data.CategoryLightGroup {
+			if en.Category != data.CategoryLight && en.Category != data.CategoryLightGroup && en.SubCategory != data.CategoryWiredSwitch {
 				continue
 			}
 

@@ -106,7 +106,7 @@ func homingScript() *Script {
 		var isOpen bool
 		if ok {
 			for _, e := range entitiesScript {
-				if strings.Contains(e.OriginalName, "逐个") {
+				if strings.Contains(e.OriginalName, "客厅") && (strings.Contains(e.OriginalName, "展示") || strings.Contains(e.OriginalName, "逐个")) {
 					script.Sequence = append(script.Sequence, ActionService{
 						Action: "script.turn_on",
 						Target: &struct {
@@ -114,6 +114,7 @@ func homingScript() *Script {
 						}{EntityId: e.EntityID},
 					})
 					isOpen = true
+					break
 				}
 			}
 		}
@@ -133,6 +134,12 @@ func homingScript() *Script {
 									BrightnessPct:   100,
 								},
 								Target: &targetLightData{DeviceId: v.DeviceID},
+							})
+							script.Sequence = append(script.Sequence, delay{
+								Hours:        0,
+								Minutes:      0,
+								Seconds:      5,
+								Milliseconds: 0,
 							})
 						}
 
