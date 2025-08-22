@@ -56,141 +56,41 @@ func LightControl(c *ava.Context) {
 			}
 		}
 
+		var prefix = buttonName
+		if buttonName == "开关" || buttonName == "开/关" {
+			prefix = ""
+		}
+
+		entitiesFilter := findLightsWithOutLightCategory(prefix, es)
+		if len(entitiesFilter) == 0 {
+			continue
+		}
+		actionsTurnOn := turnOnLights(entitiesFilter, 100, 4800, true)
+
+		if len(actionsTurnOn) == 0 {
+			continue
+		}
+
+		conditionTurnOn, actionsOn := spiltCondition(nil, actionsTurnOn)
+
+		actionsOff := turnOffLights(entitiesFilter)
+		if len(actionsOn) == 0 || len(actionsOff) == 0 {
+			continue
+		}
+
 		// 收集所有匹配的灯组实体ID
-
 		var conditions []interface{}
-		var actionsOn []interface{}
-		var actionsOff []interface{}
-		var xinguangLights []*data.Entity
-
-		// 先收集所有匹配的灯组
-		for _, e := range es {
-			if e.Category == data.CategoryXinGuang {
-				if !strings.Contains(e.DeviceName, "主机") && strings.HasPrefix(e.EntityID, "light.") && (strings.Contains(e.DeviceName, buttonName) || strings.Contains(buttonName, "开/关") || strings.Contains(buttonName, "开关")) {
-					xinguangLights = append(xinguangLights, e)
-				}
-			}
-			if e.Category == data.CategoryLightGroup {
-				if strings.Contains(e.DeviceName, buttonName) || strings.Contains(buttonName, "开/关") || strings.Contains(buttonName, "开关") {
-					conditions = append(conditions, &Conditions{
-						EntityID:  e.EntityID,
-						State:     "on",
-						Condition: "state",
-					})
-
-					actionsOn = append(actionsOn, ActionLight{
-						Action: "light.turn_on",
-						Data: &actionLightData{
-							ColorTempKelvin: 4500,
-							BrightnessPct:   100,
-						},
-						Target: &targetLightData{DeviceId: e.DeviceID},
-					})
-					actionsOff = append(actionsOff, ActionLight{
-						Action: "light.turn_off",
-						Target: &targetLightData{DeviceId: e.DeviceID},
-					})
-				}
-			}
-
-			if e.Category == data.CategoryLight {
-				if (strings.Contains(e.DeviceName, buttonName) || strings.Contains(buttonName, "开/关") || strings.Contains(buttonName, "开关")) && (strings.Contains(e.DeviceName, "彩") || strings.Contains(e.DeviceName, "夜")) {
-					conditions = append(conditions, &Conditions{
-						EntityID:  e.EntityID,
-						State:     "on",
-						Condition: "state",
-					})
-					actionsOn = append(actionsOn, ActionLight{
-						Action: "light.turn_on",
-						Data: &actionLightData{
-							ColorTempKelvin: 4500,
-							BrightnessPct:   100,
-						},
-						Target: &targetLightData{DeviceId: e.DeviceID},
-					})
-					actionsOff = append(actionsOff, ActionLight{
-						Action: "light.turn_off",
-						Target: &targetLightData{DeviceId: e.DeviceID},
-					})
-				}
-			}
+		var offs []interface{}
+		for _, e := range actionsOff {
+			offs = append(offs, e)
 		}
 
-		// 重构馨光灯的控制逻辑，使用conditions, actionsOn, actionsOff方式
-		if len(xinguangLights) > 0 {
-			// 为馨光灯添加条件检查
-			for _, l := range xinguangLights {
-				if data.GetXinGuang(l.DeviceID) != "" {
-					conditions = append(conditions, &Conditions{
-						EntityID:  l.EntityID,
-						State:     "on",
-						Condition: "state",
-					})
-				}
-			}
-
-			// 构建开启馨光灯的动作
-			for _, l := range xinguangLights {
-				if data.GetXinGuang(l.DeviceID) == "" {
-					continue
-				}
-
-				// 改为静态模式,不能并行执行，必须优先执行
-				actionsOn = append(actionsOn, &ActionLight{
-					DeviceID: l.DeviceID,
-					Domain:   "select",
-					EntityID: data.GetXinGuang(l.DeviceID),
-					Type:     "select_option",
-					Option:   "静态模式",
-				})
-
-				// 修改颜色
-				actionsOn = append(actionsOn, &ActionLight{
-					Action: "light.turn_on",
-					Data: &actionLightData{
-						BrightnessPct: 100,
-						RgbColor:      GetRgbColor(4000),
-					},
-					Target: &targetLightData{DeviceId: l.DeviceID},
-				})
-
-				// 关闭馨光灯的动作
-				actionsOff = append(actionsOff, &ActionLight{
-					Action: "light.turn_off",
-					Target: &targetLightData{DeviceId: l.DeviceID},
-				})
-			}
+		for _, e := range conditionTurnOn {
+			conditions = append(conditions, e)
 		}
 
-		if len(conditions) == 0 || len(actionsOn) == 0 {
-			for _, l := range es {
-				//如果没有就开启单灯
-				if l.Category == data.CategoryLight {
-					if strings.Contains(l.DeviceName, buttonName) || strings.Contains(buttonName, "开/关") || strings.Contains(buttonName, "开关") {
-						conditions = append(conditions, &Conditions{
-							EntityID:  l.EntityID,
-							State:     "on",
-							Condition: "state",
-						})
-						actionsOn = append(actionsOn, ActionLight{
-							Action: "light.turn_on",
-							Data: &actionLightData{
-								ColorTempKelvin: 4500,
-								BrightnessPct:   100,
-							},
-							Target: &targetLightData{DeviceId: l.DeviceID},
-						})
-						actionsOff = append(actionsOff, ActionLight{
-							Action: "light.turn_off",
-							Target: &targetLightData{DeviceId: l.DeviceID},
-						})
-					}
-				}
-			}
-
-			if len(conditions) == 0 || len(actionsOn) == 0 {
-				continue
-			}
+		if len(conditions) == 0 || len(conditions) == 0 || len(offs) == 0 {
+			continue
 		}
 
 		var act IfThenELSEAction
@@ -198,8 +98,8 @@ func LightControl(c *ava.Context) {
 			Condition:  "and",
 			Conditions: conditions,
 		})
-		act.Then = actionsOff
-		act.Else = actionsOn
+		act.Then = actionsOn
+		act.Else = offs
 
 		auto.Actions = append(auto.Actions, act)
 

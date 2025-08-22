@@ -128,12 +128,12 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 				category = CategoryAppleTV
 				return
 			}
+
 			// 2. 空调
 			if strings.HasPrefix(e.EntityID, "climate.") && strings.Contains(e.OriginalName, "空调") {
 				category = CategoryAirConditioner
 				return
 			}
-
 			// 2. 地暖
 			if strings.HasPrefix(e.EntityID, "climate.") && strings.Contains(e.OriginalName, "地暖") {
 				category = CategoryFloorHeating
@@ -147,7 +147,7 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 			}
 
 			// 4. 开关,设备和实体都是开关
-			if strings.Contains(e.EntityID, "switch.") {
+			if deviceData != nil && strings.Contains(deviceData.Model, ".switch.") && strings.Contains(e.EntityID, "switch.") {
 				if deviceData != nil && strings.Contains(deviceData.Model, ".switch.") &&
 					!strings.Contains(e.OriginalName, "指示灯") &&
 					!strings.Contains(e.OriginalName, "背光") && !strings.Contains(e.OriginalName, "拓展") {
@@ -157,7 +157,7 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 			}
 
 			// 4.1 有线开关标记
-			if strings.Contains(e.EntityID, "select.") && strings.Contains(e.EntityID, "_mode_") {
+			if deviceData != nil && strings.Contains(deviceData.Model, ".switch.") && strings.Contains(e.EntityID, "select.") && strings.Contains(e.EntityID, "_mode_") {
 				if deviceData != nil && strings.Contains(deviceData.Model, ".switch.") {
 					st, err := GetState(e.EntityID)
 					if err != nil {

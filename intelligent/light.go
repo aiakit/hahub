@@ -7,7 +7,10 @@ import (
 
 func spiltCondition(src *data.Entity, entities []*ActionLight) (condition []*Conditions, action []interface{}) {
 	for _, e := range entities {
-		if e.Condition != "" && e.EntityID != src.EntityID {
+		if e.Condition != "" {
+			if src != nil && e.EntityID == src.EntityID {
+				continue
+			}
 			condition = append(condition, &Conditions{
 				Condition: "device",
 				Type:      "is_off",

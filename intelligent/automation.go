@@ -313,7 +313,7 @@ func ChaosAutomation() {
 	LightControl(c)
 
 	//插座打开就开灯
-	walkBodySocketSensor(c)
+	WalkBodySocketSensor(c)
 
 	WalkPresenceSensorAir(c)
 
