@@ -89,7 +89,7 @@ func Display(c *ava.Context) {
 	for _, e := range lightStripNumbers {
 		for _, e1 := range actions {
 			deviceId := e1.DeviceID
-			if deviceId == "" {
+			if deviceId == "" && e1.Target != nil {
 				deviceId = e1.Target.DeviceId
 			}
 

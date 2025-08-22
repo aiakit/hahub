@@ -12,18 +12,18 @@ import (
 )
 
 func main() {
-	defer func() {
-		if err := recover(); err != nil {
-			ava.Fatalf("revocer |err=%v", err)
-		}
-	}()
+	//defer func() {
+	//	if err := recover(); err != nil {
+	//		ava.Fatalf("revocer |err=%v", err)
+	//	}
+	//}()
 
 	now := time.Now()
 	// 等待 chaos.go 的初始化完成
 	data.WaitForInit()
 
 	//必须先创建脚本再创建自动化，这里不打开，改为ai驱动
-	//intelligent.GoodMorningScript(ava.Background())
+	//intelligent.Display(ava.Background())
 	intelligent.Chaos()
 
 	//启动音箱ai驱动
