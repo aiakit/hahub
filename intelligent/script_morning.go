@@ -313,13 +313,13 @@ func GoodMorningScript(c *ava.Context) {
 					if strings.Contains(buttonName, "早安") || strings.Contains(buttonName, "起床") {
 						//按键触发和条件
 						for _, e := range v {
-							auto.Triggers = append(auto.Triggers, Triggers{
+							auto.Triggers = append(auto.Triggers, &Triggers{
 								EntityID: e.EntityID,
 								Trigger:  "state",
 							})
 
 							if e.Category == data.CategorySwitchClickOnce {
-								auto.Conditions = append(auto.Conditions, Conditions{
+								auto.Conditions = append(auto.Conditions, &Conditions{
 									Condition: "state",
 									EntityID:  e.EntityID,
 									Attribute: e.Attribute,

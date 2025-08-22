@@ -86,13 +86,13 @@ func lightScene(c *ava.Context, simpleName string, brightness float64, kelvin in
 				if strings.Contains(buttonName, simpleName) {
 					//按键触发和条件
 					for _, e := range v {
-						automation.Triggers = append(automation.Triggers, Triggers{
+						automation.Triggers = append(automation.Triggers, &Triggers{
 							EntityID: e.EntityID,
 							Trigger:  "state",
 						})
 
 						if e.Category == data.CategorySwitchClickOnce {
-							automation.Conditions = append(automation.Conditions, Conditions{
+							automation.Conditions = append(automation.Conditions, &Conditions{
 								Condition: "state",
 								EntityID:  e.EntityID,
 								Attribute: e.Attribute,

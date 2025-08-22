@@ -57,8 +57,8 @@ var (
 type Automation struct {
 	Alias       string        `json:"alias"`                //自动化名称
 	Description string        `json:"description"`          //自动化描述
-	Triggers    []Triggers    `json:"triggers"`             //触发条件
-	Conditions  []Conditions  `json:"conditions,omitempty"` //限制条件
+	Triggers    []*Triggers   `json:"triggers"`             //触发条件
+	Conditions  []*Conditions `json:"conditions,omitempty"` //限制条件
 	Actions     []interface{} `json:"actions,omitempty"`    //执行动作
 	Mode        string        `json:"mode"`                 //执行模式
 }
@@ -79,7 +79,10 @@ type ifCondition struct {
 	Domain     string        `json:"domain,omitempty"`
 	Above      float64       `json:"above,omitempty"`
 	Below      float64       `json:"below,omitempty"`
+	After      string        `json:"after,omitempty"`
+	Before     string        `json:"before,omitempty"`
 	Attribute  string        `json:"attribute,omitempty"`
+	Weekday    []string      `json:"weekday,omitempty"`
 }
 
 // 获取 lxByAreaId 中的值，使用读锁
@@ -202,6 +205,7 @@ type For struct {
 }
 
 type ActionLight struct {
+	Condition     string           `json:"condition,omitempty"`
 	Type          string           `json:"type,omitempty"`
 	Action        string           `json:"action,omitempty"`
 	DeviceID      string           `json:"device_id,omitempty"`
@@ -211,6 +215,17 @@ type ActionLight struct {
 	Data          *actionLightData `json:"data,omitempty"`
 	Target        *targetLightData `json:"target,omitempty"`
 	Option        string           `json:"option,omitempty"`
+	Delay         *delay           `json:"delay,omitempty"`
+	Value         int              `json:"value,omitempty"`
+
+	subCategory string
+}
+
+type delay struct {
+	Hours        int `json:"hours"`
+	Minutes      int `json:"minutes"`
+	Seconds      int `json:"seconds"`
+	Milliseconds int `json:"milliseconds"`
 }
 
 type actionLightData struct {
@@ -282,7 +297,7 @@ func ChaosAutomation() {
 	initEntityIdByLx(ava.Background())
 
 	//人体传感器
-	walkBodySensor(c)
+	WalkBodySensor(c)
 
 	//人体存在传感器
 	WalkPresenceSensor(c)

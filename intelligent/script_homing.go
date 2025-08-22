@@ -387,7 +387,7 @@ func homingAutomation(scriptId string) *Automation {
 		entities, ok := data.GetEntityCategoryMap()[data.CategoryLightGroup]
 		if ok {
 			for _, e := range entities {
-				automation.Conditions = append(automation.Conditions, Conditions{
+				automation.Conditions = append(automation.Conditions, &Conditions{
 					Condition: "device",
 					Type:      "is_off",
 					DeviceID:  e.DeviceID,
@@ -403,7 +403,7 @@ func homingAutomation(scriptId string) *Automation {
 		entities, ok := data.GetEntityCategoryMap()[data.CategoryHumanPresenceSensor]
 		if ok {
 			for _, e := range entities {
-				automation.Conditions = append(automation.Conditions, Conditions{
+				automation.Conditions = append(automation.Conditions, &Conditions{
 					Type:      "is_not_occupied",
 					DeviceID:  e.DeviceID,
 					EntityID:  e.EntityID,
@@ -427,13 +427,13 @@ func homingAutomation(scriptId string) *Automation {
 			if strings.Contains(buttonName, "回家") {
 				//按键触发和条件
 				for _, e := range v {
-					automation.Triggers = append(automation.Triggers, Triggers{
+					automation.Triggers = append(automation.Triggers, &Triggers{
 						EntityID: e.EntityID,
 						Trigger:  "state",
 					})
 
 					if e.Category == data.CategorySwitchClickOnce {
-						automation.Conditions = append(automation.Conditions, Conditions{
+						automation.Conditions = append(automation.Conditions, &Conditions{
 							Condition: "state",
 							EntityID:  e.EntityID,
 							Attribute: e.Attribute,

@@ -41,13 +41,13 @@ func LightControl(c *ava.Context) {
 
 		//按键触发和条件
 		for _, e := range v {
-			auto.Triggers = append(auto.Triggers, Triggers{
+			auto.Triggers = append(auto.Triggers, &Triggers{
 				EntityID: e.EntityID,
 				Trigger:  "state",
 			})
 
 			if e.Category == data.CategorySwitchClickOnce {
-				auto.Conditions = append(auto.Conditions, Conditions{
+				auto.Conditions = append(auto.Conditions, &Conditions{
 					Condition: "state",
 					EntityID:  e.EntityID,
 					Attribute: e.Attribute,
@@ -72,7 +72,7 @@ func LightControl(c *ava.Context) {
 			}
 			if e.Category == data.CategoryLightGroup {
 				if strings.Contains(e.DeviceName, buttonName) || strings.Contains(buttonName, "开/关") || strings.Contains(buttonName, "开关") {
-					conditions = append(conditions, Conditions{
+					conditions = append(conditions, &Conditions{
 						EntityID:  e.EntityID,
 						State:     "on",
 						Condition: "state",
@@ -95,7 +95,7 @@ func LightControl(c *ava.Context) {
 
 			if e.Category == data.CategoryLight {
 				if (strings.Contains(e.DeviceName, buttonName) || strings.Contains(buttonName, "开/关") || strings.Contains(buttonName, "开关")) && (strings.Contains(e.DeviceName, "彩") || strings.Contains(e.DeviceName, "夜")) {
-					conditions = append(conditions, Conditions{
+					conditions = append(conditions, &Conditions{
 						EntityID:  e.EntityID,
 						State:     "on",
 						Condition: "state",
@@ -121,7 +121,7 @@ func LightControl(c *ava.Context) {
 			// 为馨光灯添加条件检查
 			for _, l := range xinguangLights {
 				if data.GetXinGuang(l.DeviceID) != "" {
-					conditions = append(conditions, Conditions{
+					conditions = append(conditions, &Conditions{
 						EntityID:  l.EntityID,
 						State:     "on",
 						Condition: "state",
@@ -167,7 +167,7 @@ func LightControl(c *ava.Context) {
 				//如果没有就开启单灯
 				if l.Category == data.CategoryLight {
 					if strings.Contains(l.DeviceName, buttonName) || strings.Contains(buttonName, "开/关") || strings.Contains(buttonName, "开关") {
-						conditions = append(conditions, Conditions{
+						conditions = append(conditions, &Conditions{
 							EntityID:  l.EntityID,
 							State:     "on",
 							Condition: "state",

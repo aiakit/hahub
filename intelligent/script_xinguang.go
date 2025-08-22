@@ -52,6 +52,58 @@ func InitXinGuang(c *ava.Context) {
 	}()
 }
 
+// 设置单个馨光设备开机
+func turnOnXinGuangDevice(e *data.Entity, BrightnessPct float64) *ActionLight {
+	//注意元数据中有空格
+	if strings.HasPrefix(e.EntityID, "light.") {
+		return &ActionLight{
+			Type:          "turn_on",
+			DeviceID:      e.DeviceID,
+			EntityID:      e.EntityID,
+			Domain:        "light",
+			BrightnessPct: BrightnessPct,
+		}
+	}
+	return nil
+}
+
+// 设置单个馨光设备为静态模式
+func setXinGuangDeviceToStaticMode(e *data.Entity) *ActionLight {
+	var isHost bool
+	if strings.Contains(e.DeviceName, "主机") {
+		isHost = true
+	}
+
+	if isHost {
+		// 主机设置
+		if strings.Contains(e.OriginalName, "动态模式效果") {
+			return &ActionLight{Domain: "number", DeviceID: e.DeviceID, EntityID: e.EntityID, Type: "set_value", Value: 8}
+		}
+
+		if strings.Contains(e.OriginalName, "饱和度设置") {
+			return &ActionLight{Domain: "number", DeviceID: e.DeviceID, EntityID: e.EntityID, Type: "set_value", Value: 100}
+		}
+
+		if strings.Contains(e.OriginalName, "柔和度设置") {
+			return &ActionLight{Domain: "number", DeviceID: e.DeviceID, EntityID: e.EntityID, Type: "set_value", Value: 40}
+		}
+	} else {
+		// 灯带设置
+		if strings.Contains(e.OriginalName, "饱和度") {
+			return &ActionLight{Domain: "number", DeviceID: e.DeviceID, EntityID: e.EntityID, Type: "set_value", Value: 100}
+		}
+
+		if strings.Contains(e.OriginalName, "动态亮度") {
+			return &ActionLight{Domain: "number", DeviceID: e.DeviceID, EntityID: e.EntityID, Type: "set_value", Value: 100}
+		}
+
+		if strings.Contains(e.OriginalName, "LED运行模式") {
+			return &ActionLight{Domain: "select", DeviceID: e.DeviceID, EntityID: e.EntityID, Type: "select_option", Option: "静态模式"}
+		}
+	}
+	return nil
+}
+
 // 光随影动
 func InitModeOne(c *ava.Context) *Script {
 	var script = &Script{
@@ -110,15 +162,8 @@ func InitModeOne(c *ava.Context) *Script {
 
 	//先开机
 	for _, e := range entities {
-		//注意元数据中有空格
-		if strings.HasPrefix(e.EntityID, "light.") {
-			script.Sequence = append(script.Sequence, ActionLight{
-				Type:          "turn_on",
-				DeviceID:      e.DeviceID,
-				EntityID:      e.EntityID,
-				Domain:        "light",
-				BrightnessPct: 100,
-			})
+		if action := turnOnXinGuangDevice(e, 1); action != nil {
+			script.Sequence = append(script.Sequence, *action)
 		}
 	}
 
@@ -266,15 +311,8 @@ func InitModeTwo(c *ava.Context) *Script {
 
 	//先开机
 	for _, e := range entities {
-		//注意元数据中有空格
-		if strings.HasPrefix(e.EntityID, "light.") {
-			script.Sequence = append(script.Sequence, ActionLight{
-				Type:          "turn_on",
-				DeviceID:      e.DeviceID,
-				EntityID:      e.EntityID,
-				Domain:        "light",
-				BrightnessPct: 100,
-			})
+		if action := turnOnXinGuangDevice(e, 100); action != nil {
+			script.Sequence = append(script.Sequence, *action)
 		}
 	}
 
@@ -379,16 +417,8 @@ func InitModeThree(c *ava.Context, BrightnessPct float64, kelvin int) *Script {
 
 	//先开机
 	for _, e := range entities {
-		//注意元数据中有空格
-		if strings.HasPrefix(e.EntityID, "light.") {
-			script.Sequence = append(script.Sequence, ActionLight{
-				Action: "light.turn_on",
-				Data: &actionLightData{
-					BrightnessPct: BrightnessPct,
-					RgbColor:      GetRgbColor(kelvin),
-				},
-				Target: &targetLightData{DeviceId: e.DeviceID},
-			})
+		if action := turnOnXinGuangDevice(e, BrightnessPct); action != nil {
+			script.Sequence = append(script.Sequence, *action)
 		}
 	}
 
@@ -412,16 +442,9 @@ func InitModeThree(c *ava.Context, BrightnessPct float64, kelvin int) *Script {
 			areaName = data.SpiltAreaName(e.AreaName)
 		}
 
-		if strings.Contains(e.OriginalName, "动态模式效果") {
-			script.Sequence = append(script.Sequence, ActionCommon{Domain: "number", DeviceID: e.DeviceID, EntityID: e.EntityID, Type: "set_value", Value: 8})
-		}
-
-		if strings.Contains(e.OriginalName, "饱和度设置") {
-			script.Sequence = append(script.Sequence, ActionCommon{Domain: "number", DeviceID: e.DeviceID, EntityID: e.EntityID, Type: "set_value", Value: 100})
-		}
-
-		if strings.Contains(e.OriginalName, "柔和度设置") {
-			script.Sequence = append(script.Sequence, ActionCommon{Domain: "number", DeviceID: e.DeviceID, EntityID: e.EntityID, Type: "set_value", Value: 40})
+		result := setXinGuangDeviceToStaticMode(e)
+		if result != nil {
+			script.Sequence = append(script.Sequence, result)
 		}
 	}
 
@@ -436,16 +459,9 @@ func InitModeThree(c *ava.Context, BrightnessPct float64, kelvin int) *Script {
 			areaName = data.SpiltAreaName(e.AreaName)
 		}
 
-		if strings.Contains(e.OriginalName, "饱和度") {
-			script.Sequence = append(script.Sequence, ActionCommon{Domain: "number", DeviceID: e.DeviceID, EntityID: e.EntityID, Type: "set_value", Value: 100})
-		}
-
-		if strings.Contains(e.OriginalName, "动态亮度") {
-			script.Sequence = append(script.Sequence, ActionCommon{Domain: "number", DeviceID: e.DeviceID, EntityID: e.EntityID, Type: "set_value", Value: 100})
-		}
-
-		if strings.Contains(e.OriginalName, "LED运行模式") {
-			script.Sequence = append(script.Sequence, ActionCommon{Domain: "select", DeviceID: e.DeviceID, EntityID: e.EntityID, Type: "select_option", Option: "静态模式"})
+		result := setXinGuangDeviceToStaticMode(e)
+		if result != nil {
+			script.Sequence = append(script.Sequence, result)
 		}
 	}
 	script.Alias = areaName + script.Alias

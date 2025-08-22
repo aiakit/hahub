@@ -68,9 +68,9 @@ type hub struct {
 	// 新增：区域ID映射
 	entityAreaMap map[string][]*Entity // key: 区域ID(AreaID)，value: []*Entity
 
-	deviceState   map[string][]*Entity //设备名称：所有实体
-	deviceIdState map[string][]*Entity //设备id：所有实体
-	deviceMap     map[string]*device   //设备名称：设备信息
+	deviceStateByName map[string][]*Entity //设备名称：所有实体
+	deviceIdState     map[string][]*Entity //设备id：所有实体
+	deviceMap         map[string]*device   //设备名称：设备信息
 
 	areas    []string
 	areaName map[string]string
@@ -97,9 +97,9 @@ func GetService() map[string]interface{} {
 	return data
 }
 
-func GetDeviceFirstState() map[string][]*Entity {
+func GetDeviceByName() map[string][]*Entity {
 	gHub.lock.RLock()
-	data := gHub.deviceState
+	data := gHub.deviceStateByName
 	gHub.lock.RUnlock()
 	return data
 }
@@ -175,7 +175,7 @@ func newHub() {
 		xinguang:          make(map[string]string),
 		callbackMapFunc:   make(map[int]func(data []byte)),
 		callbackMapLock:   new(sync.Mutex),
-		deviceState:       make(map[string][]*Entity),
+		deviceStateByName: make(map[string][]*Entity),
 		deviceIdState:     make(map[string][]*Entity),
 	}
 }

@@ -182,11 +182,12 @@ type Entity struct {
 	Platform     string `json:"platform"`      //产自什么平台
 	UniqueID     string `json:"unique_id"`     //唯一id
 
-	Category   string `json:"category"`    //设备类型
-	AreaID     string `json:"area_id"`     //区域id
-	AreaName   string `json:"area_name"`   //区域名称
-	DeviceName string `json:"device_name"` //设备名称（从设备数据获取）
-	Name       string `json:"name"`        //修改名称之后，ha会用这个字段表示名称,ha修改OriginalName
+	Category    string `json:"category"`     //设备类型
+	SubCategory string `json:"sub_category"` //设备二级类型
+	AreaID      string `json:"area_id"`      //区域id
+	AreaName    string `json:"area_name"`    //区域名称
+	DeviceName  string `json:"device_name"`  //设备名称（从设备数据获取）
+	Name        string `json:"name"`         //修改名称之后，ha会用这个字段表示名称,ha修改OriginalName
 }
 
 var callbackEntityMap = make([]func(e *Entity), 0)
@@ -349,11 +350,12 @@ type State struct {
 	EntityID   string `json:"entity_id"`
 	State      string `json:"State"`
 	Attributes struct {
-		Mode          string `json:"mode"`
-		Current       int    `json:"current"`
-		FriendlyName  string `json:"friendly_name"`
-		ID            string `json:"id"`
-		LastTriggered any    `json:"last_triggered"`
+		Mode                string   `json:"mode"`
+		Current             int      `json:"current"`
+		FriendlyName        string   `json:"friendly_name"`
+		SupportedColorModes []string `json:"supported_color_modes"`
+		ID                  string   `json:"id"`
+		LastTriggered       any      `json:"last_triggered"`
 	} `json:"attributes"`
 	LastChanged  time.Time `json:"last_changed"`
 	LastReported time.Time `json:"last_reported"`

@@ -46,7 +46,7 @@ func Display(c *ava.Context) {
 		Sequence:    nil,
 	}
 
-	sXinguang := InitModeThree(c, 1, 5800)
+	sXinguang := InitModeThree(c, 0, 5800)
 
 	if sXinguang != nil && len(sXinguang.Sequence) > 0 {
 		var parallel = make(map[string][]interface{})

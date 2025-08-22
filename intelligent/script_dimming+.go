@@ -50,7 +50,7 @@ func dimmmingIncrease(c *ava.Context) {
 		// 构建条件：检查是否有任何灯是开着的
 		var anyLightOnCondition []interface{}
 		for _, en := range validLights {
-			anyLightOnCondition = append(anyLightOnCondition, Conditions{
+			anyLightOnCondition = append(anyLightOnCondition, &Conditions{
 				EntityID:  en.EntityID,
 				State:     "on",
 				Condition: "state",
@@ -70,7 +70,7 @@ func dimmmingIncrease(c *ava.Context) {
 		for _, en := range validLights {
 			var act IfThenELSEAction
 			var conditions []interface{}
-			conditions = append(conditions, Conditions{
+			conditions = append(conditions, &Conditions{
 				EntityID:  en.EntityID,
 				State:     "on",
 				Condition: "state",

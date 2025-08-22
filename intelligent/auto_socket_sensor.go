@@ -95,7 +95,7 @@ func bodySocketSensorOn(entity *data.Entity) (*Automation, error) {
 		}
 	}
 
-	var condition = make([]Conditions, 0, 2)
+	var condition = make([]*Conditions, 0, 2)
 
 	var parallel1 = make(map[string][]interface{})
 	// 开灯逻辑
@@ -114,7 +114,7 @@ func bodySocketSensorOn(entity *data.Entity) (*Automation, error) {
 			act.Data = &actionLightData{BrightnessStepPct: 100}
 		}
 
-		condition = append(condition, Conditions{
+		condition = append(condition, &Conditions{
 			Condition: "device",
 			Type:      "is_off",
 			DeviceID:  e.DeviceID,
@@ -131,7 +131,7 @@ func bodySocketSensorOn(entity *data.Entity) (*Automation, error) {
 			EntityID: e.EntityID,
 			Domain:   "switch",
 		})
-		condition = append(condition, Conditions{
+		condition = append(condition, &Conditions{
 			Condition: "device",
 			Type:      "is_off",
 			DeviceID:  e.DeviceID,
@@ -169,7 +169,7 @@ func bodySocketSensorOn(entity *data.Entity) (*Automation, error) {
 			})
 			continue
 		}
-		condition = append(condition, Conditions{
+		condition = append(condition, &Conditions{
 			Condition: "device",
 			Type:      "is_off",
 			DeviceID:  e.DeviceID,
@@ -194,7 +194,7 @@ func bodySocketSensorOn(entity *data.Entity) (*Automation, error) {
 			EntityID: e.EntityID,
 			Domain:   "switch",
 		})
-		condition = append(condition, Conditions{
+		condition = append(condition, &Conditions{
 			Condition: "device",
 			Type:      "is_off",
 			DeviceID:  e.DeviceID,
@@ -231,7 +231,7 @@ func bodySocketSensorOn(entity *data.Entity) (*Automation, error) {
 	auto := &Automation{
 		Alias:       areaName + prefix + suffixStr + "插座打开就开灯",
 		Description: "当插座打开" + areaName + "下同名前缀的灯和开关",
-		Triggers: []Triggers{{
+		Triggers: []*Triggers{{
 			Type:     triggerType,
 			DeviceID: triggerDeviceId,
 			EntityID: entity.EntityID,
@@ -244,7 +244,7 @@ func bodySocketSensorOn(entity *data.Entity) (*Automation, error) {
 	auto.Actions = actions
 
 	// 插座是关闭的
-	auto.Conditions = append(auto.Conditions, Conditions{
+	auto.Conditions = append(auto.Conditions, &Conditions{
 		Type:      "is_off",
 		EntityID:  entity.EntityID,
 		DeviceID:  entity.DeviceID,
@@ -405,7 +405,7 @@ func bodySocketSensorOff(en *data.Entity) (*Automation, error) {
 	auto := &Automation{
 		Alias:       areaName + "插座关闭就关灯",
 		Description: "当插座关闭时，关闭" + areaName + "下同名前缀的灯和开关",
-		Triggers: []Triggers{{
+		Triggers: []*Triggers{{
 			Type:     "power",
 			DeviceID: entity.DeviceID,
 			EntityID: entity.EntityID,

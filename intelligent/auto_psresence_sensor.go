@@ -2,6 +2,7 @@ package intelligent
 
 import (
 	"errors"
+	"fmt"
 	"hahub/data"
 	"hahub/x"
 	"strings"
@@ -20,19 +21,16 @@ func WalkPresenceSensor(c *ava.Context) {
 			continue
 		}
 
-		autoOn, err := presenceSensorOn(v)
+		autoOn, autoOff, err := presenceSensorOn(v)
 		if err != nil {
 			c.Errorf("entity=%s |err=%v", x.MustMarshal2String(v), err)
 			continue
 		}
 
-		CreateAutomation(c, autoOn)
-
-		autoOff, err := presenceSensorOff(v)
-		if err != nil {
-			c.Error(err)
-			continue
+		if autoOn != nil {
+			CreateAutomation(c, autoOn)
 		}
+
 		if autoOff != nil {
 			CreateAutomation(c, autoOff)
 		}
@@ -44,22 +42,16 @@ func WalkPresenceSensor(c *ava.Context) {
 // 1.遍历所有和人在传感器区域相同的灯
 // 2.对客厅、卧室区域，判断光照条件,时间条件,是否执行晚安场景
 // 3.被主动关闭后，人来灯亮的所有自动化都实效，持续到被主动开启,晚安，起床
-func presenceSensorOn(entity *data.Entity) (*Automation, error) {
+func presenceSensorOn(entity *data.Entity) (*Automation, *Automation, error) {
 	var (
-		areaID             = entity.AreaID
-		atmosphereSwitches []*data.Entity
-		normalSwitches     []*data.Entity
-		atmosphereLights   []*data.Entity
-		normalLights       []*data.Entity
-		xinguangLights     []*data.Entity
-		ColorTempKelvin            = 3000
-		BrightnessPct      float64 = 100
+		areaID   = entity.AreaID
+		areaName = data.SpiltAreaName(entity.AreaName)
 	)
 
 	// 查找同区域所有实体
 	entities, ok := data.GetEntityAreaMap()[areaID]
 	if !ok {
-		return nil, errors.New("entity area not found")
+		return nil, nil, errors.New("entity area not found")
 	}
 	// 1. 取entity.Name中'-'前的前缀
 	prefix := entity.DeviceName
@@ -67,214 +59,38 @@ func presenceSensorOn(entity *data.Entity) (*Automation, error) {
 		prefix = prefix[:idx]
 	}
 
-	for _, e := range entities {
-		if e.Category == data.CategoryWiredSwitch && !strings.HasPrefix(e.EntityID, "button.") {
-			if strings.Contains(e.DeviceName, "氛围") {
-				atmosphereSwitches = append(atmosphereSwitches, e)
-			} else {
-				normalSwitches = append(normalSwitches, e)
-			}
-		}
-		if e.Category == data.CategoryLightGroup {
-			if strings.Contains(e.DeviceName, "氛围") {
-				atmosphereLights = append(atmosphereLights, e)
-			} else {
-				normalLights = append(normalLights, e)
-			}
-		}
-
-		if e.Category == data.CategoryLight {
-			if strings.Contains(e.DeviceName, "彩") || strings.Contains(e.DeviceName, "夜") {
-				atmosphereLights = append(atmosphereLights, e)
-			}
-		}
-
-		if e.Category == data.CategoryXinGuang {
-			if !strings.Contains(e.DeviceName, "主机") && strings.HasPrefix(e.EntityID, "light.") {
-				xinguangLights = append(xinguangLights, e)
-			}
-		}
+	entitiesFilter := findLightsWithOutLightCategory(prefix, entities)
+	if len(entitiesFilter) == 0 {
+		return nil, nil, fmt.Errorf("%s区域没有发现灯", areaName)
 	}
 
-	var isNull = false
-
-	if len(atmosphereLights) == 0 && len(normalLights) == 0 && len(normalSwitches) == 0 && len(atmosphereSwitches) == 0 {
-		isNull = true
-
-		//寻找当前区域所有单灯
-		for _, e := range entities {
-			if e.Category == data.CategoryLight {
-				normalLights = append(normalLights, e)
-			}
-		}
-	}
-
-	var actions []interface{}
-	var parallel1 = make(map[string][]interface{})
-	var parallel2 = make(map[string][]interface{})
-
-	// 1. 先开氛围灯
-	for _, l := range atmosphereLights {
-		if prefix != "" && !isNull {
-			if !strings.Contains(l.DeviceName, prefix) {
-				continue
-			}
-		}
-
-		act := &ActionLight{
-			Action: "light.turn_on",
-			Data: &actionLightData{
-				ColorTempKelvin: ColorTempKelvin,
-				BrightnessPct:   BrightnessPct,
-			},
-			Target: &targetLightData{DeviceId: l.DeviceID},
-		}
-
-		if strings.Contains(l.DeviceName, "彩") {
-			act.Data = &actionLightData{BrightnessStepPct: 100}
-		}
-
-		parallel1["parallel"] = append(parallel1["parallel"], act)
-	}
-
-	// 1. 开馨光
-	for _, l := range xinguangLights {
-		if data.GetXinGuang(l.DeviceID) == "" {
-			continue
-		}
-
-		//改为静态模式,不能并行执行，必须优先执行
-		actions = append(actions, &ActionLight{
-			DeviceID: l.DeviceID,
-			Domain:   "select",
-			EntityID: data.GetXinGuang(l.DeviceID),
-			Type:     "select_option",
-			Option:   "静态模式",
-		})
-
-		//修改颜色
-		parallel1["parallel"] = append(parallel1["parallel"], &ActionLight{
-			Action: "light.turn_on",
-			Data: &actionLightData{
-				BrightnessPct: BrightnessPct,
-				RgbColor:      GetRgbColor(3000),
-			},
-			Target: &targetLightData{DeviceId: l.DeviceID},
-		})
-	}
-
-	// 2. 先开氛围开关
-	for _, s := range atmosphereSwitches {
-		if prefix != "" && !isNull {
-			if !strings.Contains(s.DeviceName, prefix) {
-				continue
-			}
-		}
-
-		parallel1["parallel"] = append(parallel1["parallel"], &ActionCommon{
-			Type:     "turn_on",
-			DeviceID: s.DeviceID,
-			EntityID: s.EntityID,
-			Domain:   "switch",
-		})
-	}
-	if len(parallel1) > 0 {
-		actions = append(actions, parallel1)
-	}
-	// 3. 延迟3秒
-	if len(normalLights) > 0 || len(normalSwitches) > 0 {
-		actions = append(actions, ActionTimerDelay{Delay: struct {
-			Hours        int `json:"hours"`
-			Minutes      int `json:"minutes"`
-			Seconds      int `json:"seconds"`
-			Milliseconds int `json:"milliseconds"`
-		}{Hours: 0, Minutes: 0, Seconds: 3, Milliseconds: 0}})
-	}
-	// 4. 再开非氛围灯
-	for _, l := range normalLights {
-
-		if prefix != "" && !isNull {
-			if !strings.Contains(l.DeviceName, prefix) {
-				continue
-			}
-		}
-
-		// 夜灯特殊逻辑
-		if strings.Contains(l.DeviceName, "夜") {
-			parallel2["parallel"] = append(parallel2["parallel"], &ActionLight{
-				Action: "light.turn_on",
-				Data: &actionLightData{
-					ColorTempKelvin: ColorTempKelvin,
-					BrightnessPct:   20,
-				},
-				Target: &targetLightData{DeviceId: l.DeviceID},
-			})
-			continue
-		}
-		if strings.Contains(l.AreaName, "厨房") || strings.Contains(l.AreaName, "餐厅") {
-			parallel2["parallel"] = append(parallel2["parallel"], &ActionLight{
-				Action: "light.turn_on",
-				Data: &actionLightData{
-					ColorTempKelvin: 6000,
-					BrightnessPct:   BrightnessPct,
-				},
-				Target: &targetLightData{DeviceId: l.DeviceID},
-			})
-		} else {
-			parallel2["parallel"] = append(parallel2["parallel"], &ActionLight{
-				Action: "light.turn_on",
-				Data: &actionLightData{
-					ColorTempKelvin: ColorTempKelvin,
-					BrightnessPct:   BrightnessPct,
-				},
-				Target: &targetLightData{DeviceId: l.DeviceID},
-			})
-		}
-
-	}
-	// 5. 再开非氛围开关
-	for _, s := range normalSwitches {
-		if prefix != "" && !isNull {
-			if !strings.Contains(s.DeviceName, prefix) {
-				continue
-			}
-		}
-
-		parallel2["parallel"] = append(parallel2["parallel"], &ActionCommon{
-			Type:     "turn_on",
-			DeviceID: s.DeviceID,
-			EntityID: s.EntityID,
-			Domain:   "switch",
-		})
-	}
-
-	if len(parallel2) > 0 {
-		actions = append(actions, parallel2)
-	}
+	actions := turnOnLights(entitiesFilter, 100, 4800, true)
 
 	if len(actions) == 0 {
-		return nil, errors.New("没有设备")
+		return nil, nil, fmt.Errorf("%s区域没有发现灯", areaName)
 	}
 
-	areaName := data.SpiltAreaName(entity.AreaName)
+	condition, action := spiltCondition(entity, actions)
+
 	auto := &Automation{
 		Alias:       areaName + "有人亮灯",
 		Description: "当人体传感器检测到有人，自动打开" + areaName + "灯组和有线开关",
-		Triggers: []Triggers{{
+		Triggers: []*Triggers{{
 			Type:     "occupied",
 			DeviceID: entity.DeviceID,
 			EntityID: entity.EntityID,
 			Domain:   "binary_sensor",
 			Trigger:  "device",
 		}},
-		Actions: actions,
-		Mode:    "single",
+		Conditions: condition,
+		Actions:    action,
+		Mode:       "single",
 	}
 
 	// 增加光照条件
 	lxConfig := getLxConfig(areaID)
 	if lxConfig != nil {
-		auto.Conditions = append(auto.Conditions, Conditions{
+		auto.Conditions = append(auto.Conditions, &Conditions{
 			Condition: "numeric_state",
 			EntityID:  lxConfig.EntityId,
 			Below:     lxConfig.Lx, // 设置光照阈值
@@ -283,7 +99,7 @@ func presenceSensorOn(entity *data.Entity) (*Automation, error) {
 
 	//时间条件
 	if strings.Contains(entity.AreaName, "卧室") {
-		auto.Conditions = append(auto.Conditions, Conditions{
+		auto.Conditions = append(auto.Conditions, &Conditions{
 			Condition: "time",
 			After:     "16:00:00",
 			Before:    "22:00:00",
@@ -298,7 +114,7 @@ func presenceSensorOn(entity *data.Entity) (*Automation, error) {
 			if (strings.Contains(e.OriginalName, "晚安场景") || strings.Contains(e.OriginalName, "睡觉") || strings.Contains(e.OriginalName, "开/关") ||
 				strings.Contains(e.OriginalName, "开关")) && strings.Contains(e.OriginalName, areaName) {
 
-				auto.Conditions = append(auto.Conditions, Conditions{
+				auto.Conditions = append(auto.Conditions, &Conditions{
 					Condition: "state",
 					EntityID:  e.EntityID,
 					State:     "on",
@@ -312,117 +128,38 @@ func presenceSensorOn(entity *data.Entity) (*Automation, error) {
 			}
 		}
 	}
+	au, err := presenceSensorOff(areaName, entity, entitiesFilter)
+	if err != nil {
+		ava.Error(err)
+		return nil, nil, err
+	}
 
-	return auto, nil
+	return auto, au, nil
 }
 
-func presenceSensorOff(entity *data.Entity) (*Automation, error) {
-	var (
-		areaID             = entity.AreaID
-		areaName           = data.SpiltAreaName(entity.AreaName)
-		atmosphereSwitches []*data.Entity
-		normalSwitches     []*data.Entity
-		atmosphereLights   []*data.Entity
-		normalLights       []*data.Entity
-	)
-
-	// 查找同区域所有实体
-	entities, ok := data.GetEntityAreaMap()[areaID]
-	if !ok {
-		return nil, errors.New("entity area not found")
-	}
-	for _, e := range entities {
-		if e.Category == data.CategoryWiredSwitch && !strings.HasPrefix(e.EntityID, "button.") {
-			if strings.Contains(e.DeviceName, "氛围") {
-				atmosphereSwitches = append(atmosphereSwitches, e)
-			} else {
-				normalSwitches = append(normalSwitches, e)
-			}
-		}
-		if e.Category == data.CategoryLightGroup {
-			if strings.Contains(e.DeviceName, "氛围") {
-				atmosphereLights = append(atmosphereLights, e)
-			} else {
-				normalLights = append(normalLights, e)
-			}
-		}
-
-		if e.Category == data.CategoryLight {
-			if strings.Contains(e.DeviceName, "彩") || strings.Contains(e.DeviceName, "夜") {
-				atmosphereLights = append(atmosphereLights, e)
-			}
-		}
-	}
-
-	var actions []interface{}
-	var parallel1 = make(map[string][]interface{})
-	// 先关非氛围灯
-	for _, l := range normalLights {
-		parallel1["parallel"] = append(parallel1["parallel"], &ActionLight{
-			Type:     "turn_off",
-			DeviceID: l.DeviceID,
-			EntityID: l.EntityID,
-			Domain:   "light",
-		})
-	}
-	// 先关非氛围开关
-	for _, s := range normalSwitches {
-		parallel1["parallel"] = append(parallel1["parallel"], &ActionCommon{
-			Type:     "turn_off",
-			DeviceID: s.DeviceID,
-			EntityID: s.EntityID,
-			Domain:   "switch",
-		})
-	}
-	if len(parallel1) > 0 {
-		actions = append(actions, parallel1)
-	}
-	// 延迟3秒
-	if len(atmosphereLights) > 0 || len(atmosphereSwitches) > 0 {
-		actions = append(actions, ActionTimerDelay{Delay: struct {
-			Hours        int `json:"hours"`
-			Minutes      int `json:"minutes"`
-			Seconds      int `json:"seconds"`
-			Milliseconds int `json:"milliseconds"`
-		}{Hours: 0, Minutes: 0, Seconds: 3, Milliseconds: 0}})
-	}
-	var parallel2 = make(map[string][]interface{})
-	// 再关氛围灯
-	for _, l := range atmosphereLights {
-		parallel2["parallel"] = append(parallel2["parallel"], &ActionLight{
-			Type:     "turn_off",
-			DeviceID: l.DeviceID,
-			EntityID: l.EntityID,
-			Domain:   "light",
-		})
-	}
-	// 再关氛围开关
-	for _, s := range atmosphereSwitches {
-		parallel2["parallel"] = append(parallel2["parallel"], &ActionCommon{
-			Type:     "turn_off",
-			DeviceID: s.DeviceID,
-			EntityID: s.EntityID,
-			Domain:   "switch",
-		})
-	}
-
-	if len(parallel2) > 0 {
-		actions = append(actions, parallel2)
-	}
+func presenceSensorOff(areaName string, entity *data.Entity, entities []*data.Entity) (*Automation, error) {
 
 	var f *For
-	if strings.Contains(areaName, "卧室") {
-		f = &For{
-			Hours:   0,
-			Minutes: 20,
-			Seconds: 0,
-		}
+	f = &For{
+		Hours:   0,
+		Minutes: 20,
+		Seconds: 0,
+	}
+
+	actions := turnOffLights(entities)
+	if len(actions) == 0 {
+		return nil, fmt.Errorf("%s区域没有设备", areaName)
+	}
+
+	var result = make([]interface{}, 0, 2)
+	for _, e := range actions {
+		result = append(result, e)
 	}
 
 	auto := &Automation{
 		Alias:       areaName + "无人关灯",
 		Description: "当人体传感器检测到无人，自动关闭" + areaName + "灯组和有线开关",
-		Triggers: []Triggers{{
+		Triggers: []*Triggers{{
 			Type:     "not_occupied",
 			DeviceID: entity.DeviceID,
 			EntityID: entity.EntityID,
@@ -430,7 +167,7 @@ func presenceSensorOff(entity *data.Entity) (*Automation, error) {
 			Trigger:  "device",
 			For:      f,
 		}},
-		Actions: actions,
+		Actions: result,
 		Mode:    "single",
 	}
 

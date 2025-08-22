@@ -19,7 +19,7 @@ func Defense(c *ava.Context) {
 		entities, ok := data.GetEntityCategoryMap()[data.CategoryHumanPresenceSensor]
 		if ok {
 			for _, e := range entities {
-				automation.Triggers = append(automation.Triggers, Triggers{
+				automation.Triggers = append(automation.Triggers, &Triggers{
 					Type:     "occupied",
 					EntityID: e.EntityID,
 					DeviceID: e.DeviceID,
@@ -39,7 +39,7 @@ func Defense(c *ava.Context) {
 		entities, ok := data.GetEntityCategoryMap()[data.CategoryHumanPresenceSensor]
 		if ok {
 			for _, e := range entities {
-				automation.Triggers = append(automation.Triggers, Triggers{
+				automation.Triggers = append(automation.Triggers, &Triggers{
 					EntityID: e.EntityID,
 					Trigger:  "state",
 				})

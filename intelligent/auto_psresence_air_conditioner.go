@@ -43,7 +43,7 @@ func presenceSensorOnAir(entity *data.Entity) (*Automation, error) {
 	auto := &Automation{
 		Alias:       data.SpiltAreaName(entity.AreaName) + "自动打开空调",
 		Description: "当温度大于27度，或者温度小于20度自动打开空调",
-		Triggers: []Triggers{{
+		Triggers: []*Triggers{{
 			Type:     "occupied",
 			DeviceID: entity.DeviceID,
 			EntityID: entity.EntityID,
@@ -69,7 +69,7 @@ func presenceSensorOnAir(entity *data.Entity) (*Automation, error) {
 	for _, e := range temp {
 		if e.AreaID == entity.AreaID {
 			tempSensor = e
-			auto.Conditions = append(auto.Conditions, Conditions{
+			auto.Conditions = append(auto.Conditions, &Conditions{
 				Condition: "numeric_state",
 				EntityID:  e.EntityID,
 				Above:     27,
@@ -167,7 +167,7 @@ func presenceSensorOffAir(entity *data.Entity) (*Automation, error) {
 	auto := &Automation{
 		Alias:       data.SpiltAreaName(entity.AreaName) + "自动关闭空调",
 		Description: "无人超过30分钟自动关闭空调",
-		Triggers: []Triggers{{
+		Triggers: []*Triggers{{
 			Type:     "not_occupied",
 			DeviceID: entity.DeviceID,
 			EntityID: entity.EntityID,

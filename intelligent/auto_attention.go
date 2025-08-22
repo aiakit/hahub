@@ -48,7 +48,7 @@ func gas(entity *data.Entity) (*Automation, error) {
 	auto := &Automation{
 		Alias:       areaName + "燃气泄漏告警",
 		Description: "当" + areaName + "发生燃气泄露时，提醒家人",
-		Triggers: []Triggers{{
+		Triggers: []*Triggers{{
 			Type:     "value",
 			DeviceID: entity.DeviceID,
 			EntityID: entity.EntityID,
@@ -78,7 +78,7 @@ func fire(entity *data.Entity) (*Automation, error) {
 	auto := &Automation{
 		Alias:       areaName + "检测到烟雾",
 		Description: "当" + areaName + "检测到烟雾，提醒家人",
-		Triggers: []Triggers{{
+		Triggers: []*Triggers{{
 			EntityID: entity.EntityID,
 			Trigger:  "state",
 			For: &For{
@@ -103,7 +103,7 @@ func water(entity *data.Entity) (*Automation, error) {
 	auto := &Automation{
 		Alias:       areaName + "漏水告警",
 		Description: "当" + areaName + "发生漏水时，提醒家人",
-		Triggers: []Triggers{{
+		Triggers: []*Triggers{{
 			Type:     "moist",
 			DeviceID: entity.DeviceID,
 			EntityID: entity.EntityID,

@@ -19,7 +19,7 @@ type shortDevice struct {
 }
 
 func QueryDevice(message, aiMessage, deviceId string) string {
-	var devices = data.GetDeviceFirstState()
+	var devices = data.GetDeviceByName()
 
 	//获取所有实体状态,再匹配实体
 	states, err := data.GetStates()
