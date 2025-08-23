@@ -87,7 +87,7 @@ func dimmmingIncrease(c *ava.Context) {
 			mainAction.Else = append(mainAction.Else, ActionLight{
 				Action: "light.turn_on",
 				Data: &actionLightData{
-					BrightnessStepPct: 10,
+					BrightnessStepPct: 20,
 				},
 				Target: &targetLightData{DeviceId: en.DeviceID},
 			})

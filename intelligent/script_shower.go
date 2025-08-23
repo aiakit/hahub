@@ -36,6 +36,7 @@ func TakeAShower(c *ava.Context) {
 			}
 
 			if strings.Contains(e.OriginalName, "零冷水") && !strings.Contains(e.OriginalName, "点动") {
+
 				var act IfThenELSEAction
 				act.If = append(act.If, ifCondition{
 					State:     "off",
@@ -57,7 +58,7 @@ func TakeAShower(c *ava.Context) {
 				var isExsitTemperature bool
 				if ok1 {
 					for _, e1 := range vv {
-						if strings.HasPrefix(e1.EntityID, "sensor.") && strings.Contains(e.OriginalName, "温度") {
+						if strings.HasPrefix(e1.EntityID, "sensor.") && strings.Contains(e1.OriginalName, "温度") {
 							isExsitTemperature = true
 							var act IfThenELSEAction
 							act.If = append(act.If, ifCondition{
@@ -83,7 +84,7 @@ func TakeAShower(c *ava.Context) {
 								}{EntityId: e.EntityID},
 							})
 
-							//美的插件有bug
+							//todo 美的插件有bug
 							tem = 42
 							if e1.Platform == "midea_ac_lan" {
 								tem *= 2
@@ -173,9 +174,8 @@ func TakeAShower(c *ava.Context) {
 			script.Description = "打开热水器和浴霸，使用热水洗澡场景"
 			script.Sequence = append(script.Sequence, v3)
 			CreateScript(c, script)
-			script.Sequence = make([]interface{}, 0)
 		}
-	} else if len(script.Sequence) > 0 {
+	} else if len(script.Sequence) > 0 && len(deviceName) == 0 {
 		script.Alias = areaName + "热水场景"
 		script.Description = "打开热水器，使用热水场景"
 		CreateScript(c, script)

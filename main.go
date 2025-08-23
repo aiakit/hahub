@@ -1,7 +1,8 @@
 package main
 
 import (
-	"hahub/intelligent"
+	"hahub/core"
+	_ "hahub/data"
 	"os"
 	"os/signal"
 	"syscall"
@@ -22,11 +23,10 @@ func main() {
 	// 等待 chaos.go 的初始化完成
 
 	//必须先创建脚本再创建自动化，这里不打开，改为ai驱动
-	//intelligent.WalkBodySocketSensor(ava.Background())
-	intelligent.Chaos()
+	//intelligent.Chaos()
 
 	//启动音箱ai驱动
-	//core.CoreChaos()
+	core.CoreChaos()
 
 	ava.Debugf("Starting Hahub ok! |latency=%.2fs", time.Since(now).Seconds())
 

@@ -383,10 +383,6 @@ func pausePlay(deviceId string) {
 		return
 	}
 
-	// 不在这里获取锁，避免死锁
-	// gSpeakerProcess.lock.Lock()
-	// defer gSpeakerProcess.lock.Unlock()
-
 	err := x.Post(ava.Background(), data.GetHassUrl()+"/api/services/media_player/volume_mute", data.GetToken(), &data.HttpServiceDataPlayPause{
 		EntityId:      entityId,
 		IsVolumeMuted: true,
