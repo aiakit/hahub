@@ -173,11 +173,11 @@ func TakeAShower(c *ava.Context) {
 			script.Alias = areaName + "洗澡场景"
 			script.Description = "打开热水器和浴霸，使用热水洗澡场景"
 			script.Sequence = append(script.Sequence, v3)
-			CreateScript(c, script)
+			AddScript2Queue(c, script)
 		}
 	} else if len(script.Sequence) > 0 && len(deviceName) == 0 {
 		script.Alias = areaName + "热水场景"
 		script.Description = "打开热水器，使用热水场景"
-		CreateScript(c, script)
+		AddScript2Queue(c, script)
 	}
 }

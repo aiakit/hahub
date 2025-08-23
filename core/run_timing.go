@@ -155,7 +155,7 @@ actions：表示要控制的设备，通过设备数据和指令数据得到。`
 
 		auto.Mode = "single"
 		auto.Alias += "*"
-		intelligent.CreateAutomation(ava.Background(), auto)
+		intelligent.AddAutomation2Queue(ava.Background(), auto)
 
 		return "已为你创建了" + auto.Alias
 	}
@@ -249,7 +249,7 @@ actions：表示要启动的脚本场景entity_id。`, id)},
 
 		auto.Mode = "single"
 		auto.Alias += "*"
-		intelligent.CreateAutomation(ava.Background(), auto)
+		intelligent.AddAutomation2Queue(ava.Background(), auto)
 
 		return "已为你创建了" + auto.Alias
 
@@ -344,7 +344,7 @@ actions：表示要启动的脚本场景entity_id。`, id)},
 
 		auto.Mode = "single"
 		auto.Alias += "*"
-		intelligent.CreateAutomation(ava.Background(), auto)
+		intelligent.AddAutomation2Queue(ava.Background(), auto)
 
 		return "已为你创建了" + auto.Alias
 	}

@@ -158,6 +158,6 @@ func Display(c *ava.Context) {
 	}
 
 	if len(script.Sequence) > 0 {
-		displayEntityId = "script." + CreateScript(c, script)
+		displayEntityId = "script." + AddScript2Queue(c, script)
 	}
 }

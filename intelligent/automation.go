@@ -290,6 +290,8 @@ type Response struct {
 var deleteAllAutomationSwitch = true
 
 func ChaosAutomation() {
+	autos = make(map[string]*Automation, 10)
+
 	c := ava.Background()
 
 	//删除所有自动化
@@ -321,14 +323,20 @@ func ChaosAutomation() {
 
 	WalkPresenceSensorAir(c)
 
+	for id, v := range autos {
+		CreateAutomation(ava.Background(), id, v)
+	}
+
 	//重新缓存一遍数据
 	data.CallService().WaitForCallService()
 
 	//开关自动关闭规则
 	//switchRule()
 	ava.Debugf("all automation created done! |total=%d", automaitionCount)
-	ava.Debugf("all automation%s", x.MustMarshal2String(sss))
 }
+
+var autos = make(map[string]*Automation, 10)
+var scripts = make(map[string]*Script, 10)
 
 func Chaos() {
 	ScriptChaos()
@@ -341,9 +349,33 @@ var skipExistAutomation = false //是否跳过相同名称自动化
 var coverExistAutomation = true //是否覆盖名称相关自动化
 
 var automaitionCount int
-var sss = make(map[string][]string)
 
-func CreateAutomation(c *ava.Context, automation *Automation) string {
+func CreateAutomation(c *ava.Context, finalEntityId string, automation *Automation) {
+
+	var response Response
+	err := x.Post(c, fmt.Sprintf(prefixUrlCreateAutomation, data.GetHassUrl(), finalEntityId), data.GetToken(), automation, &response)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	if response.Result != "ok" {
+		c.Errorf("data=%v |data=%s", x.MustMarshal2String(automation), x.MustMarshal2String(&response))
+	}
+
+	automaitionCount++
+
+	if strings.Contains(automation.Alias, "布防") || strings.Contains(automation.Alias, "撤防") {
+		return
+	}
+
+	err = TurnOnAutomation(c, finalEntityId)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+}
+func AddAutomation2Queue(c *ava.Context, automation *Automation) string {
 	// 自动化名称和实体ID检测，确保唯一
 	alias := automation.Alias
 	entityMap := data.GetEntityIdMap()
@@ -384,29 +416,7 @@ func CreateAutomation(c *ava.Context, automation *Automation) string {
 		automation.Alias = finalAlias
 	}
 
-	var response Response
-	err := x.Post(c, fmt.Sprintf(prefixUrlCreateAutomation, data.GetHassUrl(), finalEntityId), data.GetToken(), automation, &response)
-	if err != nil {
-		c.Error(err)
-		return ""
-	}
-
-	if response.Result != "ok" {
-		c.Errorf("data=%v |data=%s", x.MustMarshal2String(automation), x.MustMarshal2String(&response))
-	}
-
-	automaitionCount++
-	sss[finalEntityId] = append(sss[finalEntityId], finalAlias)
-
-	if strings.Contains(automation.Alias, "布防") || strings.Contains(automation.Alias, "撤防") {
-		return finalEntityId
-	}
-
-	err = TurnOnAutomation(c, finalEntityId)
-	if err != nil {
-		c.Error(err)
-		return ""
-	}
+	autos[finalEntityId] = automation
 
 	return finalEntityId
 }

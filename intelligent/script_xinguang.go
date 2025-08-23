@@ -33,21 +33,21 @@ func InitXinGuang(c *ava.Context) {
 	func() {
 		s := InitModeOne(c)
 		if s != nil && len(s.Sequence) > 0 {
-			CreateScript(c, s)
+			AddScript2Queue(c, s)
 		}
 	}()
 
 	func() {
 		s := InitModeTwo(c)
 		if s != nil && len(s.Sequence) > 0 {
-			CreateScript(c, s)
+			AddScript2Queue(c, s)
 		}
 	}()
 
 	func() {
 		s := InitModeThree(c, 100, 4000)
 		if s != nil && len(s.Sequence) > 0 {
-			CreateScript(c, s)
+			AddScript2Queue(c, s)
 		}
 	}()
 }

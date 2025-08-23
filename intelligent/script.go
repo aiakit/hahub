@@ -14,6 +14,8 @@ import (
 var prefixUrlCreateScript = "%s/api/config/script/config/%s"
 
 func ScriptChaos() {
+	scripts = make(map[string]*Script, 10)
+
 	c := ava.Background()
 	//删除所有场景
 	DeleteAllScript(c)
@@ -48,6 +50,10 @@ func ScriptChaos() {
 
 	//洗澡
 	TakeAShower(c)
+
+	for id, v := range scripts {
+		CreateScript(ava.Background(), id, v)
+	}
 
 	//刷新实体
 	data.CallService().WaitForCallService()
@@ -96,7 +102,22 @@ func GetAutomation(uniqueId string, v interface{}) error {
 	return nil
 }
 
-func CreateScript(c *ava.Context, script *Script) string {
+func CreateScript(c *ava.Context, baseEntityId string, script *Script) {
+	var response Response
+	err := x.Post(c, fmt.Sprintf(prefixUrlCreateScript, data.GetHassUrl(), baseEntityId), data.GetToken(), script, &response)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	if response.Result != "ok" {
+		c.Errorf("data=%v |result=%s", x.MustMarshal2String(script), x.MustMarshal2String(&response))
+	}
+
+	scriptCount++
+}
+
+func AddScript2Queue(c *ava.Context, script *Script) string {
 	scriptLock.Lock()
 	defer func() {
 		time.Sleep(time.Millisecond * 3)
@@ -113,22 +134,9 @@ func CreateScript(c *ava.Context, script *Script) string {
 		if entity == nil {
 			continue
 		}
-
 	}
 
-	var response Response
-	err := x.Post(c, fmt.Sprintf(prefixUrlCreateScript, data.GetHassUrl(), baseEntityId), data.GetToken(), script, &response)
-	if err != nil {
-		c.Error(err)
-		return ""
-	}
-
-	if response.Result != "ok" {
-		c.Errorf("data=%v |result=%s", x.MustMarshal2String(script), x.MustMarshal2String(&response))
-	}
-
-	scriptCount++
-
+	scripts[baseEntityId] = script
 	return baseEntityId
 }
 

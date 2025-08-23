@@ -33,7 +33,7 @@ func WalkBodySensor(c *ava.Context) {
 		}
 
 		if autoOn != nil {
-			CreateAutomation(c, autoOn)
+			AddAutomation2Queue(c, autoOn)
 		}
 	}
 }

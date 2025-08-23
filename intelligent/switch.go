@@ -121,6 +121,8 @@ type switchSelect struct {
 
 func InitSwitchSelect(c *ava.Context) {
 
+	switchSelectSameName = make(map[string][]*switchSelect)
+
 	func() {
 		entities := data.GetEntityCategoryMap()[data.CategorySwitchScene]
 		//场景按键

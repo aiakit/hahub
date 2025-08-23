@@ -96,7 +96,7 @@ func dimmmingIncrease(c *ava.Context) {
 		script.Sequence = append(script.Sequence, mainAction)
 
 		if len(script.Sequence) > 0 {
-			CreateScript(c, script)
+			AddScript2Queue(c, script)
 		}
 	}
 }

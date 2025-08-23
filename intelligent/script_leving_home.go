@@ -11,13 +11,12 @@ func InitLevingHome(c *ava.Context) {
 	// 创建离家场景
 	script := levingHomeScript()
 	if script != nil && len(script.Sequence) > 0 {
-		scriptId := CreateScript(c, script)
-
 		// 基于场景创建自动化
+		scriptId := AddScript2Queue(c, script)
 		if scriptId != "" {
 			auto := levingHomeAutomation(scriptId)
 			if auto != nil {
-				CreateAutomation(c, auto)
+				AddAutomation2Queue(c, auto)
 			}
 		}
 	}

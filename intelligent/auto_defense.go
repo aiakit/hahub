@@ -50,7 +50,7 @@ func Defense(c *ava.Context) {
 	doNotify("家里有人", "请注意，家里有人！！！", automation)
 
 	if len(automation.Triggers) > 0 {
-		entitryId := CreateAutomation(c, automation)
+		entitryId := AddAutomation2Queue(c, automation)
 		s := &Script{
 			Alias:       "撤防",
 			Description: "撤去家里的防御机制",
@@ -64,6 +64,6 @@ func Defense(c *ava.Context) {
 				EntityId string `json:"entity_id"`
 			}{EntityId: entitryId},
 		})
-		CreateScript(c, s)
+		AddScript2Queue(c, s)
 	}
 }

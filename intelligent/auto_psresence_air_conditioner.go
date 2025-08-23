@@ -26,7 +26,7 @@ func WalkPresenceSensorAir(c *ava.Context) {
 			continue
 		}
 
-		CreateAutomation(c, autoOn)
+		AddAutomation2Queue(c, autoOn)
 
 		autoOff, err := presenceSensorOffAir(v)
 		if err != nil {
@@ -34,7 +34,7 @@ func WalkPresenceSensorAir(c *ava.Context) {
 			continue
 		}
 		if autoOff != nil {
-			CreateAutomation(c, autoOff)
+			AddAutomation2Queue(c, autoOff)
 		}
 	}
 }

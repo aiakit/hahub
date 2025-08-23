@@ -11,13 +11,13 @@ func InitHoming(c *ava.Context) {
 	// 创建回家场景
 	script := homingScript()
 	if script != nil && len(script.Sequence) > 0 {
-		scriptId := CreateScript(c, script)
+		scriptId := AddScript2Queue(c, script)
 
 		// 基于场景创建自动化
 		if scriptId != "" {
 			auto := homingAutomation(scriptId)
 			if auto != nil && len(auto.Triggers) > 0 {
-				CreateAutomation(c, auto)
+				AddAutomation2Queue(c, auto)
 			}
 		}
 	}

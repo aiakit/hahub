@@ -79,10 +79,10 @@ func lightScene(c *ava.Context, simpleName string, brightness float64, kelvin in
 		func() {
 			for bName, v := range switchSelectSameName {
 				bns := strings.Split(bName, "_")
-				if len(bns) != 2 {
+				if len(bns) < 2 {
 					continue
 				}
-				buttonName := bns[1]
+				buttonName := bns[len(bns)-1]
 				if strings.Contains(buttonName, simpleName) {
 					//按键触发和条件
 					for _, e := range v {
@@ -128,7 +128,7 @@ func lightScene(c *ava.Context, simpleName string, brightness float64, kelvin in
 		if len(script.Sequence) > 0 {
 			script.Alias = areaName + simpleName + "场景"
 			script.Description = "点击开关按键执行" + areaName + simpleName + "场景"
-			scriptId := CreateScript(c, script)
+			scriptId := AddScript2Queue(c, script)
 
 			if scriptId != "" && len(automation.Triggers) > 0 {
 				automation.Alias = areaName + simpleName + "自动化"
@@ -140,7 +140,7 @@ func lightScene(c *ava.Context, simpleName string, brightness float64, kelvin in
 					Data:   map[string]interface{}{"script_id": scriptId},
 					Target: nil,
 				})
-				CreateAutomation(c, automation)
+				AddAutomation2Queue(c, automation)
 			}
 		}
 	}

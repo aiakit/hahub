@@ -40,7 +40,7 @@ func dimmmingReduce(c *ava.Context) {
 		}
 
 		if len(script.Sequence) > 0 {
-			CreateScript(c, script)
+			AddScript2Queue(c, script)
 		}
 	}
 }

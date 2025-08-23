@@ -294,7 +294,7 @@ func GoodMorningScript(c *ava.Context) {
 		// 创建自动化部分
 		if len(script.Sequence) > 0 {
 
-			CreateScript(c, script)
+			AddScript2Queue(c, script)
 
 			auto := &Automation{
 				Alias:       areaName + "早安自动化",
@@ -337,7 +337,7 @@ func GoodMorningScript(c *ava.Context) {
 
 			// 创建自动化
 			if len(auto.Triggers) > 0 && len(auto.Actions) > 0 {
-				CreateAutomation(c, auto)
+				AddAutomation2Queue(c, auto)
 			}
 		}
 	}

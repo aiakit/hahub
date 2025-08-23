@@ -103,6 +103,6 @@ func LightControl(c *ava.Context) {
 
 		auto.Actions = append(auto.Actions, act)
 
-		CreateAutomation(c, auto)
+		AddAutomation2Queue(c, auto)
 	}
 }

@@ -14,7 +14,7 @@ func InitSwitch(c *ava.Context) {
 	}
 	s := switchMode(e)
 	if len(s.Sequence) > 0 {
-		CreateScript(c, s)
+		AddScript2Queue(c, s)
 	}
 }
 

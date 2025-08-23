@@ -16,7 +16,7 @@ func attention(c *ava.Context) {
 				c.Error(err)
 				continue
 			}
-			CreateAutomation(c, auto)
+			AddAutomation2Queue(c, auto)
 		}
 
 		if entity.Category == data.CategoryFire {
@@ -25,7 +25,7 @@ func attention(c *ava.Context) {
 				c.Error(err)
 				continue
 			}
-			CreateAutomation(c, auto)
+			AddAutomation2Queue(c, auto)
 		}
 
 		if entity.Category == data.CategoryWater {
@@ -34,7 +34,7 @@ func attention(c *ava.Context) {
 				c.Error(err)
 				continue
 			}
-			CreateAutomation(c, auto)
+			AddAutomation2Queue(c, auto)
 		}
 	}
 }

@@ -29,11 +29,11 @@ func init() {
 // 创建灯光初始化
 func InitLight(c *ava.Context) {
 	if len(slowestSetting.Sequence) > 0 {
-		CreateScript(c, slowestSetting)
+		AddScript2Queue(c, slowestSetting)
 	}
 
 	if len(lightGradientTime.Sequence) > 0 {
-		CreateScript(c, lightGradientTime)
+		AddScript2Queue(c, lightGradientTime)
 	}
 }
 
