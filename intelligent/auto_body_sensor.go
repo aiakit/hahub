@@ -118,7 +118,7 @@ func bodySensorOn(entity *data.Entity) (*Automation, error) {
 		Mode:       "single",
 	}
 	if strings.Contains(prefix, "夜") {
-		auto.Alias = areaName + "起夜场景"
+		auto.Alias = areaName + suffixStr + "起夜场景"
 	}
 
 	// 增加光照条件

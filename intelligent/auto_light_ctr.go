@@ -8,7 +8,7 @@ import (
 )
 
 // 灯控
-// 开/关：表示控制全部
+// 开关：表示控制全部
 // 其他：控制名字相同的灯组
 func LightControl(c *ava.Context) {
 	entities := data.GetEntityAreaMap()
@@ -57,7 +57,7 @@ func LightControl(c *ava.Context) {
 		}
 
 		var prefix = buttonName
-		if buttonName == "开关" || buttonName == "开/关" {
+		if buttonName == "开关" {
 			prefix = ""
 		}
 

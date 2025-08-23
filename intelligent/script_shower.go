@@ -169,8 +169,8 @@ func TakeAShower(c *ava.Context) {
 	}
 
 	if len(deviceName) > 0 {
-		for _, v3 := range deviceName {
-			script.Alias = areaName + "洗澡场景"
+		for k, v3 := range deviceName {
+			script.Alias = areaName + k + "洗澡场景"
 			script.Description = "打开热水器和浴霸，使用热水洗澡场景"
 			script.Sequence = append(script.Sequence, v3)
 			AddScript2Queue(c, script)

@@ -5,8 +5,6 @@ import (
 	"hahub/data"
 	"hahub/x"
 	"strings"
-	"sync"
-	"time"
 
 	"github.com/aiakit/ava"
 )
@@ -14,7 +12,6 @@ import (
 var prefixUrlCreateScript = "%s/api/config/script/config/%s"
 
 func ScriptChaos() {
-	scripts = make(map[string]*Script, 10)
 
 	c := ava.Background()
 	//删除所有场景
@@ -51,26 +48,26 @@ func ScriptChaos() {
 	//洗澡
 	TakeAShower(c)
 
-	for id, v := range scripts {
-		CreateScript(ava.Background(), id, v)
+	for _, v := range scripts {
+		CreateScript(ava.Background(), v)
 	}
+
+	scripts = make([]*Script, 0, 10)
 
 	//刷新实体
 	data.CallService().WaitForCallService()
 
-	ava.Debugf("all script created done! |total=%d", scriptCount)
+	ava.Debugf("all script created done! |total=%d", len(scripts))
 	//switchRule()
 }
 
 // 场景，Sequence和automation的actions一致
 type Script struct {
+	id          string
 	Alias       string        `json:"alias"`       //自动化名称
 	Description string        `json:"description"` //自动化描述
 	Sequence    []interface{} `json:"sequence"`    //执行动作
 }
-
-var scriptLock sync.Mutex
-var scriptCount int
 
 func RunAutomation(entityId string) error {
 	err := x.Post(ava.Background(), fmt.Sprintf("%s/api/services/automation/trigger", data.GetHassUrl()), data.GetToken(), data.HttpServiceData{
@@ -102,9 +99,9 @@ func GetAutomation(uniqueId string, v interface{}) error {
 	return nil
 }
 
-func CreateScript(c *ava.Context, baseEntityId string, script *Script) {
+func CreateScript(c *ava.Context, script *Script) {
 	var response Response
-	err := x.Post(c, fmt.Sprintf(prefixUrlCreateScript, data.GetHassUrl(), baseEntityId), data.GetToken(), script, &response)
+	err := x.Post(c, fmt.Sprintf(prefixUrlCreateScript, data.GetHassUrl(), script.id), data.GetToken(), script, &response)
 	if err != nil {
 		c.Error(err)
 		return
@@ -113,30 +110,16 @@ func CreateScript(c *ava.Context, baseEntityId string, script *Script) {
 	if response.Result != "ok" {
 		c.Errorf("data=%v |result=%s", x.MustMarshal2String(script), x.MustMarshal2String(&response))
 	}
-
-	scriptCount++
 }
 
 func AddScript2Queue(c *ava.Context, script *Script) string {
-	scriptLock.Lock()
-	defer func() {
-		time.Sleep(time.Millisecond * 3)
-		scriptLock.Unlock()
-	}()
 
 	// 自动化名称和实体ID检测，确保唯一
-	entityMap := data.GetEntityIdMap()
 	baseEntityId := x.ChineseToPinyin(script.Alias)
-	//id := strconv.FormatInt(time.Now().UnixMilli(), 10)
 
-	//script.Alias += "_" + id
-	for _, entity := range entityMap {
-		if entity == nil {
-			continue
-		}
-	}
+	script.id = baseEntityId
 
-	scripts[baseEntityId] = script
+	scripts = append(scripts, script)
 	return baseEntityId
 }
 

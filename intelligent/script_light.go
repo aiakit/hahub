@@ -73,11 +73,15 @@ func lightScene(c *ava.Context, simpleName string, brightness float64, kelvin in
 
 		// 为每个区域创建独立的en和meta map
 		var script = &Script{}
-		var automation = &Automation{}
+		var automation = &Automation{
+			Triggers:   make([]*Triggers, 0),
+			Conditions: make([]*Conditions, 0),
+			Actions:    make([]interface{}, 0),
+		}
 
 		//条件：名字中带有"回家"的开关按键和场景按键
 		func() {
-			for bName, v := range switchSelectSameName {
+			for bName, v1 := range switchSelectSameName {
 				bns := strings.Split(bName, "_")
 				if len(bns) < 2 {
 					continue
@@ -85,7 +89,7 @@ func lightScene(c *ava.Context, simpleName string, brightness float64, kelvin in
 				buttonName := bns[len(bns)-1]
 				if strings.Contains(buttonName, simpleName) {
 					//按键触发和条件
-					for _, e := range v {
+					for _, e := range v1 {
 						automation.Triggers = append(automation.Triggers, &Triggers{
 							EntityID: e.EntityID,
 							Trigger:  "state",
@@ -101,7 +105,6 @@ func lightScene(c *ava.Context, simpleName string, brightness float64, kelvin in
 						}
 					}
 				}
-
 			}
 		}()
 
@@ -140,7 +143,10 @@ func lightScene(c *ava.Context, simpleName string, brightness float64, kelvin in
 					Data:   map[string]interface{}{"script_id": scriptId},
 					Target: nil,
 				})
-				AddAutomation2Queue(c, automation)
+				// 确保automation对象有效再添加到队列
+				if automation.Alias != "" && len(automation.Actions) > 0 {
+					AddAutomation2Queue(c, automation)
+				}
 			}
 		}
 	}

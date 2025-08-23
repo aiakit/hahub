@@ -55,6 +55,7 @@ var (
 
 // 自动化配置
 type Automation struct {
+	id          string
 	Alias       string        `json:"alias"`                //自动化名称
 	Description string        `json:"description"`          //自动化描述
 	Triggers    []*Triggers   `json:"triggers"`             //触发条件
@@ -287,17 +288,12 @@ type Response struct {
 	Message string `json:"message"`
 }
 
-var deleteAllAutomationSwitch = true
-
 func ChaosAutomation() {
-	autos = make(map[string]*Automation, 10)
 
 	c := ava.Background()
 
 	//删除所有自动化
-	if deleteAllAutomationSwitch {
-		DeleteAllAutomations(c)
-	}
+	DeleteAllAutomations(c)
 
 	//处理光照数据
 	initEntityIdByLx(ava.Background())
@@ -323,20 +319,22 @@ func ChaosAutomation() {
 
 	WalkPresenceSensorAir(c)
 
-	for id, v := range autos {
-		CreateAutomation(ava.Background(), id, v)
+	for _, v := range autos {
+		CreateAutomation(ava.Background(), v)
 	}
+
+	autos = make([]*Automation, 0, 10)
 
 	//重新缓存一遍数据
 	data.CallService().WaitForCallService()
 
 	//开关自动关闭规则
 	//switchRule()
-	ava.Debugf("all automation created done! |total=%d", automaitionCount)
+	ava.Debugf("all automation created done! |total=%d", len(autos))
 }
 
-var autos = make(map[string]*Automation, 10)
-var scripts = make(map[string]*Script, 10)
+var autos = make([]*Automation, 0, 10)
+var scripts = make([]*Script, 0, 10)
 
 func Chaos() {
 	ScriptChaos()
@@ -345,15 +343,11 @@ func Chaos() {
 
 // 发起自动化创建
 // 在所有homeassistant自动化名称中，不能出现名称一样的自动化
-var skipExistAutomation = false //是否跳过相同名称自动化
-var coverExistAutomation = true //是否覆盖名称相关自动化
 
-var automaitionCount int
-
-func CreateAutomation(c *ava.Context, finalEntityId string, automation *Automation) {
+func CreateAutomation(c *ava.Context, automation *Automation) {
 
 	var response Response
-	err := x.Post(c, fmt.Sprintf(prefixUrlCreateAutomation, data.GetHassUrl(), finalEntityId), data.GetToken(), automation, &response)
+	err := x.Post(c, fmt.Sprintf(prefixUrlCreateAutomation, data.GetHassUrl(), automation.id), data.GetToken(), automation, &response)
 	if err != nil {
 		c.Error(err)
 		return
@@ -363,62 +357,27 @@ func CreateAutomation(c *ava.Context, finalEntityId string, automation *Automati
 		c.Errorf("data=%v |data=%s", x.MustMarshal2String(automation), x.MustMarshal2String(&response))
 	}
 
-	automaitionCount++
-
 	if strings.Contains(automation.Alias, "布防") || strings.Contains(automation.Alias, "撤防") {
 		return
 	}
 
-	err = TurnOnAutomation(c, finalEntityId)
+	err = TurnOnAutomation(c, automation.id)
 	if err != nil {
 		c.Error(err)
 		return
 	}
 }
+
 func AddAutomation2Queue(c *ava.Context, automation *Automation) string {
 	// 自动化名称和实体ID检测，确保唯一
 	alias := automation.Alias
-	entityMap := data.GetEntityIdMap()
 	baseEntityId := "automation." + x.ChineseToPinyin(alias)
-	conflictCount := 0
 
-	for _, entity := range entityMap {
-		if entity == nil {
-			continue
-		}
-		if !strings.HasPrefix(entity.EntityID, "automation.") {
-			continue
-		}
+	automation.id = baseEntityId
 
-		if entity.OriginalName == alias && skipExistAutomation { //名称相同则不创建
-			return ""
-		}
+	autos = append(autos, automation)
 
-		// 名称冲突
-		if entity.OriginalName == alias || entity.EntityID == baseEntityId {
-			if coverExistAutomation { //直接覆盖
-				continue
-			}
-			conflictCount++ //重新建一个
-		}
-
-		//如果前缀一致则不创建,例如：xxx带*和xxx带
-		if strings.HasPrefix(entity.OriginalName, alias) || strings.HasPrefix(entity.Name, alias) {
-			continue
-		}
-	}
-
-	finalAlias := alias
-	finalEntityId := baseEntityId
-	if conflictCount > 0 {
-		finalAlias = fmt.Sprintf("%s%d", alias, conflictCount)
-		finalEntityId = fmt.Sprintf("%s%d", baseEntityId, conflictCount)
-		automation.Alias = finalAlias
-	}
-
-	autos[finalEntityId] = automation
-
-	return finalEntityId
+	return baseEntityId
 }
 
 func TurnOnAutomation(c *ava.Context, entityId string) error {
