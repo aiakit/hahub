@@ -125,7 +125,14 @@ func findLightsWithOutLightCategory(prefix string, entities []*data.Entity) []*d
 
 	if len(result) == 0 {
 		for _, e := range entities {
+			if prefix != "" && !strings.Contains(e.DeviceName, prefix) {
+				continue
+			}
+
 			if e.Category == data.CategoryLightGroup || e.Category == data.CategoryLight {
+				//if strings.Contains(e.DeviceName, "馨光") {
+				//	continue
+				//}
 				result = append(result, e)
 			}
 		}

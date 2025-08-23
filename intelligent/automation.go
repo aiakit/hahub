@@ -228,6 +228,10 @@ type delay struct {
 	Milliseconds int `json:"milliseconds"`
 }
 
+type DelayData struct {
+	Delay *delay `json:"delay"`
+}
+
 type actionLightData struct {
 	ColorTempKelvin   int         `json:"color_temp_kelvin,omitempty"`
 	BrightnessPct     float64     `json:"brightness_pct,omitempty"`
@@ -318,11 +322,12 @@ func ChaosAutomation() {
 	WalkPresenceSensorAir(c)
 
 	//重新缓存一遍数据
-	data.CallService()
+	data.CallService().WaitForCallService()
 
 	//开关自动关闭规则
 	//switchRule()
 	ava.Debugf("all automation created done! |total=%d", automaitionCount)
+	ava.Debugf("all automation%s", x.MustMarshal2String(sss))
 }
 
 func Chaos() {
@@ -336,6 +341,7 @@ var skipExistAutomation = false //是否跳过相同名称自动化
 var coverExistAutomation = true //是否覆盖名称相关自动化
 
 var automaitionCount int
+var sss = make(map[string][]string)
 
 func CreateAutomation(c *ava.Context, automation *Automation) string {
 	// 自动化名称和实体ID检测，确保唯一
@@ -389,6 +395,9 @@ func CreateAutomation(c *ava.Context, automation *Automation) string {
 		c.Errorf("data=%v |data=%s", x.MustMarshal2String(automation), x.MustMarshal2String(&response))
 	}
 
+	automaitionCount++
+	sss[finalEntityId] = append(sss[finalEntityId], finalAlias)
+
 	if strings.Contains(automation.Alias, "布防") || strings.Contains(automation.Alias, "撤防") {
 		return finalEntityId
 	}
@@ -398,8 +407,6 @@ func CreateAutomation(c *ava.Context, automation *Automation) string {
 		c.Error(err)
 		return ""
 	}
-
-	automaitionCount++
 
 	return finalEntityId
 }

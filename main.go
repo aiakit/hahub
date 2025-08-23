@@ -1,7 +1,6 @@
 package main
 
 import (
-	"hahub/data"
 	"hahub/intelligent"
 	"os"
 	"os/signal"
@@ -12,6 +11,7 @@ import (
 )
 
 func main() {
+	//暂时不要打开
 	//defer func() {
 	//	if err := recover(); err != nil {
 	//		ava.Fatalf("revocer |err=%v", err)
@@ -20,10 +20,9 @@ func main() {
 
 	now := time.Now()
 	// 等待 chaos.go 的初始化完成
-	data.WaitForInit()
 
 	//必须先创建脚本再创建自动化，这里不打开，改为ai驱动
-	//intelligent.Display(ava.Background())
+	//intelligent.WalkBodySocketSensor(ava.Background())
 	intelligent.Chaos()
 
 	//启动音箱ai驱动

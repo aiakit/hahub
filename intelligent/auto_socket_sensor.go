@@ -120,7 +120,7 @@ func bodySocketSensorOn(entity *data.Entity) (*Automation, *Automation, error) {
 	})
 	auto.Conditions = append(auto.Conditions, condition...)
 
-	au, err := presenceSensorOff(areaName, entity, entitiesFilter)
+	au, err := bodySocketSensorOff(prefix, suffix, areaName, entity, entitiesFilter)
 	if err != nil {
 		ava.Error(err)
 		return nil, nil, err
@@ -167,11 +167,13 @@ func bodySocketSensorOff(prefix, suffix, areaName string, entity *data.Entity, e
 		Mode:    "single",
 	}
 
-	auto.Actions = append(auto.Actions, delay{
-		Hours:        0,
-		Minutes:      0,
-		Seconds:      5,
-		Milliseconds: 0,
+	auto.Actions = append(auto.Actions, DelayData{
+		Delay: &delay{
+			Hours:        0,
+			Minutes:      0,
+			Seconds:      5,
+			Milliseconds: 0,
+		},
 	})
 
 	auto.Actions = append(auto.Actions, ActionCommon{

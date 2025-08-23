@@ -102,25 +102,17 @@ func homingScript() *Script {
 
 	//打开客厅所有灯
 	func() {
-		entitiesScript, ok := data.GetEntityCategoryMap()[data.CategoryScript]
-		var isOpen bool
-		if ok {
-			for _, e := range entitiesScript {
-				if strings.Contains(e.OriginalName, "客厅") && (strings.Contains(e.OriginalName, "展示") || strings.Contains(e.OriginalName, "逐个")) {
-					script.Sequence = append(script.Sequence, ActionService{
-						Action: "script.turn_on",
-						Target: &struct {
-							EntityId string `json:"entity_id"`
-						}{EntityId: e.EntityID},
-					})
-					isOpen = true
-					break
-				}
-			}
+		//判断是否有展示脚本,如果有，使用展示脚本
+		if displayEntityId != "" {
+			script.Sequence = append(script.Sequence, ActionService{
+				Action: "script.turn_on",
+				Target: &struct {
+					EntityId string `json:"entity_id"`
+				}{EntityId: displayEntityId},
+			})
 		}
 
-		if !isOpen {
-			//判断是否有展示脚本,如果有，使用展示脚本
+		if displayEntityId == "" {
 			entities, ok := data.GetEntityCategoryMap()[data.CategoryLightGroup]
 			if ok {
 				//先开氛围灯
@@ -135,11 +127,13 @@ func homingScript() *Script {
 								},
 								Target: &targetLightData{DeviceId: v.DeviceID},
 							})
-							script.Sequence = append(script.Sequence, delay{
-								Hours:        0,
-								Minutes:      0,
-								Seconds:      5,
-								Milliseconds: 0,
+							script.Sequence = append(script.Sequence, ActionLight{
+								Delay: &delay{
+									Hours:        0,
+									Minutes:      0,
+									Seconds:      5,
+									Milliseconds: 0,
+								},
 							})
 						}
 

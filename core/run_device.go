@@ -86,6 +86,7 @@ func RunDevice(message, aiMessage, deviceId string) string {
 
 		var entity = make([]data.StateAll, 0, 2)
 		var isServiceExist = make(map[string]bool)
+		// 修复：正确初始化command map
 		var command = make(map[string]interface{})
 
 		for _, v := range entities {
@@ -132,6 +133,10 @@ func RunDevice(message, aiMessage, deviceId string) string {
 		//执行设备操作
 		var isExistError bool
 		for _, v := range comm {
+			// 修复：确保Filed不为nil
+			if v.Filed == nil {
+				v.Filed = make(map[string]interface{})
+			}
 			v.Filed["entity_id"] = v.Id
 			err = x.Post(ava.Background(), fmt.Sprintf("%s/api/services/%s", data.GetHassUrl(), v.Action), data.GetToken(), v.Filed, nil)
 			if err != nil {

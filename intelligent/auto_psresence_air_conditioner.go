@@ -22,7 +22,7 @@ func WalkPresenceSensorAir(c *ava.Context) {
 
 		autoOn, err := presenceSensorOnAir(v)
 		if err != nil {
-			c.Errorf("entity=%s |err=%v", x.MustMarshal2String(v), err)
+			c.Debugf("entity=%s |err=%v", x.MustMarshal2String(v), err)
 			continue
 		}
 
@@ -30,7 +30,7 @@ func WalkPresenceSensorAir(c *ava.Context) {
 
 		autoOff, err := presenceSensorOffAir(v)
 		if err != nil {
-			c.Error(err)
+			c.Debug(err)
 			continue
 		}
 		if autoOff != nil {

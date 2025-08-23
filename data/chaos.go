@@ -21,6 +21,7 @@ var defaultToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIwMTZkZmM2ZDE
 
 // 添加初始化完成信号
 var initDone = make(chan struct{})
+var initDoneCallService = make(chan struct{})
 
 // 添加初始化状态跟踪
 var (
@@ -180,6 +181,23 @@ func newHub() {
 	}
 }
 
+func releaseCache() {
+	if gHub != nil {
+		gHub.lock.Lock()
+		gHub.entityCategoryMap = make(map[string][]*Entity)
+		gHub.entityIdMap = make(map[string]*Entity)
+		gHub.entityAreaMap = make(map[string][]*Entity)
+		gHub.deviceMap = make(map[string]*device)
+		gHub.areaName = make(map[string]string)
+		gHub.areas = make([]string, 0, 2)
+		gHub.xinguang = make(map[string]string)
+		gHub.callbackMapFunc = make(map[int]func(data []byte))
+		gHub.deviceStateByName = make(map[string][]*Entity)
+		gHub.deviceIdState = make(map[string][]*Entity)
+		gHub.lock.Unlock()
+	}
+}
+
 func sendWsRequest(req map[string]interface{}, callback func([]byte)) {
 	id := GetServiceIncreaseId()
 	req["id"] = id
@@ -202,8 +220,12 @@ func (h *hub) writeJson(data interface{}) {
 var channelMessage = make(chan []byte, 1024)
 
 // 添加等待初始化完成的函数
-func WaitForInit() {
+func waitForInit() {
 	<-initDone
+}
+
+func (g *hub) WaitForCallService() {
+	<-initDoneCallService
 }
 
 // 检查初始化是否完成
@@ -215,13 +237,25 @@ func checkInitComplete() {
 	if initState.areasLoaded && initState.devicesLoaded &&
 		initState.entitiesLoaded && initState.servicesLoaded &&
 		initState.statesLoaded && initState.wsConnected {
-		// 防止重复关闭
+		// 如果initDone尚未关闭，则关闭它
 		select {
 		case <-initDone:
-			return
+			// 已经关闭了
 		default:
 			close(initDone)
-			ava.Debugf("Initialization completed successfully")
+		}
+	}
+
+	// 检查所有必要的数据是否都已加载
+	if initState.areasLoaded && initState.devicesLoaded &&
+		initState.entitiesLoaded && initState.servicesLoaded &&
+		initState.statesLoaded {
+		// 如果initDoneCallService尚未关闭，则关闭它
+		select {
+		case <-initDoneCallService:
+			// 已经关闭了
+		default:
+			close(initDoneCallService)
 		}
 	}
 }
@@ -232,6 +266,8 @@ func init() {
 	go callback()
 	go websocketHaWithInit(defaultToken, getHostAndPath())
 
+	waitForInit()
+
 	// 设置一个超时机制，防止无限等待
 	go func() {
 		time.Sleep(time.Second * 20) // 20秒超时
@@ -239,8 +275,19 @@ func init() {
 		case <-initDone:
 			return // 已经完成
 		default:
-			ava.Warnf("Initialization timeout, proceeding anyway")
+			ava.Warnf("initDone timeout, proceeding anyway")
 			close(initDone)
+		}
+	}()
+
+	go func() {
+		time.Sleep(time.Second * 20) // 20秒超时
+		select {
+		case <-initDoneCallService:
+			return // 已经完成
+		default:
+			ava.Warnf("initDoneCallService timeout, proceeding anyway")
+			close(initDoneCallService)
 		}
 	}()
 }
@@ -276,7 +323,7 @@ func callback() {
 		}
 
 		if tpe == "event" {
-			ava.Debugf("--------%s", string(msg))
+			//ava.Debugf("--------%s", string(msg))
 			var eventData StateChangedSimple
 			err := x.Unmarshal(msg, &eventData)
 			if err != nil {
@@ -348,7 +395,7 @@ func handleData(event *StateChangedSimple, data []byte) {
 	}
 }
 
-func CallService() {
+func callService() {
 	callAreaList()
 	callDeviceList()
 	callEntityList()
@@ -356,14 +403,33 @@ func CallService() {
 	callStates()
 }
 
+func CallService() *hub {
+	releaseCache()
+
+	initMutex.Lock()
+	initState.areasLoaded = false
+	initState.devicesLoaded = false
+	initState.entitiesLoaded = false
+	initState.servicesLoaded = false
+	initState.statesLoaded = false
+	initMutex.Unlock()
+
+	// 重新创建channel以确保它们是开放的
+	initDoneCallService = make(chan struct{})
+
+	callAreaList()
+	callDeviceList()
+	callEntityList()
+	callServices()
+	callStates()
+
+	return gHub
+}
+
 // websocketHaWithInit wraps websocketHa, on first connect success, calls data fetchers
 func websocketHaWithInit(token, url string) {
-	firstConnect := true
 	websocketHaWithCallback(token, url, func() {
-		if firstConnect {
-			CallService()
-			firstConnect = false
-		}
+		callService()
 	})
 }
 

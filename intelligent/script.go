@@ -50,9 +50,10 @@ func ScriptChaos() {
 	TakeAShower(c)
 
 	//刷新实体
-	data.CallService()
+	data.CallService().WaitForCallService()
 
 	ava.Debugf("all script created done! |total=%d", scriptCount)
+	//switchRule()
 }
 
 // 场景，Sequence和automation的actions一致

@@ -7,7 +7,7 @@ import (
 )
 
 func init() {
-	data.WaitForInit()
+	data.waitForInit()
 	CoreChaos()
 }
 

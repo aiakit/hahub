@@ -14,6 +14,8 @@ type sortLight struct {
 	Number int
 }
 
+var displayEntityId string
+
 // 按照编号执行灯光展示，非卧室，带有编号的灯
 func Display(c *ava.Context) {
 	var entities, ok = data.GetEntityCategoryMap()[data.CategoryLight]
@@ -156,7 +158,6 @@ func Display(c *ava.Context) {
 	}
 
 	if len(script.Sequence) > 0 {
-		CreateScript(c, script)
-		data.CallService()
+		displayEntityId = "script." + CreateScript(c, script)
 	}
 }

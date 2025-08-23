@@ -10,7 +10,7 @@ import (
 )
 
 func init() {
-	data.WaitForInit()
+	data.waitForInit()
 }
 
 func TestDelAllAutomation(t *testing.T) {
