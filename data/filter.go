@@ -10,7 +10,6 @@ var LxArea = make(map[string]*Entity)
 const (
 	CategoryXiaomiHomeSpeaker   = "xiaomi_home_speaker"   // 小米音箱
 	CategoryXiaomiMiotSpeaker   = "xiaomi_miot_speaker"   // 小米MIOT音箱
-	CategoryAppleTV             = "apple_tv"              // Apple TV
 	CategoryAirConditioner      = "air_conditioner"       // 空调
 	CategoryFloorHeating        = "floor_heating"         // 地暖
 	CategoryVirtualEvent        = "virtual_event"         // 虚拟事件
@@ -34,7 +33,7 @@ const (
 	CategoryHumiditySensor      = "humidity_sensor"       // 湿度传感器
 	CategoryLxSensor            = "lx_sensor"             // 光照传感器
 	CategoryIrTV                = "ir_tv"                 // 红外电视
-	CategoryTV                  = "tv"                    // 红外电视
+	CategoryHaTV                = "ha_tv"                 // 电视品牌插件
 	CategoryAutomation          = "automation"            // 自动化
 	CategoryScene               = "scene"                 // 场景
 	CategoryScript              = "script"                // 场景
@@ -121,11 +120,6 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 				} else if e.Platform == "xiaomi_miot" {
 					category = CategoryXiaomiMiotSpeaker
 				}
-				return
-			}
-			// 2. apple_tv
-			if e.Platform == "apple_tv" {
-				category = CategoryAppleTV
 				return
 			}
 
@@ -320,7 +314,7 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 
 			// 12.1 电视
 			if strings.Contains(e.Name, "电视") && strings.Contains(e.EntityID, "media_player.") && !strings.Contains(e.OriginalName, "红外") {
-				category = CategoryTV
+				category = CategoryHaTV
 				return
 			}
 

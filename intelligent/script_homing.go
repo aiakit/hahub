@@ -9,29 +9,27 @@ import (
 
 func InitHoming(c *ava.Context) {
 	// 创建回家场景
-	script := homingScript()
+	script, auto := homingScript()
 	if script != nil && len(script.Sequence) > 0 {
-		scriptId := AddScript2Queue(c, script)
+		AddScript2Queue(c, script)
+	}
 
-		// 基于场景创建自动化
-		if scriptId != "" {
-			auto := homingAutomation(scriptId)
-			if auto != nil && len(auto.Triggers) > 0 {
-				AddAutomation2Queue(c, auto)
-			}
-		}
+	if auto != nil && len(auto.Actions) > 0 && len(auto.Triggers) > 0 {
+		AddAutomation2Queue(c, auto)
 	}
 }
 
 // 回家场景场景
-func homingScript() *Script {
+func homingScript() (*Script, *Automation) {
 	var script = &Script{
 		Alias:       "回家场景",
 		Description: "回家场景执行场景",
 	}
 
+	var action = make([]interface{}, 0)
+
 	// 撤防
-	script.Sequence = append(script.Sequence, ActionService{
+	action = append(action, ActionService{
 		Action: "automation.turn_off",
 		Data:   map[string]interface{}{"stop_actions": true},
 		Target: &struct {
@@ -47,7 +45,7 @@ func homingScript() *Script {
 		if ok {
 			for _, e := range entities {
 				if strings.Contains(e.OriginalName, "播放文本") && strings.Contains(e.AreaName, "客厅") && strings.HasPrefix(e.EntityID, "notify.") {
-					script.Sequence = append(script.Sequence, ActionTimerDelay{
+					action = append(action, ActionTimerDelay{
 						Delay: struct {
 							Hours        int `json:"hours"`
 							Minutes      int `json:"minutes"`
@@ -56,7 +54,7 @@ func homingScript() *Script {
 						}{Seconds: 3},
 					})
 
-					script.Sequence = append(script.Sequence, ActionNotify{
+					action = append(action, ActionNotify{
 						Action: "notify.send_message",
 						Data: struct {
 							Message string `json:"message,omitempty"`
@@ -66,7 +64,7 @@ func homingScript() *Script {
 							DeviceID string `json:"device_id,omitempty"`
 						}{DeviceID: e.DeviceID},
 					})
-					script.Sequence = append(script.Sequence, ActionTimerDelay{
+					action = append(action, ActionTimerDelay{
 						Delay: struct {
 							Hours        int `json:"hours"`
 							Minutes      int `json:"minutes"`
@@ -84,7 +82,7 @@ func homingScript() *Script {
 		for _, e := range entities {
 			if e.DeviceID == xiaomiHomeSpeakerDeviceId {
 				if strings.Contains(e.OriginalName, "执行文本指令") && strings.Contains(e.AreaName, "客厅") && strings.HasPrefix(e.EntityID, "text.") {
-					script.Sequence = append(script.Sequence, ActionNotify{
+					action = append(action, ActionNotify{
 						Action: "notify.send_message",
 						Data: struct {
 							Message string `json:"message,omitempty"`
@@ -100,11 +98,13 @@ func homingScript() *Script {
 		}
 	}()
 
+	var areaId string
+
 	//打开客厅所有灯
 	func() {
 		//判断是否有展示脚本,如果有，使用展示脚本
 		if displayEntityId != "" {
-			script.Sequence = append(script.Sequence, ActionService{
+			action = append(action, ActionService{
 				Action: "script.turn_on",
 				Target: &struct {
 					EntityId string `json:"entity_id"`
@@ -118,8 +118,9 @@ func homingScript() *Script {
 				//先开氛围灯
 				for _, v := range entities {
 					if strings.Contains(v.AreaName, "客厅") {
+						areaId = v.AreaID
 						if strings.Contains(v.DeviceName, "氛围") {
-							script.Sequence = append(script.Sequence, ActionLight{
+							action = append(action, ActionLight{
 								Action: "light.turn_on",
 								Data: &actionLightData{
 									ColorTempKelvin: 5800,
@@ -127,7 +128,7 @@ func homingScript() *Script {
 								},
 								Target: &targetLightData{DeviceId: v.DeviceID},
 							})
-							script.Sequence = append(script.Sequence, ActionLight{
+							action = append(action, ActionLight{
 								Delay: &delay{
 									Hours:        0,
 									Minutes:      0,
@@ -143,7 +144,7 @@ func homingScript() *Script {
 				for _, v := range entities {
 					if strings.Contains(v.AreaName, "客厅") {
 						if !strings.Contains(v.DeviceName, "氛围") {
-							script.Sequence = append(script.Sequence, ActionLight{
+							action = append(action, ActionLight{
 								Action: "light.turn_on",
 								Data: &actionLightData{
 									ColorTempKelvin: 5800,
@@ -165,7 +166,7 @@ func homingScript() *Script {
 		if ok {
 			for _, e := range entities {
 				if strings.Contains(e.AreaName, "客厅") {
-					script.Sequence = append(script.Sequence, ActionCommon{
+					action = append(action, ActionCommon{
 						Type:     "turn_on",
 						DeviceID: e.DeviceID,
 						EntityID: e.EntityID,
@@ -182,7 +183,7 @@ func homingScript() *Script {
 		if ok {
 			for _, e := range entities {
 				if strings.Contains(e.AreaName, "客厅") {
-					script.Sequence = append(script.Sequence, ActionCommon{
+					action = append(action, ActionCommon{
 						Type:     "open",
 						DeviceID: e.DeviceID,
 						EntityID: e.EntityID,
@@ -239,17 +240,10 @@ func homingScript() *Script {
 
 	var turnOnMessage = "是否需要为你打开"
 
-	//打开电视，直接打开，默认离家场景已经关闭电视了，如果存在传感器很久没人，在弄一个关闭电视的自动化
 	func() {
-		entities, ok := data.GetEntityCategoryMap()[data.CategoryIrTV]
-		if ok {
-			for _, e := range entities {
-				if strings.Contains(e.AreaName, "客厅") {
-					if strings.Contains(e.OriginalName, "红外电视控制") && strings.Contains(e.OriginalName, "开机") {
-						turnOnMessage += "电视，"
-					}
-				}
-			}
+		result := turnOnTv(areaId)
+		if len(result) > 0 {
+			action = append(action, result...)
 		}
 	}()
 
@@ -360,8 +354,50 @@ func homingScript() *Script {
 		}
 	}()
 
-	if len(sequence) > 0 {
-		script.Sequence = append(script.Sequence, ActionTimerDelay{
+	var act IfThenELSEAction
+
+	//检查客厅存在传感器是否检测到有人
+	func() {
+		entities, ok := data.GetEntityCategoryMap()[data.CategoryHumanPresenceSensor]
+		if ok {
+			for _, e := range entities {
+				if strings.Contains(e.AreaName, "客厅") {
+					act.If = append(act.If, ifCondition{
+						Type:      "is_not_occupied",
+						DeviceId:  e.DeviceID,
+						EntityId:  e.EntityID,
+						Condition: "device",
+						Domain:    "binary_sensor",
+					})
+				}
+			}
+		}
+	}()
+
+	//判断客厅灯是否亮
+	if len(act.If) == 0 {
+		entities, ok := data.GetEntityCategoryMap()[data.CategoryLightGroup]
+		if ok {
+			for _, e := range entities {
+				if strings.Contains(e.AreaName, "客厅") {
+					act.If = append(act.If, ifCondition{
+						Condition: "device",
+						Type:      "is_on",
+						DeviceId:  e.DeviceID,
+						EntityId:  e.EntityID,
+						For: &For{
+							Hours:   0,
+							Minutes: 5,
+							Seconds: 0,
+						},
+					})
+				}
+			}
+		}
+	}
+
+	if len(action) > 0 {
+		action = append(action, ActionTimerDelay{
 			Delay: struct {
 				Hours        int `json:"hours"`
 				Minutes      int `json:"minutes"`
@@ -369,55 +405,37 @@ func homingScript() *Script {
 				Milliseconds int `json:"milliseconds"`
 			}{Seconds: 6},
 		})
-		script.Sequence = append(script.Sequence, sequence)
+		action = append(action, sequence)
 	}
 
-	return script
+	if len(act.If) > 0 && len(action) > 0 {
+		act.Then = append(act.Then, action...)
+		script.Sequence = append(script.Sequence, act)
+	} else if len(action) > 0 {
+		script.Sequence = append(script.Sequence, action...)
+	}
+
+	if len(action) > 0 {
+		auto := homingAutomation(action)
+		return script, auto
+	}
+
+	return nil, nil
 }
 
 // 回家自动化
-func homingAutomation(scriptId string) *Automation {
+func homingAutomation(action []interface{}) *Automation {
 	var automation = &Automation{
 		Alias:       "回家自动化",
 		Description: "门锁打开/或者开关按键触发用或条件，判断客厅所有灯是否打开，存在传感器是否检车到人",
 		Mode:        "single",
 	}
 
-	//检查全屋灯是否打开
-	func() {
-		entities, ok := data.GetEntityCategoryMap()[data.CategoryLightGroup]
-		if ok {
-			for _, e := range entities {
-				automation.Conditions = append(automation.Conditions, &Conditions{
-					Condition: "device",
-					Type:      "is_off",
-					DeviceID:  e.DeviceID,
-					EntityID:  e.EntityID,
-					Domain:    "light",
-				})
-			}
-		}
-	}()
-
-	//检查存在传感器是否检测到有人
-	func() {
-		entities, ok := data.GetEntityCategoryMap()[data.CategoryHumanPresenceSensor]
-		if ok {
-			for _, e := range entities {
-				automation.Conditions = append(automation.Conditions, &Conditions{
-					Type:      "is_not_occupied",
-					DeviceID:  e.DeviceID,
-					EntityID:  e.EntityID,
-					Domain:    "binary_sensor",
-					For:       &For{Minutes: 10},
-					Condition: "device",
-				})
-			}
-		}
-	}()
+	var condition = make([]*Conditions, 0)
 
 	//条件：名字中带有"回家"的开关按键和场景按键
 	func() {
+
 		for bName, v := range switchSelectSameName {
 			// 使用SplitN分割，确保只分割成两部分，保留最后一个_后的字符作为buttonName
 			bns := strings.Split(bName, "_")
@@ -434,7 +452,7 @@ func homingAutomation(scriptId string) *Automation {
 					})
 
 					if e.Category == data.CategorySwitchClickOnce {
-						automation.Conditions = append(automation.Conditions, &Conditions{
+						condition = append(condition, &Conditions{
 							Condition: "state",
 							EntityID:  e.EntityID,
 							Attribute: e.Attribute,
@@ -443,17 +461,21 @@ func homingAutomation(scriptId string) *Automation {
 					}
 				}
 			}
-
 		}
 	}()
 
-	// 执行回家场景
-	automation.Actions = append(automation.Actions, ActionService{
-		Action: "script.turn_on",
-		Target: &struct {
-			EntityId string `json:"entity_id"`
-		}{EntityId: "script." + scriptId},
-	})
+	if len(condition) > 0 {
+		automation.Actions = append(automation.Actions, action...)
+		var con = &Conditions{
+			Condition: "or",
+		}
+
+		for _, v := range condition {
+			con.ConditionChild = append(con.ConditionChild, v)
+		}
+
+		automation.Conditions = append(automation.Conditions, con)
+	}
 
 	return automation
 }

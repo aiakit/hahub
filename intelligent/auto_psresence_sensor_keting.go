@@ -178,6 +178,11 @@ func presenceSensorOffKeting(areaName string, entity *data.Entity, entities []*d
 		result = append(result, e)
 	}
 
+	resultTv := turnOffTv(entity.AreaID)
+	if len(resultTv) > 0 {
+		result = append(result, resultTv...)
+	}
+
 	auto := &Automation{
 		Alias:       areaName + "无人关灯",
 		Description: "当人体传感器检测到无人，自动关闭" + areaName + "灯组和有线开关",

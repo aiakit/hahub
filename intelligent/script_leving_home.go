@@ -9,32 +9,31 @@ import (
 
 func InitLevingHome(c *ava.Context) {
 	// 创建离家场景
-	script := levingHomeScript()
+	script, auto := levingHomeScript()
 	if script != nil && len(script.Sequence) > 0 {
-		// 基于场景创建自动化
-		scriptId := AddScript2Queue(c, script)
-		if scriptId != "" {
-			auto := levingHomeAutomation(scriptId)
-			if auto != nil {
-				AddAutomation2Queue(c, auto)
-			}
-		}
+		AddScript2Queue(c, script)
+	}
+
+	if auto != nil && len(auto.Actions) > 0 && len(auto.Triggers) > 0 {
+		AddAutomation2Queue(c, auto)
 	}
 }
 
 // 离家场景场景
-func levingHomeScript() *Script {
+func levingHomeScript() (*Script, *Automation) {
 	var script = &Script{
 		Alias:       "离家场景",
 		Description: "离家场景执行场景",
 	}
+
+	var action = make([]interface{}, 0)
 
 	// 关闭所有灯
 	func() {
 		entities, ok := data.GetEntityCategoryMap()[data.CategoryLightGroup]
 		if ok {
 			for _, v := range entities {
-				script.Sequence = append(script.Sequence, ActionLight{
+				action = append(action, ActionLight{
 					Action: "light.turn_off",
 					Target: &targetLightData{DeviceId: v.DeviceID},
 				})
@@ -47,7 +46,7 @@ func levingHomeScript() *Script {
 		entities, ok := data.GetEntityCategoryMap()[data.CategorySocket]
 		if ok {
 			for _, e := range entities {
-				script.Sequence = append(script.Sequence, ActionCommon{
+				action = append(action, ActionCommon{
 					Type:     "turn_off",
 					DeviceID: e.DeviceID,
 					EntityID: e.EntityID,
@@ -62,7 +61,7 @@ func levingHomeScript() *Script {
 		entities, ok := data.GetEntityCategoryMap()[data.CategoryCurtain]
 		if ok {
 			for _, e := range entities {
-				script.Sequence = append(script.Sequence, ActionCommon{
+				action = append(action, ActionCommon{
 					Type:     "close",
 					DeviceID: e.DeviceID,
 					EntityID: e.EntityID,
@@ -74,48 +73,13 @@ func levingHomeScript() *Script {
 
 	// 关闭电视逻辑，找到电视机
 	func() {
-		tv, oktv := data.GetEntityCategoryMap()[data.CategoryTV]
-		irTV, ok := data.GetEntityCategoryMap()[data.CategoryIrTV]
-		if ok && oktv {
-			for _, e := range irTV {
-				for _, e1 := range tv {
-					if e1.OriginalName == e.DeviceName {
-						if strings.Contains(e.OriginalName, "红外电视控制") && strings.Contains(e.OriginalName, "关机") {
-							var act IfThenELSEAction
-							act.If = append(act.If, ifCondition{
-								Condition: "state",
-								State:     "on",
-								EntityId:  e1.EntityID,
-							})
-							act.Then = append(act.Then, ActionCommon{
-								Type:     "press",
-								DeviceID: e.DeviceID,
-								EntityID: e.EntityID,
-								Domain:   "button",
-							})
-
-							script.Sequence = append(script.Sequence, act)
-						}
-					}
+		area := data.GetAreas()
+		if len(area) > 0 {
+			for _, v := range area {
+				result := turnOffTv(v)
+				for _, v1 := range result {
+					action = append(action, v1)
 				}
-			}
-		}
-
-		if oktv && !ok {
-			for _, e1 := range tv {
-				var act IfThenELSEAction
-				act.If = append(act.If, ifCondition{
-					Condition: "state",
-					State:     "on",
-					EntityId:  e1.EntityID,
-				})
-				act.Then = append(act.Then, ActionService{
-					Action: "media_player.turn_off",
-					Target: &struct {
-						EntityId string `json:"entity_id"`
-					}{EntityId: e1.EntityID}})
-
-				script.Sequence = append(script.Sequence, act)
 			}
 		}
 	}()
@@ -125,7 +89,7 @@ func levingHomeScript() *Script {
 		entities, ok := data.GetEntityCategoryMap()[data.CategoryAirConditioner]
 		if ok {
 			for _, e := range entities {
-				script.Sequence = append(script.Sequence, ActionService{
+				action = append(action, ActionService{
 					Action: "climate.turn_off",
 					Target: &struct {
 						EntityId string `json:"entity_id"`
@@ -141,7 +105,7 @@ func levingHomeScript() *Script {
 		if ok {
 			for _, e := range entities {
 				if strings.Contains(e.OriginalName, "开关") {
-					script.Sequence = append(script.Sequence, ActionService{
+					action = append(action, ActionService{
 						Action: "water_heater.turn_off",
 						Target: &struct {
 							EntityId string `json:"entity_id"`
@@ -158,7 +122,7 @@ func levingHomeScript() *Script {
 	//	if ok {
 	//		for _, e := range entities {
 	//			if strings.Contains(e.OriginalName, "执行文本指令") && strings.Contains(e.AreaName, "客厅") {
-	//				script.Sequence = append(script.Sequence, ActionNotify{
+	//				action = append(action, ActionNotify{
 	//					Action: "notify.send_message",
 	//					Data: struct {
 	//						Message string `json:"message,omitempty"`
@@ -175,7 +139,7 @@ func levingHomeScript() *Script {
 		entities, ok := data.GetEntityCategoryMap()[data.CategorySocket]
 		if ok {
 			for _, e := range entities {
-				script.Sequence = append(script.Sequence, ActionCommon{
+				action = append(action, ActionCommon{
 					Type:     "turn_off",
 					DeviceID: e.DeviceID,
 					EntityID: e.EntityID,
@@ -189,7 +153,7 @@ func levingHomeScript() *Script {
 	if ok {
 		for _, e := range entities {
 			if strings.HasPrefix(e.EntityID, "media_player.") {
-				script.Sequence = append(script.Sequence, ActionService{
+				action = append(action, ActionService{
 					Action: "media_player.media_pause",
 					Target: &struct {
 						EntityId string `json:"entity_id"`
@@ -199,39 +163,60 @@ func levingHomeScript() *Script {
 	}
 
 	// 布防
-	script.Sequence = append(script.Sequence, ActionService{
+	action = append(action, ActionService{
 		Action: "automation.turn_on",
 		Target: &struct {
 			EntityId string `json:"entity_id"`
 		}{EntityId: "automation.li_jia_bu_fang"},
 	})
 
-	return script
+	var act IfThenELSEAction
+
+	//检查存在传感器是否检测到有人
+	func() {
+		entitiesSensor, ok := data.GetEntityCategoryMap()[data.CategoryHumanPresenceSensor]
+		if ok {
+			for _, e := range entitiesSensor {
+				act.If = append(act.If, ifCondition{
+					Type:      "is_not_occupied",
+					DeviceId:  e.DeviceID,
+					EntityId:  e.EntityID,
+					Condition: "device",
+					Domain:    "binary_sensor",
+					For: &For{
+						Hours:   0,
+						Minutes: 5,
+						Seconds: 0,
+					},
+				})
+			}
+		}
+	}()
+
+	if len(act.If) > 0 && len(action) > 0 {
+		act.Then = append(act.Then, action...)
+		script.Sequence = append(script.Sequence, act)
+	} else if len(action) > 0 {
+		script.Sequence = append(script.Sequence, action...)
+	}
+
+	if len(action) > 0 {
+		auto := levingHomeAutomation(action)
+		return script, auto
+	}
+
+	return nil, nil
 }
 
 // 离家自动化
-func levingHomeAutomation(scriptId string) *Automation {
+func levingHomeAutomation(action []interface{}) *Automation {
 	var automation = &Automation{
 		Alias:       "离家自动化",
 		Description: "门锁关闭/或者开关按键触发用或条件，判断是否所有设备已关闭并启动安防",
 		Mode:        "single",
 	}
 
-	// 条件：检查是否存在开着的灯
-	func() {
-		entities, ok := data.GetEntityCategoryMap()[data.CategoryLightGroup]
-		if ok {
-			for _, e := range entities {
-				automation.Conditions = append(automation.Conditions, &Conditions{
-					Condition: "device",
-					Type:      "is_on",
-					DeviceID:  e.DeviceID,
-					EntityID:  e.EntityID,
-					Domain:    "light",
-				})
-			}
-		}
-	}()
+	var condition = make([]*Conditions, 0)
 
 	// 条件：名字中带有"离家"的开关按键和场景按键
 	func() {
@@ -250,7 +235,7 @@ func levingHomeAutomation(scriptId string) *Automation {
 					})
 
 					if e.Category == data.CategorySwitchClickOnce {
-						automation.Conditions = append(automation.Conditions, &Conditions{
+						condition = append(condition, &Conditions{
 							Condition: "state",
 							EntityID:  e.EntityID,
 							Attribute: e.Attribute,
@@ -262,13 +247,18 @@ func levingHomeAutomation(scriptId string) *Automation {
 		}
 	}()
 
-	// 执行离家场景
-	automation.Actions = append(automation.Actions, ActionService{
-		Action: "script.turn_on",
-		Target: &struct {
-			EntityId string `json:"entity_id"`
-		}{EntityId: "script." + scriptId},
-	})
+	if len(condition) > 0 {
+		automation.Actions = append(automation.Actions, action...)
+		var con = &Conditions{
+			Condition: "or",
+		}
+
+		for _, v := range condition {
+			con.ConditionChild = append(con.ConditionChild, v)
+		}
+
+		automation.Conditions = append(automation.Conditions, con)
+	}
 
 	return automation
 }

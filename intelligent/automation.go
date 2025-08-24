@@ -84,6 +84,7 @@ type ifCondition struct {
 	Before     string        `json:"before,omitempty"`
 	Attribute  string        `json:"attribute,omitempty"`
 	Weekday    []string      `json:"weekday,omitempty"`
+	For        *For          `json:"for,omitempty"`
 }
 
 // 获取 lxByAreaId 中的值，使用读锁
