@@ -488,7 +488,7 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 					if v, ok := deviceMap[swEntity.DeviceID]; ok {
 						if strings.Contains(v.Name, "#") {
 							swEntity.SubCategory = CategoryWiredSwitch
-							swEntity.Category = CategoryLight
+							swEntity.Category = CategoryLightGroup
 						}
 						break
 					}

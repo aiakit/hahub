@@ -146,6 +146,12 @@ func registerHomingWelcome(simple *data.StateChangedSimple, body []byte) {
 			}
 		}
 
+		// 添加检查，防止id为空
+		if id == "" {
+			ava.Warn("No suitable media player found for welcome message")
+			return
+		}
+
 		setIsReceivedPlayText(id, 1)
 
 		err = x.Post(ava.Background(), data.GetHassUrl()+"/api/services/text/set_value", data.GetToken(), &data.HttpServiceData{
@@ -176,6 +182,7 @@ func registerToggleLight(simple *data.StateChangedSimple, body []byte) {
 		//找到所有根据存在传感器有人亮灯的自动化
 		if (strings.Contains(simple.Event.Data.NewState.State, "关") && strings.Contains(simple.Event.Data.NewState.State, "灯")) ||
 			strings.Contains(simple.Event.Data.NewState.State, "晚安") || strings.Contains(simple.Event.Data.NewState.State, "睡觉") || strings.Contains(simple.Event.Data.NewState.State, "午觉") {
+
 			entity, ok := data.GetEntityIdMap()[simple.Event.Data.EntityID]
 			if !ok {
 				return
