@@ -67,12 +67,12 @@ func GoodNightScript(c *ava.Context) {
 						if strings.Contains(e.AreaName, areaName) && strings.Contains(e.OriginalName, "执行文本指令") && strings.HasPrefix(e.EntityID, "notify.") {
 							script.Sequence = append(script.Sequence, ExecuteTextCommand(e.DeviceID, "播放一段轻音乐", true))
 							script.Sequence = append(script.Sequence, ActionTimerDelay{
-								Delay: struct {
-									Hours        int `json:"hours"`
-									Minutes      int `json:"minutes"`
-									Seconds      int `json:"seconds"`
-									Milliseconds int `json:"milliseconds"`
-								}{Seconds: 5},
+								Delay: &delay{
+									Hours:        0,
+									Minutes:      0,
+									Seconds:      5,
+									Milliseconds: 0,
+								},
 							})
 							xiaomiHomeSpeakerDeviceId = e.DeviceID
 							break
@@ -87,12 +87,12 @@ func GoodNightScript(c *ava.Context) {
 							if e.DeviceID == xiaomiHomeSpeakerDeviceId {
 								script.Sequence = append(script.Sequence, PlayText(e.EntityID, message))
 								script.Sequence = append(script.Sequence, ActionTimerDelay{
-									Delay: struct {
-										Hours        int `json:"hours"`
-										Minutes      int `json:"minutes"`
-										Seconds      int `json:"seconds"`
-										Milliseconds int `json:"milliseconds"`
-									}{Seconds: int(x.GetPlaybackDuration(message).Seconds())},
+									Delay: &delay{
+										Hours:        0,
+										Minutes:      0,
+										Seconds:      int(x.GetPlaybackDuration(message).Seconds()),
+										Milliseconds: 0,
+									},
 								})
 								break
 							}
@@ -106,12 +106,12 @@ func GoodNightScript(c *ava.Context) {
 							if e.DeviceID == xiaomiHomeSpeakerDeviceId {
 								script.Sequence = append(script.Sequence, ExecuteTextCommand(e.DeviceID, "告诉我明天早上天气怎么样出门需要注意什么", false))
 								script.Sequence = append(script.Sequence, ActionTimerDelay{
-									Delay: struct {
-										Hours        int `json:"hours"`
-										Minutes      int `json:"minutes"`
-										Seconds      int `json:"seconds"`
-										Milliseconds int `json:"milliseconds"`
-									}{Seconds: 3},
+									Delay: &delay{
+										Hours:        0,
+										Minutes:      0,
+										Seconds:      5,
+										Milliseconds: 0,
+									},
 								})
 								break
 							}
@@ -169,12 +169,12 @@ func GoodNightScript(c *ava.Context) {
 		//}
 
 		script.Sequence = append(script.Sequence, ActionTimerDelay{
-			Delay: struct {
-				Hours        int `json:"hours"`
-				Minutes      int `json:"minutes"`
-				Seconds      int `json:"seconds"`
-				Milliseconds int `json:"milliseconds"`
-			}{Seconds: 10},
+			Delay: &delay{
+				Hours:        0,
+				Minutes:      0,
+				Seconds:      10,
+				Milliseconds: 0,
+			},
 		})
 
 		for _, e := range action {
@@ -183,12 +183,12 @@ func GoodNightScript(c *ava.Context) {
 		}
 
 		script.Sequence = append(script.Sequence, ActionTimerDelay{
-			Delay: struct {
-				Hours        int `json:"hours"`
-				Minutes      int `json:"minutes"`
-				Seconds      int `json:"seconds"`
-				Milliseconds int `json:"milliseconds"`
-			}{Seconds: 10},
+			Delay: &delay{
+				Hours:        0,
+				Minutes:      0,
+				Seconds:      10,
+				Milliseconds: 0,
+			},
 		})
 
 		actionOff := turnOffLights(entityFilter)
@@ -216,12 +216,12 @@ func GoodNightScript(c *ava.Context) {
 				})
 
 				script.Sequence = append(script.Sequence, ActionTimerDelay{
-					Delay: struct {
-						Hours        int `json:"hours"`
-						Minutes      int `json:"minutes"`
-						Seconds      int `json:"seconds"`
-						Milliseconds int `json:"milliseconds"`
-					}{Minutes: 5},
+					Delay: &delay{
+						Hours:        0,
+						Minutes:      0,
+						Seconds:      5,
+						Milliseconds: 0,
+					},
 				})
 
 				script.Sequence = append(script.Sequence, ActionCommon{
@@ -244,12 +244,12 @@ func GoodNightScript(c *ava.Context) {
 				})
 
 				script.Sequence = append(script.Sequence, ActionTimerDelay{
-					Delay: struct {
-						Hours        int `json:"hours"`
-						Minutes      int `json:"minutes"`
-						Seconds      int `json:"seconds"`
-						Milliseconds int `json:"milliseconds"`
-					}{Minutes: 5},
+					Delay: &delay{
+						Hours:        0,
+						Minutes:      0,
+						Seconds:      5,
+						Milliseconds: 0,
+					},
 				})
 				script.Sequence = append(script.Sequence, ActionCommon{
 					Type:     "set_value",
@@ -271,12 +271,12 @@ func GoodNightScript(c *ava.Context) {
 							if strings.HasPrefix(e.EntityID, "media_player.") {
 
 								script.Sequence = append(script.Sequence, ActionTimerDelay{
-									Delay: struct {
-										Hours        int `json:"hours"`
-										Minutes      int `json:"minutes"`
-										Seconds      int `json:"seconds"`
-										Milliseconds int `json:"milliseconds"`
-									}{Seconds: 120},
+									Delay: &delay{
+										Hours:        0,
+										Minutes:      2,
+										Seconds:      0,
+										Milliseconds: 0,
+									},
 								})
 
 								script.Sequence = append(script.Sequence, ActionService{

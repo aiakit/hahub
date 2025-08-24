@@ -167,11 +167,11 @@ func bodySocketSensorOff(prefix, suffix, areaName string, entity *data.Entity, e
 		Mode:    "single",
 	}
 
-	auto.Actions = append(auto.Actions, DelayData{
+	auto.Actions = append(auto.Actions, ActionTimerDelay{
 		Delay: &delay{
 			Hours:        0,
 			Minutes:      0,
-			Seconds:      5,
+			Seconds:      3,
 			Milliseconds: 0,
 		},
 	})

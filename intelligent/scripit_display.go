@@ -110,33 +110,33 @@ func Display(c *ava.Context) {
 
 	for _, e := range actionsSort {
 		sequence["sequence"] = append(sequence["sequence"], ActionTimerDelay{
-			Delay: struct {
-				Hours        int `json:"hours"`
-				Minutes      int `json:"minutes"`
-				Seconds      int `json:"seconds"`
-				Milliseconds int `json:"milliseconds"`
-			}{Milliseconds: 700},
+			Delay: &delay{
+				Hours:        0,
+				Minutes:      0,
+				Seconds:      0,
+				Milliseconds: 700,
+			},
 		})
 		sequence["sequence"] = append(sequence["sequence"], e)
 	}
 
 	if len(sequence) > 0 {
 		script.Sequence = append(script.Sequence, ActionTimerDelay{
-			Delay: struct {
-				Hours        int `json:"hours"`
-				Minutes      int `json:"minutes"`
-				Seconds      int `json:"seconds"`
-				Milliseconds int `json:"milliseconds"`
-			}{Seconds: 2},
+			Delay: &delay{
+				Hours:        0,
+				Minutes:      0,
+				Seconds:      2,
+				Milliseconds: 0,
+			},
 		})
 
 		sequence["sequence"] = append(sequence["sequence"], ActionTimerDelay{
-			Delay: struct {
-				Hours        int `json:"hours"`
-				Minutes      int `json:"minutes"`
-				Seconds      int `json:"seconds"`
-				Milliseconds int `json:"milliseconds"`
-			}{Seconds: 2},
+			Delay: &delay{
+				Hours:        0,
+				Minutes:      0,
+				Seconds:      2,
+				Milliseconds: 0,
+			},
 		})
 
 		var parallel2 = make(map[string][]interface{})

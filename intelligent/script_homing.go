@@ -46,12 +46,12 @@ func homingScript() (*Script, *Automation) {
 			for _, e := range entities {
 				if strings.Contains(e.OriginalName, "播放文本") && strings.Contains(e.AreaName, "客厅") && strings.HasPrefix(e.EntityID, "notify.") {
 					action = append(action, ActionTimerDelay{
-						Delay: struct {
-							Hours        int `json:"hours"`
-							Minutes      int `json:"minutes"`
-							Seconds      int `json:"seconds"`
-							Milliseconds int `json:"milliseconds"`
-						}{Seconds: 3},
+						Delay: &delay{
+							Hours:        0,
+							Minutes:      0,
+							Seconds:      3,
+							Milliseconds: 0,
+						},
 					})
 
 					action = append(action, ActionNotify{
@@ -65,12 +65,12 @@ func homingScript() (*Script, *Automation) {
 						}{DeviceID: e.DeviceID},
 					})
 					action = append(action, ActionTimerDelay{
-						Delay: struct {
-							Hours        int `json:"hours"`
-							Minutes      int `json:"minutes"`
-							Seconds      int `json:"seconds"`
-							Milliseconds int `json:"milliseconds"`
-						}{Seconds: 3},
+						Delay: &delay{
+							Hours:        0,
+							Minutes:      0,
+							Seconds:      3,
+							Milliseconds: 0,
+						},
 					})
 
 					xiaomiHomeSpeakerDeviceId = e.DeviceID
@@ -213,12 +213,12 @@ func homingScript() (*Script, *Automation) {
 						})
 
 						sequence["sequence"] = append(sequence["sequence"], ActionTimerDelay{
-							Delay: struct {
-								Hours        int `json:"hours"`
-								Minutes      int `json:"minutes"`
-								Seconds      int `json:"seconds"`
-								Milliseconds int `json:"milliseconds"`
-							}{Seconds: 4},
+							Delay: &delay{
+								Hours:        0,
+								Minutes:      0,
+								Seconds:      3,
+								Milliseconds: 0,
+							},
 						})
 
 						sequence["sequence"] = append(sequence["sequence"], ActionNotify{
@@ -283,12 +283,12 @@ func homingScript() (*Script, *Automation) {
 				if e.DeviceID == xiaomiHomeSpeakerDeviceId {
 					if strings.Contains(e.OriginalName, "播放文本") && strings.Contains(e.AreaName, "客厅") && strings.HasPrefix(e.EntityID, "notify.") {
 						sequence["sequence"] = append(sequence["sequence"], ActionTimerDelay{
-							Delay: struct {
-								Hours        int `json:"hours"`
-								Minutes      int `json:"minutes"`
-								Seconds      int `json:"seconds"`
-								Milliseconds int `json:"milliseconds"`
-							}{Seconds: 4},
+							Delay: &delay{
+								Hours:        0,
+								Minutes:      0,
+								Seconds:      3,
+								Milliseconds: 0,
+							},
 						})
 
 						sequence["sequence"] = append(sequence["sequence"], ActionNotify{
@@ -309,12 +309,12 @@ func homingScript() (*Script, *Automation) {
 				if e.DeviceID == xiaomiHomeSpeakerDeviceId {
 					if strings.Contains(e.OriginalName, "唤醒") && strings.Contains(e.AreaName, "客厅") {
 						sequence["sequence"] = append(sequence["sequence"], ActionTimerDelay{
-							Delay: struct {
-								Hours        int `json:"hours"`
-								Minutes      int `json:"minutes"`
-								Seconds      int `json:"seconds"`
-								Milliseconds int `json:"milliseconds"`
-							}{Seconds: 6},
+							Delay: &delay{
+								Hours:        0,
+								Minutes:      0,
+								Seconds:      3,
+								Milliseconds: 0,
+							},
 						})
 
 						sequence["sequence"] = append(sequence["sequence"], ActionCommon{
@@ -331,12 +331,12 @@ func homingScript() (*Script, *Automation) {
 
 	func() {
 		sequence["sequence"] = append(sequence["sequence"], ActionTimerDelay{
-			Delay: struct {
-				Hours        int `json:"hours"`
-				Minutes      int `json:"minutes"`
-				Seconds      int `json:"seconds"`
-				Milliseconds int `json:"milliseconds"`
-			}{Seconds: 60},
+			Delay: &delay{
+				Hours:        0,
+				Minutes:      0,
+				Seconds:      3,
+				Milliseconds: 0,
+			},
 		})
 		entities, ok := data.GetEntityCategoryMap()[data.CategoryXiaomiHomeSpeaker]
 		if ok {
@@ -398,12 +398,12 @@ func homingScript() (*Script, *Automation) {
 
 	if len(action) > 0 {
 		action = append(action, ActionTimerDelay{
-			Delay: struct {
-				Hours        int `json:"hours"`
-				Minutes      int `json:"minutes"`
-				Seconds      int `json:"seconds"`
-				Milliseconds int `json:"milliseconds"`
-			}{Seconds: 6},
+			Delay: &delay{
+				Hours:        0,
+				Minutes:      0,
+				Seconds:      6,
+				Milliseconds: 0,
+			},
 		})
 		action = append(action, sequence)
 	}

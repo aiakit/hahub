@@ -146,12 +146,12 @@ func InitModeOne(c *ava.Context) *Script {
 				if strings.Contains(e.OriginalName, "执行文本指令") && strings.HasPrefix(e.EntityID, "notify.") && e.AreaID == areaId {
 					act := ExecuteTextCommand(e.DeviceID, "关闭所有灯", true)
 					script.Sequence = append(script.Sequence, ActionTimerDelay{
-						Delay: struct {
-							Hours        int `json:"hours"`
-							Minutes      int `json:"minutes"`
-							Seconds      int `json:"seconds"`
-							Milliseconds int `json:"milliseconds"`
-						}{Seconds: 3},
+						Delay: &delay{
+							Hours:        0,
+							Minutes:      0,
+							Seconds:      3,
+							Milliseconds: 0,
+						},
 					})
 					script.Sequence = append(script.Sequence, act)
 					break
@@ -168,12 +168,12 @@ func InitModeOne(c *ava.Context) *Script {
 	}
 
 	script.Sequence = append(script.Sequence, ActionTimerDelay{
-		Delay: struct {
-			Hours        int `json:"hours"`
-			Minutes      int `json:"minutes"`
-			Seconds      int `json:"seconds"`
-			Milliseconds int `json:"milliseconds"`
-		}{Seconds: 3},
+		Delay: &delay{
+			Hours:        0,
+			Minutes:      0,
+			Seconds:      3,
+			Milliseconds: 0,
+		},
 	})
 
 	var areaName string
@@ -295,12 +295,12 @@ func InitModeTwo(c *ava.Context) *Script {
 				if strings.Contains(e.OriginalName, "执行文本指令") && strings.HasPrefix(e.EntityID, "notify.") && e.AreaID == areaId {
 					act := ExecuteTextCommand(e.DeviceID, "关闭所有灯", true)
 					script.Sequence = append(script.Sequence, ActionTimerDelay{
-						Delay: struct {
-							Hours        int `json:"hours"`
-							Minutes      int `json:"minutes"`
-							Seconds      int `json:"seconds"`
-							Milliseconds int `json:"milliseconds"`
-						}{Seconds: 3},
+						Delay: &delay{
+							Hours:        0,
+							Minutes:      0,
+							Seconds:      3,
+							Milliseconds: 0,
+						},
 					})
 					script.Sequence = append(script.Sequence, act)
 					break
@@ -317,12 +317,12 @@ func InitModeTwo(c *ava.Context) *Script {
 	}
 
 	script.Sequence = append(script.Sequence, ActionTimerDelay{
-		Delay: struct {
-			Hours        int `json:"hours"`
-			Minutes      int `json:"minutes"`
-			Seconds      int `json:"seconds"`
-			Milliseconds int `json:"milliseconds"`
-		}{Seconds: 3},
+		Delay: &delay{
+			Hours:        0,
+			Minutes:      0,
+			Seconds:      3,
+			Milliseconds: 0,
+		},
 	})
 
 	var areaName string
@@ -423,12 +423,12 @@ func InitModeThree(c *ava.Context, BrightnessPct float64, kelvin int) *Script {
 	}
 
 	script.Sequence = append(script.Sequence, ActionTimerDelay{
-		Delay: struct {
-			Hours        int `json:"hours"`
-			Minutes      int `json:"minutes"`
-			Seconds      int `json:"seconds"`
-			Milliseconds int `json:"milliseconds"`
-		}{Seconds: 3},
+		Delay: &delay{
+			Hours:        0,
+			Minutes:      0,
+			Seconds:      3,
+			Milliseconds: 0,
+		},
 	})
 
 	var areaName string

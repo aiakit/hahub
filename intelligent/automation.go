@@ -230,10 +230,6 @@ type delay struct {
 	Milliseconds int `json:"milliseconds"`
 }
 
-type DelayData struct {
-	Delay *delay `json:"delay"`
-}
-
 type actionLightData struct {
 	ColorTempKelvin   int         `json:"color_temp_kelvin,omitempty"`
 	BrightnessPct     float64     `json:"brightness_pct,omitempty"`
@@ -276,12 +272,7 @@ type ActionNotify struct {
 }
 
 type ActionTimerDelay struct {
-	Delay struct {
-		Hours        int `json:"hours"`
-		Minutes      int `json:"minutes"`
-		Seconds      int `json:"seconds"`
-		Milliseconds int `json:"milliseconds"`
-	} `json:"delay"`
+	Delay *delay `json:"delay"`
 }
 
 type Response struct {
