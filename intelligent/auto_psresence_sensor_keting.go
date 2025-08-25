@@ -215,7 +215,7 @@ func setLightSettings(
 			if e.subCategory == data.CategoryLightTemp {
 				normalLight[i].Data.ColorTempKelvin = normalKelvin
 				normalLight[i].Data.BrightnessStepPct = normalBrightness
-			} else if e.subCategory != data.CategoryWiredSwitch {
+			} else if e.subCategory != data.CategoryWiredSwitch && e.Domain == "light" {
 				normalLight[i].Data.BrightnessStepPct = 100
 			}
 		}
@@ -226,7 +226,7 @@ func setLightSettings(
 		if e.subCategory == data.CategoryLightTemp {
 			atmosphereLight[i].Data.ColorTempKelvin = atmosphereKelvin
 			atmosphereLight[i].Data.BrightnessStepPct = atmosphereBrightness
-		} else if e.subCategory != data.CategoryWiredSwitch {
+		} else if e.subCategory != data.CategoryWiredSwitch && e.Domain == "light" {
 			atmosphereLight[i].Data.BrightnessStepPct = atmosphereBrightness
 		}
 	}

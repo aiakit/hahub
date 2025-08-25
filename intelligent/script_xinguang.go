@@ -116,6 +116,26 @@ func setXinGuangDeviceToStaticMode(e *data.Entity) *ActionLight {
 	return nil
 }
 
+// 设置单个馨光设备为静态模式
+func setXinGuangDeviceToStaticWithout(e *data.Entity) *ActionLight {
+	var isHost bool
+	if strings.Contains(e.DeviceName, "主机") {
+		isHost = true
+	}
+
+	if isHost {
+		// 主机设置
+		if strings.Contains(e.OriginalName, "动态模式效果") {
+			return &ActionLight{Domain: "number", DeviceID: e.DeviceID, EntityID: e.EntityID, Type: "set_value", Value: 8}
+		}
+	} else {
+		if strings.Contains(e.OriginalName, "LED运行模式") {
+			return &ActionLight{Domain: "select", DeviceID: e.DeviceID, EntityID: e.EntityID, Type: "select_option", Option: "静态模式"}
+		}
+	}
+	return nil
+}
+
 // 光随影动
 func InitModeOne(c *ava.Context) *Script {
 	var script = &Script{
@@ -382,7 +402,7 @@ func InitModeTwo(c *ava.Context) *Script {
 			areaName = data.SpiltAreaName(e.AreaName)
 		}
 
-		if strings.Contains(e.OriginalName, "动态模式效果") {
+		if strings.Contains(e.OriginalName, "声光律动动态效果") {
 			script.Sequence = append(script.Sequence, ActionCommon{Domain: "number", DeviceID: e.DeviceID, EntityID: e.EntityID, Type: "set_value", Value: 5})
 		}
 

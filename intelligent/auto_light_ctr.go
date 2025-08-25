@@ -40,6 +40,10 @@ func LightControl(c *ava.Context) {
 		}
 
 		//按键触发和条件
+		var con = &Conditions{
+			Condition: "or",
+		}
+
 		for _, e := range v {
 			auto.Triggers = append(auto.Triggers, &Triggers{
 				EntityID: e.EntityID,
@@ -47,7 +51,7 @@ func LightControl(c *ava.Context) {
 			})
 
 			if e.Category == data.CategorySwitchClickOnce && e.SeqButton > 0 {
-				auto.Conditions = append(auto.Conditions, &Conditions{
+				con.ConditionChild = append(con.ConditionChild, &Conditions{
 					Condition: "state",
 					EntityID:  e.EntityID,
 					Attribute: e.Attribute,
@@ -55,6 +59,8 @@ func LightControl(c *ava.Context) {
 				})
 			}
 		}
+
+		auto.Conditions = append(auto.Conditions, con)
 
 		var prefix = buttonName
 		if buttonName == "开关" {

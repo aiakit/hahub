@@ -167,7 +167,7 @@ func turnOnLights(entities []*data.Entity, brightnessPct float64, kelvin int, op
 				continue
 			}
 			for _, e2 := range e1 {
-				a := setXinGuangDeviceToStaticMode(e2)
+				a := setXinGuangDeviceToStaticWithout(e2)
 				if a != nil {
 					actions = append(actions, a)
 				}
@@ -187,7 +187,7 @@ func turnOnLights(entities []*data.Entity, brightnessPct float64, kelvin int, op
 							continue
 						}
 						for _, e2 := range e1 {
-							a := setXinGuangDeviceToStaticMode(e2)
+							a := setXinGuangDeviceToStaticWithout(e2)
 							if a != nil {
 								actions = append(actions, a)
 							}
