@@ -24,9 +24,9 @@ func main() {
 	// 等待 chaos.go 的初始化完成
 
 	//必须先创建脚本再创建自动化，这里不打开，改为ai驱动
-	//intelligent.InitSwitchSelect(ava.Background())
-	//intelligent.GoodNightScript(ava.Background())
-	intelligent.Chaos()
+	intelligent.InitSwitchSelect(ava.Background())
+	intelligent.InitHoming(ava.Background())
+	//intelligent.Chaos()
 
 	//启动音箱ai驱动
 	//core.CoreChaos()

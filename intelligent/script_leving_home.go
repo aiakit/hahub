@@ -202,6 +202,9 @@ func levingHomeScript() (*Script, *Automation) {
 
 	if len(action) > 0 {
 		auto := levingHomeAutomation(action)
+		if auto != nil {
+			auto.Actions = action
+		}
 		return script, auto
 	}
 

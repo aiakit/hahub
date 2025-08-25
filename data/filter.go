@@ -79,13 +79,6 @@ const (
 
 func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity {
 	var filtered []*Entity
-	// 先处理音箱和apple_tv设备，收集所有相关设备id
-	speakerDeviceIDs := make(map[string]*device) // device_id -> category
-	for _, dev := range deviceMap {
-		if strings.Contains(dev.Model, ".wifispeaker.") {
-			speakerDeviceIDs[dev.ID] = dev
-		}
-	}
 
 	var areaLxStruct = map[string]struct {
 		lx string
@@ -114,7 +107,7 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 			}
 
 			// 1. 音箱
-			if _, ok := speakerDeviceIDs[e.DeviceID]; ok {
+			if deviceData != nil && strings.Contains(deviceData.Model, ".wifispeaker.") {
 				if e.Platform == "xiaomi_home" {
 					category = CategoryXiaomiHomeSpeaker
 				} else if e.Platform == "xiaomi_miot" {

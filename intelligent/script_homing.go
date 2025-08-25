@@ -417,6 +417,9 @@ func homingScript() (*Script, *Automation) {
 
 	if len(action) > 0 {
 		auto := homingAutomation(action)
+		if auto != nil {
+			auto.Actions = action
+		}
 		return script, auto
 	}
 
@@ -435,7 +438,6 @@ func homingAutomation(action []interface{}) *Automation {
 
 	//条件：名字中带有"回家"的开关按键和场景按键
 	func() {
-
 		for bName, v := range switchSelectSameName {
 			// 使用SplitN分割，确保只分割成两部分，保留最后一个_后的字符作为buttonName
 			bns := strings.Split(bName, "_")

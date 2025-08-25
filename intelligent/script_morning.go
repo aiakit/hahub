@@ -267,14 +267,13 @@ func GoodMorningScript(c *ava.Context) {
 										Milliseconds: 0,
 									},
 								})
-
 								script.Sequence = append(script.Sequence, ActionService{
 									Action: "media_player.media_pause",
 									Target: &struct {
 										EntityId string `json:"entity_id"`
 									}{EntityId: e.EntityID}})
+								break
 							}
-							break
 						}
 					}
 				}

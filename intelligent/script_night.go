@@ -252,14 +252,12 @@ func GoodNightScript(c *ava.Context) {
 		}
 
 		func() {
-
 			speakers, ok := data.GetEntityCategoryMap()[data.CategoryXiaomiHomeSpeaker]
 			if ok {
 				for _, e := range speakers {
 					if e.AreaID == areaId {
 						if e.DeviceID == xiaomiHomeSpeakerDeviceId {
 							if strings.HasPrefix(e.EntityID, "media_player.") {
-
 								script.Sequence = append(script.Sequence, ActionTimerDelay{
 									Delay: &delay{
 										Hours:        0,
@@ -274,8 +272,8 @@ func GoodNightScript(c *ava.Context) {
 									Target: &struct {
 										EntityId string `json:"entity_id"`
 									}{EntityId: e.EntityID}})
+								break
 							}
-							break
 						}
 					}
 				}
