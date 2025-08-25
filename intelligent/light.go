@@ -130,9 +130,6 @@ func findLightsWithOutLightCategory(prefix string, entities []*data.Entity) []*d
 			}
 
 			if e.Category == data.CategoryLightGroup || e.Category == data.CategoryLight {
-				//if strings.Contains(e.DeviceName, "馨光") {
-				//	continue
-				//}
 				result = append(result, e)
 			}
 		}
@@ -163,7 +160,7 @@ func turnOnLights(entities []*data.Entity, brightnessPct float64, kelvin int, op
 			continue
 		}
 
-		// 对于馨光设备，需要先设置为静态模式
+		// 对于馨光灯带非灯组，需要先设置为静态模式
 		if strings.Contains(e.DeviceName, "馨光") {
 			e1, ok := data.GetEntitiesById()[e.DeviceID]
 			if !ok {
@@ -172,7 +169,6 @@ func turnOnLights(entities []*data.Entity, brightnessPct float64, kelvin int, op
 			for _, e2 := range e1 {
 				a := setXinGuangDeviceToStaticMode(e2)
 				if a != nil {
-
 					actions = append(actions, a)
 				}
 			}
@@ -180,18 +176,21 @@ func turnOnLights(entities []*data.Entity, brightnessPct float64, kelvin int, op
 	}
 	//处理灯组没有单灯的情况
 	if len(xinguangArea) > 0 {
-		for _, e := range entities {
-			if e.Category == data.CategoryLight && strings.Contains(e.DeviceName, "馨光") {
-				if _, ok := xinguangArea[e.AreaID]; ok {
-					// 对于馨光设备，需要先设置为静态模式
-					e1, ok := data.GetEntitiesById()[e.EntityID]
-					if !ok {
-						continue
-					}
-					for _, e2 := range e1 {
-						a := setXinGuangDeviceToStaticMode(e2)
-						if a != nil {
-							actions = append(actions, a)
+		lights, ok := data.GetEntityCategoryMap()[data.CategoryLight]
+		if ok {
+			for _, e := range lights {
+				if e.Category == data.CategoryLight && strings.Contains(e.DeviceName, "馨光") {
+					if _, ok := xinguangArea[e.AreaID]; ok {
+						// 对于馨光设备，需要先设置为静态模式
+						e1, ok := data.GetEntitiesById()[e.DeviceID]
+						if !ok {
+							continue
+						}
+						for _, e2 := range e1 {
+							a := setXinGuangDeviceToStaticMode(e2)
+							if a != nil {
+								actions = append(actions, a)
+							}
 						}
 					}
 				}

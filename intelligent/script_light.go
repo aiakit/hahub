@@ -20,6 +20,10 @@ func LightScriptSetting(c *ava.Context) {
 	lightScene(c, "温馨", 50, 3000)
 	lightScene(c, "冬天", 80, 5500)
 	lightScene(c, "夏天", 80, 3500)
+
+	for _, e := range scripts {
+		CreateScript(c, e)
+	}
 }
 
 func lightScene(c *ava.Context, simpleName string, brightness float64, kelvin int) {
