@@ -339,6 +339,15 @@ func Chaos() {
 
 func CreateAutomation(c *ava.Context, automation *Automation) {
 
+	arealdy, ok := data.GetEntityCategoryMap()[data.CategoryAutomation]
+	if ok {
+		for _, v := range arealdy {
+			if v.UniqueID == automation.id && (strings.Contains(v.OriginalName, "*") || strings.Contains(v.Name, "*")) {
+				return
+			}
+		}
+	}
+
 	var response Response
 	err := x.Post(c, fmt.Sprintf(prefixUrlCreateAutomation, data.GetHassUrl(), automation.id), data.GetToken(), automation, &response)
 	if err != nil {
@@ -438,6 +447,7 @@ func registerVirtualEvent(simple *data.StateChangedSimple, body []byte) {
 		//获取所有的场景和自动化
 		func() {
 			if strings.HasPrefix(name, "场景") {
+				name = strings.Trim(name, "场景")
 				entities, ok := data.GetEntityCategoryMap()[data.CategoryScript]
 				if !ok {
 					return
@@ -457,13 +467,18 @@ func registerVirtualEvent(simple *data.StateChangedSimple, body []byte) {
 				err = RunSript(e.EntityID)
 				if err != nil {
 					ava.Error(err)
+					return
 				}
+
+				ava.Debugf("收到虚拟事件发生=%s |执行场景=%s", name, e.OriginalName)
 			}
 		}()
 
 		//获取所有的场景和自动化
 		func() {
 			if strings.HasPrefix(name, "自动化") {
+				name = strings.Trim(name, "自动化")
+
 				entities, ok := data.GetEntityCategoryMap()[data.CategoryAutomation]
 				if !ok {
 					return
@@ -483,7 +498,9 @@ func registerVirtualEvent(simple *data.StateChangedSimple, body []byte) {
 				err = RunAutomation(e.EntityID)
 				if err != nil {
 					ava.Error(err)
+					return
 				}
+				ava.Debugf("收到虚拟事件发生=%s |执行自动化=%s", name, e.OriginalName)
 			}
 		}()
 	}

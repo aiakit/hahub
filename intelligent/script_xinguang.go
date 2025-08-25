@@ -50,21 +50,33 @@ func InitXinGuang(c *ava.Context) {
 			AddScript2Queue(c, s)
 		}
 	}()
+
+	for _, e := range scripts {
+		CreateScript(c, e)
+	}
 }
 
 // 设置单个馨光设备开机
-func turnOnXinGuangDevice(e *data.Entity, BrightnessPct float64) *ActionLight {
-	//注意元数据中有空格
-	if strings.HasPrefix(e.EntityID, "light.") {
-		return &ActionLight{
-			Type:          "turn_on",
-			DeviceID:      e.DeviceID,
-			EntityID:      e.EntityID,
-			Domain:        "light",
-			BrightnessPct: BrightnessPct,
+func turnOnXinGuangDevice(brightnessPct float64) (result []*ActionLight) {
+	result = make([]*ActionLight, 0)
+	entities, ok := data.GetEntityCategoryMap()[data.CategoryLight]
+	if !ok {
+		return
+	}
+
+	for _, e := range entities {
+		if strings.Contains(e.DeviceName, "馨光") {
+			result = append(result, &ActionLight{
+				Type:          "turn_on",
+				DeviceID:      e.DeviceID,
+				EntityID:      e.EntityID,
+				Domain:        "light",
+				BrightnessPct: brightnessPct,
+			})
 		}
 	}
-	return nil
+
+	return
 }
 
 // 设置单个馨光设备为静态模式
@@ -121,7 +133,7 @@ func InitModeOne(c *ava.Context) *Script {
 		return nil
 	}
 
-	var areaId = entities[0].AreaID
+	//var areaId = entities[0].AreaID
 
 	////关闭相同区域其他所有灯
 	//areaId := entities[0].AreaID
@@ -138,40 +150,39 @@ func InitModeOne(c *ava.Context) *Script {
 	//		}
 	//	}
 	//}
-	//关闭所有灯
-	func() {
-		entitiesSpeakers, ok := data.GetEntityCategoryMap()[data.CategoryXiaomiHomeSpeaker]
-		if ok {
-			for _, e := range entitiesSpeakers {
-				if strings.Contains(e.OriginalName, "执行文本指令") && strings.HasPrefix(e.EntityID, "notify.") && e.AreaID == areaId {
-					act := ExecuteTextCommand(e.DeviceID, "关闭所有灯", true)
-					script.Sequence = append(script.Sequence, ActionTimerDelay{
-						Delay: &delay{
-							Hours:        0,
-							Minutes:      0,
-							Seconds:      3,
-							Milliseconds: 0,
-						},
-					})
-					script.Sequence = append(script.Sequence, act)
-					break
-				}
-			}
-		}
-	}()
+	////关闭所有灯
+	//func() {
+	//	entitiesSpeakers, ok := data.GetEntityCategoryMap()[data.CategoryXiaomiHomeSpeaker]
+	//	if ok {
+	//		for _, e := range entitiesSpeakers {
+	//			if strings.Contains(e.OriginalName, "执行文本指令") && strings.HasPrefix(e.EntityID, "notify.") && e.AreaID == areaId {
+	//				act := ExecuteTextCommand(e.DeviceID, "关闭所有灯", true)
+	//				script.Sequence = append(script.Sequence, act)
+	//				script.Sequence = append(script.Sequence, ActionTimerDelay{
+	//					Delay: &delay{
+	//						Hours:        0,
+	//						Minutes:      0,
+	//						Seconds:      3,
+	//						Milliseconds: 0,
+	//					},
+	//				})
+	//				break
+	//			}
+	//		}
+	//	}
+	//}()
 
 	//先开机
-	for _, e := range entities {
-		if action := turnOnXinGuangDevice(e, 1); action != nil {
-			script.Sequence = append(script.Sequence, *action)
-		}
+	action := turnOnXinGuangDevice(100)
+	for _, v := range action {
+		script.Sequence = append(script.Sequence, v)
 	}
 
 	script.Sequence = append(script.Sequence, ActionTimerDelay{
 		Delay: &delay{
 			Hours:        0,
 			Minutes:      0,
-			Seconds:      3,
+			Seconds:      2,
 			Milliseconds: 0,
 		},
 	})
@@ -269,7 +280,7 @@ func InitModeTwo(c *ava.Context) *Script {
 		Description: "馨光律动模式设置场景",
 	}
 
-	var areaId = entities[0].AreaID
+	//var areaId = entities[0].AreaID
 
 	////关闭相同区域其他所有灯
 	//areaId := entities[0].AreaID
@@ -287,40 +298,39 @@ func InitModeTwo(c *ava.Context) *Script {
 	//	}
 	//}
 
-	//关闭所有灯
-	func() {
-		entitiesSpeakers, ok := data.GetEntityCategoryMap()[data.CategoryXiaomiHomeSpeaker]
-		if ok {
-			for _, e := range entitiesSpeakers {
-				if strings.Contains(e.OriginalName, "执行文本指令") && strings.HasPrefix(e.EntityID, "notify.") && e.AreaID == areaId {
-					act := ExecuteTextCommand(e.DeviceID, "关闭所有灯", true)
-					script.Sequence = append(script.Sequence, ActionTimerDelay{
-						Delay: &delay{
-							Hours:        0,
-							Minutes:      0,
-							Seconds:      3,
-							Milliseconds: 0,
-						},
-					})
-					script.Sequence = append(script.Sequence, act)
-					break
-				}
-			}
-		}
-	}()
+	////关闭所有灯
+	//func() {
+	//	entitiesSpeakers, ok := data.GetEntityCategoryMap()[data.CategoryXiaomiHomeSpeaker]
+	//	if ok {
+	//		for _, e := range entitiesSpeakers {
+	//			if strings.Contains(e.OriginalName, "执行文本指令") && strings.HasPrefix(e.EntityID, "notify.") && e.AreaID == areaId {
+	//				act := ExecuteTextCommand(e.DeviceID, "关闭所有灯", true)
+	//				script.Sequence = append(script.Sequence, act)
+	//				script.Sequence = append(script.Sequence, ActionTimerDelay{
+	//					Delay: &delay{
+	//						Hours:        0,
+	//						Minutes:      0,
+	//						Seconds:      3,
+	//						Milliseconds: 0,
+	//					},
+	//				})
+	//				break
+	//			}
+	//		}
+	//	}
+	//}()
 
 	//先开机
-	for _, e := range entities {
-		if action := turnOnXinGuangDevice(e, 100); action != nil {
-			script.Sequence = append(script.Sequence, *action)
-		}
+	action := turnOnXinGuangDevice(100)
+	for _, v := range action {
+		script.Sequence = append(script.Sequence, v)
 	}
 
 	script.Sequence = append(script.Sequence, ActionTimerDelay{
 		Delay: &delay{
 			Hours:        0,
 			Minutes:      0,
-			Seconds:      3,
+			Seconds:      2,
 			Milliseconds: 0,
 		},
 	})
@@ -416,10 +426,9 @@ func InitModeThree(c *ava.Context, BrightnessPct float64, kelvin int) *Script {
 	}
 
 	//先开机
-	for _, e := range entities {
-		if action := turnOnXinGuangDevice(e, BrightnessPct); action != nil {
-			script.Sequence = append(script.Sequence, *action)
-		}
+	action := turnOnXinGuangDevice(1)
+	for _, v := range action {
+		script.Sequence = append(script.Sequence, v)
 	}
 
 	script.Sequence = append(script.Sequence, ActionTimerDelay{

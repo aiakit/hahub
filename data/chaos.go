@@ -76,7 +76,6 @@ type hub struct {
 	areas    []string
 	areaName map[string]string
 
-	xinguang    map[string]string //key:deviceId,value:id
 	notifyPhone []string
 
 	service map[string]interface{}
@@ -115,13 +114,6 @@ func GetEntitiesById() map[string][]*Entity {
 func GetNotifyPhone() []string {
 	gHub.lock.RLock()
 	data := gHub.notifyPhone
-	gHub.lock.RUnlock()
-	return data
-}
-
-func GetXinGuang(deviceId string) string {
-	gHub.lock.RLock()
-	data := gHub.xinguang[deviceId]
 	gHub.lock.RUnlock()
 	return data
 }
@@ -173,7 +165,6 @@ func newHub() {
 		deviceMap:         make(map[string]*device),
 		areaName:          make(map[string]string),
 		areas:             make([]string, 0, 2),
-		xinguang:          make(map[string]string),
 		callbackMapFunc:   make(map[int]func(data []byte)),
 		callbackMapLock:   new(sync.Mutex),
 		deviceStateByName: make(map[string][]*Entity),
@@ -190,7 +181,6 @@ func releaseCache() {
 		gHub.deviceMap = make(map[string]*device)
 		gHub.areaName = make(map[string]string)
 		gHub.areas = make([]string, 0, 2)
-		gHub.xinguang = make(map[string]string)
 		gHub.callbackMapFunc = make(map[int]func(data []byte))
 		gHub.deviceStateByName = make(map[string][]*Entity)
 		gHub.deviceIdState = make(map[string][]*Entity)
@@ -323,7 +313,7 @@ func callback() {
 		}
 
 		if tpe == "event" {
-			ava.Debugf("--------%s", string(msg))
+			//ava.Debugf("--------%s", string(msg))
 			var eventData StateChangedSimple
 			err := x.Unmarshal(msg, &eventData)
 			if err != nil {

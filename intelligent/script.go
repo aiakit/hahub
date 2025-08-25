@@ -101,6 +101,15 @@ func GetAutomation(uniqueId string, v interface{}) error {
 }
 
 func CreateScript(c *ava.Context, script *Script) {
+	arealdy, ok := data.GetEntityCategoryMap()[data.CategoryScript]
+	if ok {
+		for _, v := range arealdy {
+			if v.UniqueID == script.id && (strings.Contains(v.OriginalName, "*") || strings.Contains(v.Name, "*")) {
+				return
+			}
+		}
+	}
+
 	var response Response
 	err := x.Post(c, fmt.Sprintf(prefixUrlCreateScript, data.GetHassUrl(), script.id), data.GetToken(), script, &response)
 	if err != nil {
