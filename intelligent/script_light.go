@@ -10,13 +10,9 @@ import (
 func LightScriptSetting(c *ava.Context) {
 	lightScene(c, "会客", 80, 6000)
 	lightScene(c, "观影", 20, 3800)
-	lightScene(c, "游戏", 100, 4800)
-	lightScene(c, "棋牌", 100, 4800)
-	lightScene(c, "喝茶", 80, 3500)
-	lightScene(c, "休息", 60, 3000)
-	lightScene(c, "日常", 80, 4500)
+	lightScene(c, "娱乐", 100, 4800)
+	lightScene(c, "休息", 30, 3000)
 	lightScene(c, "阅读", 70, 4000)
-	lightScene(c, "清洁", 100, 6000)
 	lightScene(c, "就餐", 70, 3500)
 	lightScene(c, "日光", 100, 5500)
 	lightScene(c, "月光", 20, 2700)
@@ -24,8 +20,6 @@ func LightScriptSetting(c *ava.Context) {
 	lightScene(c, "温馨", 50, 3000)
 	lightScene(c, "冬天", 80, 5500)
 	lightScene(c, "夏天", 80, 3500)
-	lightScene(c, "音乐", 60, 3200)
-	lightScene(c, "娱乐", 80, 4000)
 }
 
 func lightScene(c *ava.Context, simpleName string, brightness float64, kelvin int) {
@@ -36,26 +30,9 @@ func lightScene(c *ava.Context, simpleName string, brightness float64, kelvin in
 		return
 	}
 
-	// 定义卧室限定场景
-	bedroomScenes := map[string]bool{
-		"日光": true,
-		"温馨": true,
-		"阅读": true,
-		"休息": true,
-	}
-
 	for areaId, v := range entities {
+
 		areaName := data.SpiltAreaName(data.GetAreaName(areaId))
-
-		// 检查是否是客厅区域或者卧室区域
-		isLivingRoom := strings.Contains(areaName, "客厅")
-
-		// 如果不是客厅，则只创建限定场景
-		if !isLivingRoom {
-			if !bedroomScenes[simpleName] {
-				continue
-			}
-		}
 
 		// 检查当前区域是否有灯组，如果没有则不创建场景
 		hasLightGroup := false
@@ -79,7 +56,6 @@ func lightScene(c *ava.Context, simpleName string, brightness float64, kelvin in
 			Actions:    make([]interface{}, 0),
 		}
 
-		//条件：名字中带有"回家"的开关按键和场景按键
 		func() {
 			for bName, v1 := range switchSelectSameName {
 				bns := strings.Split(bName, "_")
@@ -90,12 +66,17 @@ func lightScene(c *ava.Context, simpleName string, brightness float64, kelvin in
 				if strings.Contains(buttonName, simpleName) {
 					//按键触发和条件
 					for _, e := range v1 {
+
+						if e.AreaID != areaId {
+							continue
+						}
+
 						automation.Triggers = append(automation.Triggers, &Triggers{
 							EntityID: e.EntityID,
 							Trigger:  "state",
 						})
 
-						if e.Category == data.CategorySwitchClickOnce {
+						if e.Category == data.CategorySwitchClickOnce && e.SeqButton > 0 {
 							automation.Conditions = append(automation.Conditions, &Conditions{
 								Condition: "state",
 								EntityID:  e.EntityID,
@@ -140,7 +121,7 @@ func lightScene(c *ava.Context, simpleName string, brightness float64, kelvin in
 
 				automation.Actions = append(automation.Actions, ActionService{
 					Action: "script.execute",
-					Data:   map[string]interface{}{"script_id": scriptId},
+					Data:   map[string]interface{}{"entity_id": scriptId},
 					Target: nil,
 				})
 				// 确保automation对象有效再添加到队列

@@ -163,6 +163,7 @@ func InitSwitchSelect(c *ava.Context) {
 			return
 		}
 
+		//左键，中键，右键
 		for _, e := range entitiesSwitch {
 			if !strings.Contains(e.OriginalName, "键") {
 				continue
@@ -186,11 +187,10 @@ func InitSwitchSelect(c *ava.Context) {
 			buttonName := ""
 			buttonFlag := ""
 			areaName := data.SpiltAreaName(e.AreaName)
-			SeqButton := 1
+			SeqButton := 0
 
 			var ss = &switchSelect{
 				Category:   data.CategorySwitchClickOnce,
-				EntityID:   e.EntityID,
 				DeviceID:   e.DeviceID,
 				AreaID:     e.AreaID,
 				AreaName:   areaName,
@@ -234,6 +234,7 @@ func InitSwitchSelect(c *ava.Context) {
 			if strings.Contains(e.OriginalName, "按键") || buttonFlag == "开关" {
 				for _, ee := range entitiesMap[e.DeviceID] {
 					if strings.Contains(ee.OriginalName, "开关传感器 单击") {
+						ss.EntityID = ee.EntityID
 						key := ee.AreaID + "_" + ss.ButtonName
 						switchSelectSameName[key] = append(switchSelectSameName[key], ss)
 						break
@@ -242,6 +243,7 @@ func InitSwitchSelect(c *ava.Context) {
 			} else {
 				for _, ee := range entitiesMap[e.DeviceID] {
 					if strings.Contains(ee.OriginalName, buttonFlag) {
+						ss.EntityID = ee.EntityID
 						key := ee.AreaID + "_" + ss.ButtonName
 						switchSelectSameName[key] = append(switchSelectSameName[key], ss)
 						break

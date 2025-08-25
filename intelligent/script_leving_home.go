@@ -234,7 +234,7 @@ func levingHomeAutomation(action []interface{}) *Automation {
 						Trigger:  "state",
 					})
 
-					if e.Category == data.CategorySwitchClickOnce {
+					if e.Category == data.CategorySwitchClickOnce && e.SeqButton > 0 {
 						condition = append(condition, &Conditions{
 							Condition: "state",
 							EntityID:  e.EntityID,

@@ -46,7 +46,7 @@ func LightControl(c *ava.Context) {
 				Trigger:  "state",
 			})
 
-			if e.Category == data.CategorySwitchClickOnce {
+			if e.Category == data.CategorySwitchClickOnce && e.SeqButton > 0 {
 				auto.Conditions = append(auto.Conditions, &Conditions{
 					Condition: "state",
 					EntityID:  e.EntityID,
