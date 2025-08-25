@@ -26,7 +26,9 @@ func WalkPresenceSensorAir(c *ava.Context) {
 			continue
 		}
 
-		AddAutomation2Queue(c, autoOn)
+		if autoOn != nil {
+			AddAutomation2Queue(c, autoOn)
+		}
 
 		autoOff, err := presenceSensorOffAir(v)
 		if err != nil {
@@ -73,7 +75,7 @@ func presenceSensorOnAir(entity *data.Entity) (*Automation, error) {
 		}
 	}
 
-	if len(auto.Conditions) == 0 || tempSensor == nil {
+	if tempSensor == nil {
 		return nil, errors.New("没有温度传感器")
 	}
 
