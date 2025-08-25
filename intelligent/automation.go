@@ -315,6 +315,8 @@ func ChaosAutomation() {
 		CreateAutomation(ava.Background(), v)
 	}
 
+	ava.Debugf("all automation created done! |total=%d", len(autos))
+
 	autos = make([]*Automation, 0, 10)
 
 	//重新缓存一遍数据
@@ -322,7 +324,6 @@ func ChaosAutomation() {
 
 	//开关自动关闭规则
 	//switchRule()
-	ava.Debugf("all automation created done! |total=%d", len(autos))
 }
 
 var autos = make([]*Automation, 0, 10)

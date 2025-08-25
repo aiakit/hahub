@@ -120,9 +120,10 @@ func lightScene(c *ava.Context, simpleName string, brightness float64, kelvin in
 				automation.Mode = "single"
 
 				automation.Actions = append(automation.Actions, ActionService{
-					Action: "script.execute",
-					Data:   map[string]interface{}{"entity_id": scriptId},
-					Target: nil,
+					Action: "script.turn_on",
+					Target: &struct {
+						EntityId string `json:"entity_id"`
+					}{EntityId: scriptId},
 				})
 				// 确保automation对象有效再添加到队列
 				if automation.Alias != "" && len(automation.Actions) > 0 {

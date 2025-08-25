@@ -52,12 +52,13 @@ func ScriptChaos() {
 		CreateScript(ava.Background(), v)
 	}
 
+	ava.Debugf("all script created done! |total=%d", len(scripts))
+
 	scripts = make([]*Script, 0, 10)
 
 	//刷新实体
 	data.CallService().WaitForCallService()
 
-	ava.Debugf("all script created done! |total=%d", len(scripts))
 	//switchRule()
 }
 
@@ -120,7 +121,7 @@ func AddScript2Queue(c *ava.Context, script *Script) string {
 	script.id = baseEntityId
 
 	scripts = append(scripts, script)
-	return baseEntityId
+	return "script." + baseEntityId
 }
 
 // 删除所有场景
