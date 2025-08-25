@@ -60,7 +60,9 @@ func LightControl(c *ava.Context) {
 			}
 		}
 
-		auto.Conditions = append(auto.Conditions, con)
+		if len(con.ConditionChild) > 0 {
+			auto.Conditions = append(auto.Conditions, con)
+		}
 
 		var prefix = buttonName
 		if buttonName == "开关" {

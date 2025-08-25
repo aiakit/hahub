@@ -228,6 +228,10 @@ func levingHomeAutomation(action []interface{}) *Automation {
 			buttonName := bns[len(bns)-1]
 			if strings.Contains(buttonName, "离家") {
 				//按键触发和条件
+				var con = &Conditions{
+					Condition: "or",
+				}
+
 				for _, e := range v {
 					automation.Triggers = append(automation.Triggers, &Triggers{
 						EntityID: e.EntityID,
@@ -235,13 +239,16 @@ func levingHomeAutomation(action []interface{}) *Automation {
 					})
 
 					if e.Category == data.CategorySwitchClickOnce && e.SeqButton > 0 {
-						condition = append(condition, &Conditions{
+						con.ConditionChild = append(con.ConditionChild, &Conditions{
 							Condition: "state",
 							EntityID:  e.EntityID,
 							Attribute: e.Attribute,
 							State:     e.SeqButton,
 						})
 					}
+				}
+				if len(con.ConditionChild) > 0 {
+					automation.Conditions = append(automation.Conditions, con)
 				}
 			}
 		}

@@ -69,6 +69,10 @@ func lightScene(c *ava.Context, simpleName string, brightness float64, kelvin in
 				buttonName := bns[len(bns)-1]
 				if strings.Contains(buttonName, simpleName) {
 					//按键触发和条件
+					var con = &Conditions{
+						Condition: "or",
+					}
+
 					for _, e := range v1 {
 
 						if e.AreaID != areaId {
@@ -81,13 +85,17 @@ func lightScene(c *ava.Context, simpleName string, brightness float64, kelvin in
 						})
 
 						if e.Category == data.CategorySwitchClickOnce && e.SeqButton > 0 {
-							automation.Conditions = append(automation.Conditions, &Conditions{
+							con.ConditionChild = append(con.ConditionChild, &Conditions{
 								Condition: "state",
 								EntityID:  e.EntityID,
 								Attribute: e.Attribute,
 								State:     e.SeqButton,
 							})
 						}
+					}
+
+					if len(con.ConditionChild) > 0 {
+						automation.Conditions = append(automation.Conditions, con)
 					}
 				}
 			}

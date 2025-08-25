@@ -41,16 +41,6 @@ func GoodMorningScript(c *ava.Context) {
 			continue
 		}
 
-		// 查找晚起床景开关
-		var switchEntities []*data.Entity
-		for _, e := range v {
-			if e.Category == data.CategorySwitchScene {
-				if strings.Contains(e.OriginalName, "起床") || strings.Contains(e.OriginalName, "早安") {
-					switchEntities = append(switchEntities, e)
-				}
-			}
-		}
-
 		// 创建场景部分
 		script := &Script{
 			Alias:       areaName + "早安场景",
@@ -304,28 +294,39 @@ func GoodMorningScript(c *ava.Context) {
 
 			//条件：名字中带有"起床"/“早安”的开关按键和场景按键
 			func() {
-				for bName, v := range switchSelectSameName {
+				for bName, v1 := range switchSelectSameName {
 					bns := strings.Split(bName, "_")
-					if len(bns) != 2 {
+					if len(bns) < 2 {
 						continue
 					}
-					buttonName := bns[1]
+					buttonName := bns[len(bns)-1]
 					if strings.Contains(buttonName, "早安") || strings.Contains(buttonName, "起床") {
 						//按键触发和条件
-						for _, e := range v {
+						var con = &Conditions{
+							Condition: "or",
+						}
+
+						for _, e := range v1 {
+							if e.AreaID != areaId {
+								continue
+							}
 							auto.Triggers = append(auto.Triggers, &Triggers{
 								EntityID: e.EntityID,
 								Trigger:  "state",
 							})
 
 							if e.Category == data.CategorySwitchClickOnce && e.SeqButton > 0 {
-								auto.Conditions = append(auto.Conditions, &Conditions{
+								con.ConditionChild = append(con.ConditionChild, &Conditions{
 									Condition: "state",
 									EntityID:  e.EntityID,
 									Attribute: e.Attribute,
 									State:     e.SeqButton,
 								})
 							}
+						}
+
+						if len(con.ConditionChild) > 0 {
+							auto.Conditions = append(auto.Conditions, con)
 						}
 					}
 

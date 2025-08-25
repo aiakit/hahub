@@ -288,6 +288,9 @@ func turnOffLights(entities []*data.Entity) []*ActionLight {
 
 	if len(otherParallel) > 0 {
 		actions = append(actions, otherParallel...)
+	}
+
+	if len(otherParallel) > 0 && len(priorityParallel) > 0 {
 		actions = append(actions, &ActionLight{
 			Delay: &delay{Seconds: 5},
 		})
