@@ -69,12 +69,6 @@ func presenceSensorOnAir(entity *data.Entity) (*Automation, error) {
 	for _, e := range temp {
 		if e.AreaID == entity.AreaID {
 			tempSensor = e
-			auto.Conditions = append(auto.Conditions, &Conditions{
-				Condition: "numeric_state",
-				EntityID:  e.EntityID,
-				Above:     27,
-				Below:     20,
-			})
 			break
 		}
 	}
