@@ -20,6 +20,8 @@ var slowestSetting = &Script{
 }
 
 func init() {
+	scripts = make([]*Script, 0, 10)
+	autos = make([]*Automation, 0, 10)
 	data.RegisterEntityCallback(registerLightGradientTime)
 	data.RegisterEntityCallback(lowestBrightness)
 	data.RegisterDataHandler(registerVirtualEvent)
@@ -144,18 +146,26 @@ func registerLightGradientTime(entity *data.Entity) {
 	}
 }
 
+var gradientTimeDeviceIdEntity = map[string]string{}
+
 // 处理默认状态渐变时间设置的独立函数
-func handleDefaultGradientTimeSettings(entity *data.Entity, option int) *ActionCommon {
+// 调光1秒渐变在旋钮中比较跟手
+// 100ms,100ms,1 展示场景用
+// 3,3,1 日常使用，最好用的方式
+// 30,30,10 睡觉起床用
+func handleDefaultGradientTimeSettings(entity *data.Entity, option int) *ActionLight {
 	if strings.Contains(entity.OriginalName, "默认状态 渐变时间设置，字节[0]开灯渐变时间，字节[1]关灯渐变时间，字节[2]模式渐变时间") && !strings.Contains(entity.OriginalName, "字节3（配置渐变、默认灯光、配置灯光、灯光变化、配置变化）") {
-		var value = "4278853"
+		var value = "4277059"
 		switch option {
 		case 1:
-			value = "4278853" //5,10,1
+			value = "4277059" //3,3,1
 		case 2:
-			value = "4278787" //300ms,10,1
+			value = "4260097" //100ms,100,1
+		case 3:
+			value = "6184542" //30,30,30
 		}
 
-		return &ActionCommon{
+		return &ActionLight{
 			Type:     "set_value",
 			DeviceID: entity.DeviceID,
 			EntityID: entity.EntityID,
@@ -165,15 +175,17 @@ func handleDefaultGradientTimeSettings(entity *data.Entity, option int) *ActionC
 	}
 
 	if strings.Contains(entity.OriginalName, "字节3（配置渐变、默认灯光、配置灯光、灯光变化、配置变化）") {
-		var value = "21056069"
+		var value = "21054275"
 		switch option {
 		case 1:
-			value = "21056069" //5,10,1
+			value = "21054275" //3,3,1
 		case 2:
-			value = "21056003" //300ms,10,1
+			value = "21037313" //100ms,100ms,1
+		case 3:
+			value = "22961758" //30,30,30
 		}
 
-		return &ActionCommon{
+		return &ActionLight{
 			Type:     "set_value",
 			DeviceID: entity.DeviceID,
 			EntityID: entity.EntityID,

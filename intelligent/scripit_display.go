@@ -143,7 +143,7 @@ func Display(c *ava.Context) {
 		//再改回去
 		for _, s := range lightStripNumbers {
 			if v, ok := entityMapMode[s.Entity.DeviceID]; ok {
-				actionCommon := handleDefaultGradientTimeSettings(v, 2)
+				actionCommon := handleDefaultGradientTimeSettings(v, 1)
 				if actionCommon != nil {
 					parallel2["parallel"] = append(parallel2["parallel"], actionCommon)
 				}

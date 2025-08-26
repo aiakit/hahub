@@ -80,11 +80,21 @@ func bodySensorOn(entity *data.Entity) (*Automation, error) {
 	triggerDomain := "binary_sensor"
 	triggerTrigger := "device"
 	triggerDeviceId := entity.DeviceID
+
+	var con = make([]*Conditions, 0)
 	if strings.HasPrefix(entity.EntityID, "event.") {
 		triggerType = ""
 		triggerDomain = ""
 		triggerDeviceId = ""
 		triggerTrigger = "state"
+		if name := splitLatest(entity.OriginalName); name != "" {
+			con = append(con, &Conditions{
+				Condition: "state",
+				EntityID:  entity.EntityID,
+				Attribute: "event_type",
+				State:     name,
+			})
+		}
 	}
 
 	if entity.Category == data.CategoryLight {
@@ -117,6 +127,11 @@ func bodySensorOn(entity *data.Entity) (*Automation, error) {
 		Actions:    action,
 		Mode:       "single",
 	}
+
+	if len(con) > 0 {
+		auto.Conditions = append(auto.Conditions, con...)
+	}
+
 	if strings.Contains(prefix, "夜") {
 		auto.Alias = areaName + suffixStr + "起夜场景"
 	}
@@ -132,4 +147,13 @@ func bodySensorOn(entity *data.Entity) (*Automation, error) {
 	}
 
 	return auto, nil
+}
+
+func splitLatest(name string) string {
+	s := strings.Split(name, " ")
+	if len(s) > 1 {
+		return s[len(s)-1]
+	}
+
+	return ""
 }

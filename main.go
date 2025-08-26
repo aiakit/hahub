@@ -2,6 +2,7 @@ package main
 
 import (
 	_ "hahub/data"
+	"hahub/intelligent"
 	_ "hahub/intelligent"
 	"os"
 	"os/signal"
@@ -24,8 +25,8 @@ func main() {
 
 	//必须先创建脚本再创建自动化，这里不打开，改为ai驱动
 	//intelligent.InitSwitchSelect(ava.Background())
-	//intelligent.WalkPresenceSensorAir(ava.Background())
-	//intelligent.Chaos()
+	//intelligent.GoodMorningScript(ava.Background())
+	intelligent.Chaos()
 
 	//启动音箱ai驱动
 	//core.CoreChaos()

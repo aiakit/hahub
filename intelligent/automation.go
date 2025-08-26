@@ -218,7 +218,7 @@ type ActionLight struct {
 	Target        *targetLightData `json:"target,omitempty"`
 	Option        string           `json:"option,omitempty"`
 	Delay         *delay           `json:"delay,omitempty"`
-	Value         int              `json:"value,omitempty"`
+	Value         interface{}      `json:"value,omitempty"`
 
 	subCategory string
 }
@@ -326,8 +326,8 @@ func ChaosAutomation() {
 	//switchRule()
 }
 
-var autos = make([]*Automation, 0, 10)
-var scripts = make([]*Script, 0, 10)
+var autos []*Automation
+var scripts []*Script
 
 func Chaos() {
 	ScriptChaos()

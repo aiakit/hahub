@@ -16,7 +16,24 @@ func GoodMorningScript(c *ava.Context) {
 		return
 	}
 
+	var entityMode, ok3 = data.GetEntityCategoryMap()[data.CategoryLightModel]
+
 	for areaId, v := range entities {
+		var parallel1 = make(map[string][]interface{})
+		if ok3 {
+			for _, e := range entityMode {
+				for _, e1 := range v {
+					if e1.DeviceID == e.DeviceID {
+						actionCommon := handleDefaultGradientTimeSettings(e, 3)
+						if actionCommon != nil {
+							parallel1["parallel"] = append(parallel1["parallel"], actionCommon)
+						}
+						break
+					}
+				}
+			}
+		}
+
 		areaName := data.SpiltAreaName(data.GetAreaName(areaId))
 
 		// 检查是否是卧室区域
@@ -45,6 +62,10 @@ func GoodMorningScript(c *ava.Context) {
 		script := &Script{
 			Alias:       areaName + "早安场景",
 			Description: "执行" + areaName + "早安场景，包括播放音乐、打开窗帘、调节灯光",
+		}
+
+		if len(parallel1) > 0 {
+			script.Sequence = append(script.Sequence, parallel1)
 		}
 
 		var xiaomiHomeSpeakerDeviceId string
@@ -161,7 +182,7 @@ func GoodMorningScript(c *ava.Context) {
 			Delay: &delay{
 				Hours:        0,
 				Minutes:      0,
-				Seconds:      10,
+				Seconds:      30,
 				Milliseconds: 0,
 			},
 		})
@@ -171,14 +192,39 @@ func GoodMorningScript(c *ava.Context) {
 			actions = append(actions, e)
 		}
 
+		//如果有床，设置床角度
+		for _, e := range v {
+			if e.Category == data.CategoryBed && (strings.Contains(e.OriginalName, "腿部") || strings.Contains(e.OriginalName, "靠背")) && strings.HasPrefix(e.EntityID, "number.") {
+				script.Sequence = append(script.Sequence, ActionCommon{
+					Type:     "set_value",
+					DeviceID: e.DeviceID,
+					EntityID: e.EntityID,
+					Domain:   "number",
+					Value:    20,
+				})
+			}
+		}
+
 		actions = append(actions, ActionTimerDelay{
 			Delay: &delay{
 				Hours:        0,
 				Minutes:      0,
-				Seconds:      10,
+				Seconds:      30,
 				Milliseconds: 0,
 			},
 		})
+
+		for _, e := range v {
+			if e.Category == data.CategoryBed && (strings.Contains(e.OriginalName, "腿部") || strings.Contains(e.OriginalName, "靠背")) && strings.HasPrefix(e.EntityID, "number.") {
+				script.Sequence = append(script.Sequence, ActionCommon{
+					Type:     "set_value",
+					DeviceID: e.DeviceID,
+					EntityID: e.EntityID,
+					Domain:   "number",
+					Value:    0,
+				})
+			}
+		}
 
 		actionOff := turnOffLights(entityFilter)
 		if len(actionOff) == 0 {
@@ -193,63 +239,6 @@ func GoodMorningScript(c *ava.Context) {
 			script.Sequence = append(script.Sequence, actions...)
 		}
 
-		//如果有床，设置床角度
-		for _, e := range v {
-			if e.Category == data.CategoryBed && strings.Contains(e.OriginalName, "腿部") && strings.HasPrefix(e.EntityID, "number.") {
-				script.Sequence = append(script.Sequence, ActionCommon{
-					Type:     "set_value",
-					DeviceID: e.DeviceID,
-					EntityID: e.EntityID,
-					Domain:   "number",
-					Value:    20,
-				})
-
-				script.Sequence = append(script.Sequence, ActionTimerDelay{
-					Delay: &delay{
-						Hours:        0,
-						Minutes:      0,
-						Seconds:      5,
-						Milliseconds: 0,
-					},
-				})
-
-				script.Sequence = append(script.Sequence, ActionCommon{
-					Type:     "set_value",
-					DeviceID: e.DeviceID,
-					EntityID: e.EntityID,
-					Domain:   "number",
-					Value:    0,
-				})
-
-			}
-
-			if e.Category == data.CategoryBed && strings.Contains(e.OriginalName, "靠背") && strings.HasPrefix(e.EntityID, "number.") {
-				script.Sequence = append(script.Sequence, ActionCommon{
-					Type:     "set_value",
-					DeviceID: e.DeviceID,
-					EntityID: e.EntityID,
-					Domain:   "number",
-					Value:    20,
-				})
-
-				script.Sequence = append(script.Sequence, ActionTimerDelay{
-					Delay: &delay{
-						Hours:        0,
-						Minutes:      0,
-						Seconds:      5,
-						Milliseconds: 0,
-					},
-				})
-				script.Sequence = append(script.Sequence, ActionCommon{
-					Type:     "set_value",
-					DeviceID: e.DeviceID,
-					EntityID: e.EntityID,
-					Domain:   "number",
-					Value:    0,
-				})
-			}
-		}
-
 		func() {
 
 			speakers, ok := data.GetEntityCategoryMap()[data.CategoryXiaomiHomeSpeaker]
@@ -262,8 +251,8 @@ func GoodMorningScript(c *ava.Context) {
 								script.Sequence = append(script.Sequence, ActionTimerDelay{
 									Delay: &delay{
 										Hours:        0,
-										Minutes:      2,
-										Seconds:      0,
+										Minutes:      0,
+										Seconds:      10,
 										Milliseconds: 0,
 									},
 								})
@@ -279,6 +268,26 @@ func GoodMorningScript(c *ava.Context) {
 				}
 			}
 		}()
+
+		//改回去
+		var parallel2 = make(map[string][]interface{})
+		if ok3 {
+			for _, e := range entityMode {
+				for _, e1 := range v {
+					if e1.DeviceID == e.DeviceID {
+						actionCommon := handleDefaultGradientTimeSettings(e, 1)
+						if actionCommon != nil {
+							parallel2["parallel"] = append(parallel2["parallel"], actionCommon)
+						}
+						break
+					}
+				}
+			}
+		}
+
+		if len(parallel2) > 0 {
+			script.Sequence = append(script.Sequence, parallel2)
+		}
 
 		// 创建自动化部分
 		if len(script.Sequence) > 0 {

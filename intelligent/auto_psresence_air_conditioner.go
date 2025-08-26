@@ -79,6 +79,8 @@ func presenceSensorOnAir(entity *data.Entity) (*Automation, error) {
 		return nil, errors.New("没有温度传感器")
 	}
 
+	auto.Conditions = append(auto.Conditions, &Conditions{Condition: "numeric_state", EntityID: tempSensor.EntityID, Above: 28, Below: 20})
+
 	entities, ok := data.GetEntityCategoryMap()[data.CategoryAirConditioner]
 	if ok {
 		for _, e := range entities {
@@ -91,7 +93,7 @@ func presenceSensorOnAir(entity *data.Entity) (*Automation, error) {
 				act.If = append(act.If, ifCondition{
 					Condition: "numeric_state",
 					EntityId:  tempSensor.EntityID,
-					Above:     27,
+					Above:     28,
 				})
 				act.Then = append(act.Then, ActionService{
 					Action: "climate.turn_on",

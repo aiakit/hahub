@@ -45,15 +45,6 @@ func homingScript() (*Script, *Automation) {
 		if ok {
 			for _, e := range entities {
 				if strings.Contains(e.OriginalName, "播放文本") && strings.Contains(e.AreaName, "客厅") && strings.HasPrefix(e.EntityID, "notify.") {
-					action = append(action, ActionTimerDelay{
-						Delay: &delay{
-							Hours:        0,
-							Minutes:      0,
-							Seconds:      3,
-							Milliseconds: 0,
-						},
-					})
-
 					action = append(action, ActionNotify{
 						Action: "notify.send_message",
 						Data: struct {
