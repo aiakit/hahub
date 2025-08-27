@@ -17,6 +17,7 @@ type commandData struct {
 }
 
 func RunDevice(message, aiMessage, deviceId string) string {
+	return "哈哈哈哈"
 
 	device, ok := data.GetDevice()[deviceId]
 	if !ok {

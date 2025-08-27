@@ -62,7 +62,7 @@ func QueryScene(message, aiMessage, deviceId string) string {
 	}
 
 	//拿到场景名称和id
-	e, ok := data.GetEntityIdMap()[id]
+	e, ok := data.GetEntityByEntityId()[id]
 	if !ok {
 		return "没有找到这个设备"
 	}
@@ -79,7 +79,7 @@ func QueryScene(message, aiMessage, deviceId string) string {
 	for index, seq := range scene.Sequence {
 		for k, v := range seq {
 			if k == "entity_id" {
-				ee, ok := data.GetEntityIdMap()[v.(string)]
+				ee, ok := data.GetEntityByEntityId()[v.(string)]
 				if !ok {
 					continue
 				}

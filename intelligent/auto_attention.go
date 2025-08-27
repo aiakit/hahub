@@ -8,7 +8,7 @@ import (
 )
 
 func attention(c *ava.Context) {
-	allEntities := data.GetEntityIdMap()
+	allEntities := data.GetEntityByEntityId()
 	for _, entity := range allEntities {
 		if entity.Category == data.CategoryGas {
 			auto, err := gas(entity)

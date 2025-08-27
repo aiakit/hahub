@@ -25,6 +25,8 @@ func init() {
 	data.RegisterEntityCallback(registerLightGradientTime)
 	data.RegisterEntityCallback(lowestBrightness)
 	data.RegisterDataHandler(registerVirtualEvent)
+
+	data.Chaos()
 }
 
 // 初始化灯光
@@ -66,7 +68,6 @@ func lowestBrightness(entity *data.Entity) {
 
 // 灯光时间设置
 func registerLightGradientTime(entity *data.Entity) {
-
 	//判断区域，带流动
 	//柜子灯带
 	if (strings.Contains(entity.OriginalName, "开灯渐变时长(单位ms)") || strings.Contains(entity.OriginalName, "灯光调光时长(单位ms)") || strings.Contains(entity.OriginalName, "关灯渐变时长(单位ms)")) && strings.Contains(entity.EntityID, "number.") {
@@ -109,7 +110,7 @@ func registerLightGradientTime(entity *data.Entity) {
 			DeviceID: entity.DeviceID,
 			EntityID: entity.EntityID,
 			Domain:   "select",
-			Option:   "上电关闭",
+			Option:   "断电记忆",
 		})
 	}
 
@@ -124,15 +125,16 @@ func registerLightGradientTime(entity *data.Entity) {
 		})
 	}
 
-	if strings.Contains(entity.OriginalName, "默认状态 默认灯光") && strings.HasPrefix(entity.EntityID, "select.") {
-		lightGradientTime.Sequence = append(lightGradientTime.Sequence, ActionCommon{
-			Type:     "select_option",
-			DeviceID: entity.DeviceID,
-			EntityID: entity.EntityID,
-			Domain:   "select",
-			Option:   "OFF",
-		})
-	}
+	//if strings.Contains(entity.OriginalName, "默认状态 默认灯光") && strings.HasPrefix(entity.EntityID, "select.") {
+	//	lightGradientTime.Sequence = append(lightGradientTime.Sequence, ActionCommon{
+	//		Type:     "select_option",
+	//		DeviceID: entity.DeviceID,
+	//		EntityID: entity.EntityID,
+	//		Domain:   "select",
+	//		Option:   "OFF",
+	//		Option:   "Off",
+	//	})
+	//}
 
 	//馨光灯带，关灯断电
 	if strings.Contains(entity.OriginalName, "关灯断电") && strings.HasPrefix(entity.EntityID, "select.") {

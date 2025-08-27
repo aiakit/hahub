@@ -162,7 +162,7 @@ func turnOnLights(entities []*data.Entity, brightnessPct float64, kelvin int, op
 
 		// 对于馨光灯带非灯组，需要先设置为静态模式
 		if strings.Contains(e.DeviceName, "馨光") {
-			e1, ok := data.GetEntitiesById()[e.DeviceID]
+			e1, ok := data.GetEntitiesByDeviceId()[e.DeviceID]
 			if !ok {
 				continue
 			}
@@ -182,7 +182,7 @@ func turnOnLights(entities []*data.Entity, brightnessPct float64, kelvin int, op
 				if e.Category == data.CategoryLight && strings.Contains(e.DeviceName, "馨光") {
 					if _, ok := xinguangArea[e.AreaID]; ok {
 						// 对于馨光设备，需要先设置为静态模式
-						e1, ok := data.GetEntitiesById()[e.DeviceID]
+						e1, ok := data.GetEntitiesByDeviceId()[e.DeviceID]
 						if !ok {
 							continue
 						}

@@ -104,7 +104,7 @@ func GetDeviceByName() map[string][]*Entity {
 	return data
 }
 
-func GetEntitiesById() map[string][]*Entity {
+func GetEntitiesByDeviceId() map[string][]*Entity {
 	gHub.lock.RLock()
 	data := gHub.deviceIdState
 	gHub.lock.RUnlock()
@@ -139,7 +139,7 @@ func GetEntityAreaMap() map[string][]*Entity {
 	return data
 }
 
-func GetEntityIdMap() map[string]*Entity {
+func GetEntityByEntityId() map[string]*Entity {
 	gHub.lock.RLock()
 	data := gHub.entityIdMap
 	gHub.lock.RUnlock()
@@ -250,7 +250,7 @@ func checkInitComplete() {
 	}
 }
 
-func init() {
+func Chaos() {
 	newHub()
 
 	go callback()
@@ -354,8 +354,6 @@ type EventHandler func(*StateChangedSimple, []byte)
 
 // 注册数据处理函数
 func RegisterDataHandler(handler func(*StateChangedSimple, []byte)) int {
-	gHub.lock.Lock()
-	defer gHub.lock.Unlock()
 
 	// 分配一个新的 handler ID 并保存到映射表中
 	currentID := handlerID

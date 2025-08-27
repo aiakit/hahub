@@ -1,8 +1,7 @@
 package main
 
 import (
-	_ "hahub/data"
-	"hahub/intelligent"
+	"hahub/core"
 	_ "hahub/intelligent"
 	"os"
 	"os/signal"
@@ -25,11 +24,11 @@ func main() {
 
 	//必须先创建脚本再创建自动化，这里不打开，改为ai驱动
 	//intelligent.InitSwitchSelect(ava.Background())
-	//intelligent.GoodMorningScript(ava.Background())
-	intelligent.Chaos()
+	//intelligent.InitLight(ava.Background())
+	//intelligent.Chaos()
 
 	//启动音箱ai驱动
-	//core.CoreChaos()
+	core.CoreChaos()
 
 	ava.Debugf("Starting Hahub ok! |latency=%.2fs", time.Since(now).Seconds())
 

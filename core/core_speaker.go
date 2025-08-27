@@ -5,6 +5,7 @@ import (
 	"hahub/data"
 	"hahub/internal/chat"
 	"hahub/x"
+	"regexp"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -22,13 +23,15 @@ func PlayTextAction(deviceID, message string) {
 		return
 	}
 
-	err := x.Post(ava.Background(), data.GetHassUrl()+"/api/services/text/set_value", data.GetToken(), &data.HttpServiceData{
+	err := x.Post(ava.Background(), data.GetHassUrl()+"/api/services/notify/send_message", data.GetToken(), &data.HttpServiceData{
 		EntityId: entityId,
-		Value:    message,
+		Message:  message,
 	}, nil)
 	if err != nil {
 		ava.Error(err)
 	}
+	i := GetPlaybackDuration(message)
+	fmt.Println("------99999-888000---", i, time.Now().Format(time.RFC3339))
 	//暂停，等待播放完成
 	time.Sleep(GetPlaybackDuration(message))
 }
@@ -63,18 +66,48 @@ func PlayTextActionWithMemory(deviceID, message string) {
 }
 
 func GetPlaybackDuration(message string) time.Duration {
-	// 每个字符需要0.3秒播报
-	charDuration := 130 * time.Millisecond
+	// 设置中文字符和非中文字符的播报时间
+	var (
+		chineseCharDuration    = 120 * time.Millisecond
+		nonChineseCharDuration = 200 * time.Millisecond
+		minPlaybackDuration    = 2 * time.Second
+	)
 
 	// 计算总播报时间
-	totalDuration := time.Duration(len(message)) * charDuration
+	var totalDuration time.Duration
+	var isDot bool
+
+	for _, char := range message {
+		if !isChineseChar(char) {
+			isDot = true
+			break
+		}
+	}
+	if !isDot {
+		chineseCharDuration = 180
+	}
+
+	for _, char := range message {
+		if isChineseChar(char) {
+			totalDuration += chineseCharDuration
+		} else {
+			totalDuration += nonChineseCharDuration
+		}
+	}
 
 	// 确保最短播报时间为1秒
-	if totalDuration < 1*time.Second {
-		totalDuration = 1 * time.Second
+	if totalDuration < minPlaybackDuration {
+		totalDuration = minPlaybackDuration
 	}
 
 	return totalDuration
+}
+
+// 判断字符是否为中文字符
+func isChineseChar(char rune) bool {
+	// 使用正则表达式检测中文字符范围
+	matched, _ := regexp.MatchString(`[\u4e00-\u9fa5]`, string(char))
+	return matched
 }
 
 type conversationor struct {
@@ -101,10 +134,8 @@ type speakerProcess struct {
 	speakerEntityPlayTextEntity map[string]*simpleEntity
 	lastUpdateTime              map[string]time.Time
 	// 添加会话状态管理
-	activeSessions map[string]bool
 	// 添加轮询控制
 	pollCancelFuncs map[string]context.CancelFunc
-	pollContexts    map[string]context.Context
 
 	isReceivedLock     sync.RWMutex
 	isReceivedPlayText map[string]int32
@@ -140,11 +171,8 @@ func chaosSpeaker() {
 		speakerEntityMediaPlayer:    make(map[string]string),
 		speakerEntityWakeUp:         make(map[string]string),
 		lastUpdateTime:              make(map[string]time.Time),
-		// 初始化会话状态
-		activeSessions:     make(map[string]bool),
-		pollCancelFuncs:    make(map[string]context.CancelFunc),
-		pollContexts:       make(map[string]context.Context),
-		isReceivedPlayText: make(map[string]int32),
+		pollCancelFuncs:             make(map[string]context.CancelFunc),
+		isReceivedPlayText:          make(map[string]int32),
 	}
 
 	entitieXiaomiHome, ok := data.GetEntityCategoryMap()[data.CategoryXiaomiHomeSpeaker]
@@ -156,28 +184,31 @@ func chaosSpeaker() {
 		return
 	}
 
-	for _, e := range entitieXiaomIot {
-
-		for _, e1 := range entitieXiaomiHome {
-			if e.Name == e1.Name && strings.Contains(e1.EntityID, "_play_text") {
+	for _, e1 := range entitieXiaomiHome {
+		for _, e := range entitieXiaomIot {
+			if e1.DeviceName == e.DeviceName && strings.Contains(e1.EntityID, "_play_text_") && strings.HasPrefix(e1.EntityID, "notify.") {
 				gSpeakerProcess.speakerEntityPlayText[e.DeviceID] = e1.EntityID
 				gSpeakerProcess.speakerEntityPlayTextEntity[e.DeviceID] = &simpleEntity{
-					Id:       e.DeviceID,
+					Id:       e1.DeviceID,
 					Name:     e1.DeviceName,
 					AreaName: data.SpiltAreaName(e1.AreaName),
 				}
+				break
 			}
 
-			if e.Name == e1.Name && strings.Contains(e1.EntityID, "_execute_text_directive") {
+			if e1.DeviceName == e.DeviceName && strings.Contains(e1.EntityID, "_execute_text_directive") {
 				gSpeakerProcess.speakerEntityDirective[e.DeviceID] = e1.EntityID
+				break
 			}
 
-			if e.Name == e1.Name && strings.HasPrefix(e1.EntityID, "media_player.") {
+			if e1.DeviceName == e.DeviceName && strings.HasPrefix(e1.EntityID, "media_player.") {
 				gSpeakerProcess.speakerEntityMediaPlayer[e.DeviceID] = e1.EntityID
+				break
 			}
 
-			if e.Name == e1.Name && strings.Contains(e1.EntityID, "_wake_up") {
+			if e1.DeviceName == e.DeviceName && strings.Contains(e1.EntityID, "_wake_up") {
 				gSpeakerProcess.speakerEntityWakeUp[e.DeviceID] = e1.EntityID
+				break
 			}
 		}
 	}
@@ -206,32 +237,20 @@ func (s *speakerProcess) getDeviceLock(deviceId string) *sync.Mutex {
 }
 
 func (s *speakerProcess) runSpeakerPlayText() {
-	var ticker = time.NewTicker(time.Second * 10)
 	for {
 		select {
 		case message := <-s.playTextMessage:
 			//todo: 增加基础指令拦截
-
-			fmt.Println("---------2-2-2----", x.MustMarshalEscape2String(message.Conversation))
+			//查找设备id
+			if v, ok := data.GetEntityByEntityId()[message.entityId]; ok {
+				message.deviceId = v.DeviceID
+			} else {
+				continue
+			}
 
 			if v := getOrCreateDeviceState(message.deviceId); v != nil && loadPlayingStats(message.deviceId) == 1 {
 				continue
 			}
-
-			// 使用设备独立的锁
-			deviceLock := s.getDeviceLock(message.deviceId)
-			deviceLock.Lock()
-			// 标记会话开始
-			if !s.activeSessions[message.deviceId] {
-				pausePlay(message.deviceId)
-				s.activeSessions[message.deviceId] = true
-				// 启动轮询
-				fmt.Println("-------1-----", "会话开始，启动轮训，暂停播放")
-				s.startPolling(message.deviceId)
-			}
-			s.lastUpdateTime[message.deviceId] = time.Now()
-			s.sendToRemote(message)
-			deviceLock.Unlock()
 
 			var isHaveHuman bool
 			// 添加消息到历史记录 (使用memory.go中的函数)
@@ -242,7 +261,6 @@ func (s *speakerProcess) runSpeakerPlayText() {
 					isHaveHuman = true
 				case "assistant":
 					if msg.Name == "jinx" {
-						fmt.Println("----------1111", msg.Content)
 						AddXiaoaiMessage(message.deviceId, msg.Content)
 					} else {
 						AddAIMessage(message.deviceId, msg.Content)
@@ -256,44 +274,13 @@ func (s *speakerProcess) runSpeakerPlayText() {
 				continue
 			}
 
+			// 使用设备独立的锁
+			deviceLock := s.getDeviceLock(message.deviceId)
+			deviceLock.Lock()
+			s.lastUpdateTime[message.deviceId] = time.Now()
+			s.sendToRemote(message)
+			deviceLock.Unlock()
 			//todo: 增加交互优化，如果5秒内没有收到消息，可以主动询问是否需要其他帮助，或者直接终止对话
-		case <-ticker.C:
-			for deviceId := range s.lastUpdateTime {
-				s.getDeviceLock(deviceId).Lock()
-
-				elapsed := time.Now().Sub(s.lastUpdateTime[deviceId])
-				if elapsed > 10*time.Second && elapsed <= 20*time.Second {
-					// 10秒内没有新消息，主动询问
-					if s.activeSessions[deviceId] {
-						// 唤醒设备并询问是否还需要帮助
-						// 暂停轮询
-						if cancel, exists := gSpeakerProcess.pollCancelFuncs[deviceId]; exists && cancel != nil {
-							cancel()
-							gSpeakerProcess.pollCancelFuncs[deviceId] = nil
-							fmt.Println("--------3---", "暂停轮训")
-						}
-
-						PlayTextAction(deviceId, "主人，还需要其他帮助吗？")
-						gSpeakerProcess.startPolling(deviceId)
-						wakeup(deviceId)
-						// 更新时间以避免重复询问
-						s.lastUpdateTime[deviceId] = time.Now().Add(10 * time.Second)
-					}
-				} else if elapsed > 20*time.Second {
-					// 20秒内没有新消息，结束会话
-					if s.activeSessions[deviceId] {
-						// 停止轮询
-						if cancel, exists := s.pollCancelFuncs[deviceId]; exists && cancel != nil {
-							cancel()
-						}
-						delete(s.activeSessions, deviceId)
-						delete(s.pollCancelFuncs, deviceId)
-						delete(s.pollContexts, deviceId)
-					}
-					delete(s.lastUpdateTime, deviceId)
-				}
-				s.getDeviceLock(deviceId).Unlock()
-			}
 		}
 	}
 }
@@ -319,19 +306,22 @@ func (s *speakerProcess) sendToRemote(conversations *conversationor) {
 
 		if message != "" {
 			AddAIMessage(conversations.deviceId, message)
-			fmt.Println("--------4---", "播放")
+			fmt.Println("--------44---", "即将播放", time.Now().Format(time.RFC3339), message)
 
 			// 暂停轮询
 			if cancel, exists := gSpeakerProcess.pollCancelFuncs[conversations.deviceId]; exists && cancel != nil {
 				cancel()
 				gSpeakerProcess.pollCancelFuncs[conversations.deviceId] = nil
-				fmt.Println("--------3---", "暂停轮训")
+				fmt.Println("--------33---", "暂停轮训")
 			}
 			time.Sleep(time.Second)
 			PlayTextAction(conversations.deviceId, message)
+			time.Sleep(time.Second)
+			//todo 加一个状态，当主人需要让音箱退下的时候，就不执行询问了
 			PlayTextAction(conversations.deviceId, askMessage[x.Intn(len(askMessage)-1)])
+			time.Sleep(time.Second)
 			gSpeakerProcess.startPolling(conversations.deviceId)
-			fmt.Println("--------8888---", "唤醒")
+			fmt.Println("--------55---", "唤醒", conversations.deviceId)
 			wakeup(conversations.deviceId)
 		}
 	}()
@@ -408,26 +398,17 @@ func wakeup(deviceId string) {
 }
 
 var askMessage = []string{
-	"主人,还有什么我能为您效劳吗?",
-	"您现在有什么需要帮的吗?我随时待命。",
-	"我已准备好为您服务,请告诉我需要什么。",
-	"尊敬的主人,您还有什么需求吗?我竭尽全力。",
-	"我会诚心诚意为您服务,您现在有什么需要吗?",
-	"请告诉我您还需要什么,我会全力以赴。",
-	"如有需要,尽管告诉我,我会积极响应。",
-	"主人,我时刻关注您,请告诉我还需要什么。",
-	"尊敬的主人,您还有什么吩咐吗?",
-	"主人,我会以最高效率满足您的需求,请告诉我吧。",
-	"我会专注倾听您的要求,还需要什么吗?",
-	"主人,您现在有什么需要我帮的吗?",
-	"有其他需求,就告诉我吧。",
-	"主人，还需要什么请告诉我。",
-	"尊敬的主人,我会以诚意为您服务,您还有什么需要吗?",
-	"主人,我会全力满足您的需求,请告诉我吧。",
-	"如有任何需要,尽管告诉我,我全心全意服务。",
-	"主人,我会以热忱为您效劳,您还有什么需要吗?",
-	"尊敬的主人,请告诉我您还需要什么。",
-	"我在倾听您的要求,请告诉我吧。",
+	"还有什么我能为您效劳的吗?",
+	"还有什么需要帮助吗?我随时待命。",
+	"尊敬的主人,您还有什么需要吗?",
+	"您还有什么需要吗?",
+	"主人,请告诉我还需要什么帮助。",
+	"主人,您还有什么吩咐吗?",
+	"主人,您还有什么需要我帮的吗?",
+	"主人，你还需要什么帮助。",
+	"尊敬的主人,您还有其他需要吗?",
+	"主人,您还有什么需要吗?",
+	"主人,请吩咐?",
 }
 
 func SpeakerAsk2PlayTextHandler(event *data.StateChangedSimple, body []byte) {
@@ -441,7 +422,7 @@ func SpeakerAsk2PlayTextHandler(event *data.StateChangedSimple, body []byte) {
 	}
 
 	if strings.Contains(state.Event.Data.EntityID, "_play_text") && strings.HasPrefix(state.Event.Data.EntityID, "text.") {
-		v, ok := data.GetEntityIdMap()[state.Event.Data.EntityID]
+		v, ok := data.GetEntityByEntityId()[state.Event.Data.EntityID]
 		if !ok {
 			return
 		}
@@ -450,7 +431,7 @@ func SpeakerAsk2PlayTextHandler(event *data.StateChangedSimple, body []byte) {
 			return
 		}
 
-		en, ok := data.GetEntityIdMap()[state.Event.Data.EntityID]
+		en, ok := data.GetEntityByEntityId()[state.Event.Data.EntityID]
 		if !ok {
 			return
 		}
@@ -458,7 +439,6 @@ func SpeakerAsk2PlayTextHandler(event *data.StateChangedSimple, body []byte) {
 		speakerProcessSend(&conversationor{
 			Conversation: []*chat.ChatMessage{{Role: "assistant", Content: state.Event.Data.NewState.State}},
 			entityId:     en.EntityID,
-			deviceId:     en.DeviceID,
 		})
 	}
 }
@@ -475,7 +455,7 @@ func SpeakerAsk2ConversationHandler(event *data.StateChangedSimple, body []byte)
 
 	if strings.Contains(state.Event.Data.EntityID, "_conversation") &&
 		strings.EqualFold(state.Event.Data.NewState.Attributes.EntityClass, "XiaoaiConversationSensor") {
-		en, ok := data.GetEntityIdMap()[state.Event.Data.EntityID]
+		en, ok := data.GetEntityByEntityId()[state.Event.Data.EntityID]
 		if !ok {
 			return
 		}
@@ -484,7 +464,6 @@ func SpeakerAsk2ConversationHandler(event *data.StateChangedSimple, body []byte)
 		if len(v) == 0 {
 			return
 		}
-		fmt.Println("-------999999---", string(body))
 		var content = v[0].TTS.Text
 		if content == "" {
 			content = v[0].Llm.Text
@@ -496,11 +475,10 @@ func SpeakerAsk2ConversationHandler(event *data.StateChangedSimple, body []byte)
 				Content: state.Event.Data.NewState.State,
 			}, {
 				Role:    "assistant",
-				Content: v[0].TTS.Text,
+				Content: content,
 				Name:    "jinx",
 			}},
 			entityId: en.EntityID,
-			deviceId: en.DeviceID,
 		}
 
 		speakerProcessSend(cs)
@@ -585,6 +563,8 @@ type chatMessage struct {
 }
 
 func (s *speakerProcess) startPolling(deviceId string) {
+	fmt.Println("----------", deviceId)
+
 	// 如果已有轮询在运行，先取消它
 	if cancel, exists := s.pollCancelFuncs[deviceId]; exists && cancel != nil {
 		cancel()
@@ -592,22 +572,38 @@ func (s *speakerProcess) startPolling(deviceId string) {
 
 	// 创建新的上下文
 	ctx, cancel := context.WithCancel(context.Background())
-	s.pollContexts[deviceId] = ctx
 	s.pollCancelFuncs[deviceId] = cancel
 
 	// 启动轮询goroutine
 	go func() {
-		ticker := time.NewTicker(time.Second)
+		ticker := time.NewTicker(time.Millisecond * 100)
+		ticker1 := time.NewTicker(time.Second * 20)
+
 		defer ticker.Stop()
+		defer ticker1.Stop()
 
 		for {
 			select {
 			case <-ctx.Done():
+				fmt.Println("----退出轮询-----")
 				return
 			case <-ticker.C:
 				// 在轮询中调用pausePlay时不需要获取锁
 				// 因为这可能与其他需要锁的操作形成死锁
 				pausePlay(deviceId)
+			case <-ticker1.C:
+				// 检查最后一次更新时间是否超过20秒
+				lastUpdate, exists := s.lastUpdateTime[deviceId]
+
+				if exists && time.Since(lastUpdate) > time.Second*20 {
+					// 超过20秒，暂停轮询并执行收尾工作
+					if cancel, exists := s.pollCancelFuncs[deviceId]; exists && cancel != nil {
+						cancel()
+						s.pollCancelFuncs[deviceId] = nil
+						fmt.Println("---退出轮询-----")
+					}
+					return
+				}
 			}
 		}
 	}()

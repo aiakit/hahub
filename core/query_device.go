@@ -19,6 +19,7 @@ type shortDevice struct {
 }
 
 func QueryDevice(message, aiMessage, deviceId string) string {
+	return "没有发现设备,需要过滤实体，实体太多了"
 	var devices = data.GetDeviceByName()
 
 	//获取所有实体状态,再匹配实体

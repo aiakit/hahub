@@ -16,7 +16,7 @@ import (
 )
 
 func Post(c *ava.Context, uri, token string, data, v interface{}) error {
-	var now = time.Now()
+	//var now = time.Now()
 
 	var body = MustMarshalEscape(data)
 
@@ -31,7 +31,7 @@ func Post(c *ava.Context, uri, token string, data, v interface{}) error {
 		return err
 	}
 
-	c.Debugf("latency=%v秒 |uri=%s |TO=%v |FROM=%v", time.Now().Sub(now).Seconds(), uri, string(body), string(b))
+	//c.Debugf("latency=%v秒 |uri=%s |TO=%v |FROM=%v", time.Now().Sub(now).Seconds(), uri, string(body), string(b))
 	if v == nil {
 		return nil
 	}

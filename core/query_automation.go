@@ -50,7 +50,7 @@ func QueryAutomation(message, aiMessage, deviceId string) string {
 	}
 
 	//拿到自动化名称和id
-	e, ok := data.GetEntityIdMap()[id]
+	e, ok := data.GetEntityByEntityId()[id]
 	if !ok {
 		return "没有找到这个自动化"
 	}
@@ -65,7 +65,7 @@ func QueryAutomation(message, aiMessage, deviceId string) string {
 
 	//找出自动化下的设备名称
 	for index, seq := range automation.Triggers {
-		ee, ok := data.GetEntityIdMap()[seq.EntityID]
+		ee, ok := data.GetEntityByEntityId()[seq.EntityID]
 		if !ok {
 			continue
 		}
@@ -73,7 +73,7 @@ func QueryAutomation(message, aiMessage, deviceId string) string {
 	}
 
 	for index, seq := range automation.Conditions {
-		ee, ok := data.GetEntityIdMap()[seq.EntityID]
+		ee, ok := data.GetEntityByEntityId()[seq.EntityID]
 		if !ok {
 			continue
 		}

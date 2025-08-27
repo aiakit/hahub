@@ -16,7 +16,7 @@ import (
 // 开灯30秒后自动关灯
 func WalkBodySensor(c *ava.Context) {
 	// 查询所有实体，找到名字中带有'-'的实体
-	allEntities := data.GetEntityIdMap()
+	allEntities := data.GetEntityByEntityId()
 	var sensors []*data.Entity
 	for _, e := range allEntities {
 		if strings.Contains(e.DeviceName, "-") && (e.Category == data.CategoryLightGroup || e.Category == data.CategoryLight || e.Category == data.CategoryHumanBodySensor) {

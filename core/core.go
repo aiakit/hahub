@@ -1,7 +1,6 @@
 package core
 
 import (
-	"fmt"
 	"hahub/data"
 	"hahub/intelligent"
 	"hahub/internal/chat"
@@ -90,13 +89,13 @@ func chatCompletionInternal(msgInput []*chat.ChatMessage) (string, error) {
 }
 
 func chatCompletionHistory(msgInput []*chat.ChatMessage, deviceId string) (string, error) {
-	history := GetHistory(deviceId)
+	//history := GetHistory(deviceId)
 	var message = make([]*chat.ChatMessage, 0, 5)
 
-	var content = systemPromptsNone
-	if len(history) > 0 {
-		content = fmt.Sprintf(systemPrompts, x.MustMarshal2String(history))
-	}
+	//var content = systemPromptsNone
+	//if len(history) > 0 {
+	//	content = fmt.Sprintf(systemPrompts, x.MustMarshal2String(history))
+	//}
 
 	var gShortScenes = make(map[string]*shortScene)
 
@@ -108,11 +107,11 @@ func chatCompletionHistory(msgInput []*chat.ChatMessage, deviceId string) (strin
 			Alias: e.OriginalName,
 		}
 	}
-
-	message = append(message, &chat.ChatMessage{
-		Role:    "system",
-		Content: content + fmt.Sprintf("你可能用得到我的所有智能家居场景数据：%s", x.MustMarshalEscape2String(entities)),
-	})
+	//
+	//message = append(message, &chat.ChatMessage{
+	//	Role:    "system",
+	//	Content: content + fmt.Sprintf("你可能用得到我的所有智能家居场景数据：%s", x.MustMarshalEscape2String(entities)),
+	//})
 
 	message = append(message, msgInput...)
 
@@ -183,7 +182,7 @@ func registerToggleLight(simple *data.StateChangedSimple, body []byte) {
 		if (strings.Contains(simple.Event.Data.NewState.State, "关") && strings.Contains(simple.Event.Data.NewState.State, "灯")) ||
 			strings.Contains(simple.Event.Data.NewState.State, "晚安") || strings.Contains(simple.Event.Data.NewState.State, "睡觉") || strings.Contains(simple.Event.Data.NewState.State, "午觉") {
 
-			entity, ok := data.GetEntityIdMap()[simple.Event.Data.EntityID]
+			entity, ok := data.GetEntityByEntityId()[simple.Event.Data.EntityID]
 			if !ok {
 				return
 			}
@@ -210,7 +209,7 @@ func registerToggleLight(simple *data.StateChangedSimple, body []byte) {
 		if (strings.Contains(simple.Event.Data.NewState.State, "开") && strings.Contains(simple.Event.Data.NewState.State, "灯")) ||
 			strings.Contains(simple.Event.Data.NewState.State, "起床") || strings.Contains(simple.Event.Data.NewState.State, "早安") {
 			{
-				entity, ok := data.GetEntityIdMap()[simple.Event.Data.EntityID]
+				entity, ok := data.GetEntityByEntityId()[simple.Event.Data.EntityID]
 				if !ok {
 					return
 				}
