@@ -24,7 +24,7 @@ func TestChat(t *testing.T) {
 
 func TestSendMessage(t *testing.T) {
 	//aaa("我有多少个场景","我还不太明白")
-	aaa("我有多少个场景", "我不太清楚")
+	aaa("小孩房温馨场景", "我不太清楚")
 	select {}
 }
 

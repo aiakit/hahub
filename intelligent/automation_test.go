@@ -2,16 +2,11 @@ package intelligent
 
 import (
 	"fmt"
-	"hahub/data"
 	"hahub/x"
 	"testing"
 
 	"github.com/aiakit/ava"
 )
-
-func init() {
-	data.waitForInit()
-}
 
 func TestDelAllAutomation(t *testing.T) {
 	DeleteAllAutomations(ava.Background())

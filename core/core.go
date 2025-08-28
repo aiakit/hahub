@@ -68,7 +68,7 @@ func Call(functionName, deviceId, message, aiMessage string) string {
 		if result == "" {
 			return "未知指令"
 		}
-		ava.Debugf("latency=%.2f |funcion_name=%s |message=%s |ai_message=%s", time.Since(now).Seconds(), functionName, message, aiMessage)
+		ava.Debugf("latency=%.2f |funcion_name=%s |message=%s |ai_message=%s |FROM=%s", time.Since(now).Seconds(), functionName, message, aiMessage, result)
 		return result
 	}
 	// 如果没有找到对应的处理器，返回空字符串或错误信息
