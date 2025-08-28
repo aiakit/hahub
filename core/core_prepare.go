@@ -85,9 +85,10 @@ func init() {
 		Description:  "对智能家居设备进行控制，直接控制设备，不含任何其他定时、延时等条件。支持延时控制或者其他条件出发控制。",
 		FunctionName: "控制设备",
 		SubFunction: []subFunction{
-			{Name: "trigger_time", Description: "触发条件是之后的某个时间点"},
-			{Name: "trigger_scene", Description: "触发条件是某个场景执行之后"},
-			{Name: "trigger_automation", Description: "触发条件是某个自动化执行之后"},
+			{Name: "trigger_time", Description: "触发条件是时间点"},
+			{Name: "trigger_scene", Description: "触发条件是场景"},
+			{Name: "trigger_automation", Description: "触发条件是自动化"},
+			{Name: "run", Description: "我的意图中没有触发条件，直接运行"},
 		},
 	}
 

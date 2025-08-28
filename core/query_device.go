@@ -22,7 +22,7 @@ type shortDevice struct {
 // todo 不要传开关所有实体,馨光实体不传
 func QueryDevice(message, aiMessage, deviceId string) string {
 	var allEntities = data.GetEntityByEntityId()
-	resultEntities, _ := getFilterEntities(allEntities)
+	resultEntities, _ := getFilterEntities(message, allEntities)
 
 	//获取所有实体状态,再匹配实体
 	states, err := data.GetStates()
@@ -262,7 +262,7 @@ func QueryDevice(message, aiMessage, deviceId string) string {
 
 // 获取过滤的实体,开关是不使用的
 // 实体过滤
-func getFilterEntities(entities map[string]*data.Entity) (map[string]*data.Entity, map[string]*data.Entity) {
+func getFilterEntities(message string, entities map[string]*data.Entity) (map[string]*data.Entity, map[string]*data.Entity) {
 	var result = make(map[string]*data.Entity, 50)
 	var resultSkip = make(map[string]*data.Entity, 50)
 	var cacheTemp = make(map[string]bool)
@@ -323,8 +323,13 @@ func getFilterEntities(entities map[string]*data.Entity) (map[string]*data.Entit
 			}
 		}
 
-		if strings.Contains(e.DeviceName, "热水器") && !strings.HasPrefix(e.EntityID, "water_heater") {
-			continue
+		if strings.Contains(e.DeviceName, "热水器") {
+			if strings.Contains(message, "度") && !strings.HasPrefix(e.EntityID, "water_heater") {
+				continue
+			}
+			if !strings.Contains(message, "度") && strings.HasPrefix(e.EntityID, "water_heater") {
+				continue
+			}
 		}
 
 		if strings.Contains(e.DeviceName, "浴霸") && !strings.HasPrefix(e.EntityID, "climate") {
@@ -384,8 +389,6 @@ func getFilterEntities(entities map[string]*data.Entity) (map[string]*data.Entit
 		resultSkip[e.EntityID] = e
 
 	}
-	fmt.Println("----过滤后实体数量1---", len(result))
-	fmt.Println("----过滤后实体数量2---", len(resultSkip))
 
 	return result, resultSkip
 }

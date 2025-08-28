@@ -85,7 +85,6 @@ func GetDevice() map[string]*Device {
 	gHub.lock.RLock()
 	data := gHub.deviceMap
 	gHub.lock.RUnlock()
-
 	return data
 }
 
