@@ -1,16 +1,14 @@
 package core
 
 import (
-	"hahub/data"
+	_ "hahub/intelligent"
 	"hahub/internal/chat"
 	"testing"
 )
 
 func init() {
-	data.waitForInit()
 	CoreChaos()
 }
-
 func TestChat(t *testing.T) {
 	//result, err := chatCompletionInternal([]*chat.ChatMessage{
 	//	{Role: "user", Content: fmt.Sprintf(preparePrompts, x.MustMarshalEscape2String(logicDataMap))},
@@ -25,10 +23,15 @@ func TestChat(t *testing.T) {
 }
 
 func TestSendMessage(t *testing.T) {
-	speakerProcessSend(&conversationor{
-		Conversation: []*chat.ChatMessage{{Role: "user", Content: "我有多少个场景"}, {Role: "assistant", Content: "我还不太明白", Name: "jinx"}},
+	//aaa("我有多少个场景","我还不太明白")
+	aaa("我有多少个场景", "我不太清楚")
+	select {}
+}
+
+func aaa(message1, message2 string) {
+	SpeakerProcessSend(&Conversationor{
+		Conversation: []*chat.ChatMessage{{Role: "user", Content: message1}, {Role: "assistant", Content: message2, Name: "jinx"}},
 		entityId:     "text.xiaomi_lx06_ae32_play_text",
 		deviceId:     "323aa55fea880a7e5bdb075f6a8ef925",
 	})
-	select {}
 }

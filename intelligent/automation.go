@@ -419,7 +419,6 @@ func DeleteAllAutomations(c *ava.Context) {
 			continue
 		}
 
-		//url := fmt.Sprintf(prefixUrlCreateAutomation, core.GetHassUrl(), entity.EntityID)，ha这个id生成规则有bug
 		url := fmt.Sprintf(prefixUrlCreateAutomation, data.GetHassUrl(), entity.UniqueID)
 		var response Response
 		err := x.Del(c, url, data.GetToken(), &response)

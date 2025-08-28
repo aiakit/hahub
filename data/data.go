@@ -109,10 +109,10 @@ type deviceList struct {
 	Type    string    `json:"type"`
 	Success bool      `json:"success"`
 	Total   int       `json:"total"`
-	Result  []*device `json:"result"`
+	Result  []*Device `json:"result"`
 }
 
-type device struct {
+type Device struct {
 	AreaID     string  `json:"area_id"`     //区域id
 	AreaName   string  `json:"area_name"`   //区域名称
 	CreatedAt  float64 `json:"created_at"`  //创建时间
@@ -135,7 +135,7 @@ func callDeviceList() {
 			ava.Errorf("Unmarshal deviceList error: %v", err)
 			return
 		}
-		var filtered []*device
+		var filtered []*Device
 		for _, d := range data.Result {
 			if d.AreaID == "" {
 				continue
@@ -148,8 +148,8 @@ func callDeviceList() {
 		}
 		data.Result = filtered
 		data.Total = len(filtered)
-		ava.Debugf("total device=%d", len(filtered))
-		writeToFile("device.json", data)
+		ava.Debugf("total Device=%d", len(filtered))
+		writeToFile("Device.json", data)
 		initMutex.Lock()
 		initState.devicesLoaded = true
 		initMutex.Unlock()
@@ -187,6 +187,7 @@ type Entity struct {
 	AreaID      string `json:"area_id"`      //区域id
 	AreaName    string `json:"area_name"`    //区域名称
 	DeviceName  string `json:"device_name"`  //设备名称（从设备数据获取）
+	DeviceMode  string `json:"device_mode"`  //设备类型
 	Name        string `json:"name"`         //修改名称之后，ha会用这个字段表示名称,ha修改OriginalName
 }
 
@@ -238,11 +239,19 @@ func callEntityList() {
 				continue
 			}
 
-			if strings.Contains(e.OriginalName, "拓展") {
+			if strings.Contains(e.OriginalName, "拓展") || strings.Contains(e.OriginalName, "双击") || strings.Contains(e.OriginalName, "长按") {
+				continue
+			}
+
+			if strings.Contains(e.OriginalName, "遥控") || strings.Contains(e.OriginalName, "超时") {
 				continue
 			}
 
 			if strings.Contains(e.OriginalName, "最大功率开关") || strings.Contains(e.OriginalName, "提醒") || strings.Contains(e.OriginalName, "充电保护") {
+				continue
+			}
+
+			if strings.Contains(e.OriginalName, "开关状态切换") {
 				continue
 			}
 

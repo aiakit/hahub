@@ -16,8 +16,14 @@ import (
 	"github.com/aiakit/ava"
 )
 
+var switchPlay bool = false
+
 // Value:    "[" + message + ",false]", //这是发起指令的穿参数
 func PlayTextAction(deviceID, message string) {
+	if !switchPlay {
+		return
+	}
+
 	entityId, ok := gSpeakerProcess.speakerEntityPlayText[deviceID]
 	if !ok {
 		return
@@ -70,7 +76,7 @@ func GetPlaybackDuration(message string) time.Duration {
 	var (
 		chineseCharDuration    = 120 * time.Millisecond
 		nonChineseCharDuration = 200 * time.Millisecond
-		minPlaybackDuration    = 2 * time.Second
+		minPlaybackDuration    = 1 * time.Second
 	)
 
 	// 计算总播报时间
@@ -110,7 +116,7 @@ func isChineseChar(char rune) bool {
 	return matched
 }
 
-type conversationor struct {
+type Conversationor struct {
 	Conversation []*chat.ChatMessage `json:"conversation"`
 	entityId     string
 	deviceId     string
@@ -125,7 +131,7 @@ type simpleEntity struct {
 type speakerProcess struct {
 	lock                        sync.Mutex
 	deviceLocks                 map[string]*sync.Mutex // 每个设备独立的锁
-	playTextMessage             chan *conversationor
+	playTextMessage             chan *Conversationor
 	timeout                     time.Duration
 	speakerEntityPlayText       map[string]string //xiaomi_iot_device_id:xiaomi_home
 	speakerEntityDirective      map[string]string //xiaomi_iot_device_id:xiaomi_home
@@ -163,7 +169,7 @@ func chaosSpeaker() {
 
 	gSpeakerProcess = &speakerProcess{
 		deviceLocks:                 make(map[string]*sync.Mutex), // 初始化设备锁map
-		playTextMessage:             make(chan *conversationor, 5),
+		playTextMessage:             make(chan *Conversationor, 5),
 		timeout:                     time.Second * 5,
 		speakerEntityPlayText:       make(map[string]string),
 		speakerEntityPlayTextEntity: make(map[string]*simpleEntity),
@@ -216,7 +222,7 @@ func chaosSpeaker() {
 	go gSpeakerProcess.runSpeakerPlayText()
 }
 
-func speakerProcessSend(message *conversationor) {
+func SpeakerProcessSend(message *Conversationor) {
 	gSpeakerProcess.playTextMessage <- message
 }
 
@@ -286,7 +292,7 @@ func (s *speakerProcess) runSpeakerPlayText() {
 }
 
 // 修改:sendToRemote现在发送整个历史记录
-func (s *speakerProcess) sendToRemote(conversations *conversationor) {
+func (s *speakerProcess) sendToRemote(conversations *Conversationor) {
 
 	//1.获取函数调用
 	//2.发起调用,在处理函数中询问ai获取调用数据
@@ -303,6 +309,14 @@ func (s *speakerProcess) sendToRemote(conversations *conversationor) {
 				}
 			}
 		}
+		if !switchPlay {
+			if message != "" {
+				AddAIMessage(conversations.deviceId, message)
+				fmt.Println("--------44---", "即将播放", time.Now().Format(time.RFC3339), message)
+
+			}
+			return
+		}
 
 		if message != "" {
 			AddAIMessage(conversations.deviceId, message)
@@ -314,10 +328,8 @@ func (s *speakerProcess) sendToRemote(conversations *conversationor) {
 				gSpeakerProcess.pollCancelFuncs[conversations.deviceId] = nil
 				fmt.Println("--------33---", "暂停轮训")
 			}
-			time.Sleep(time.Second)
 			PlayTextAction(conversations.deviceId, message)
 			time.Sleep(time.Second)
-			//todo 加一个状态，当主人需要让音箱退下的时候，就不执行询问了
 			PlayTextAction(conversations.deviceId, askMessage[x.Intn(len(askMessage)-1)])
 			time.Sleep(time.Second)
 			gSpeakerProcess.startPolling(conversations.deviceId)
@@ -402,13 +414,16 @@ var askMessage = []string{
 	"还有什么需要帮助吗?我随时待命。",
 	"尊敬的主人,您还有什么需要吗?",
 	"您还有什么需要吗?",
+	"请告诉我您还需要我为你做什么。",
+	"如有需要,尽管告诉我。",
 	"主人,请告诉我还需要什么帮助。",
 	"主人,您还有什么吩咐吗?",
 	"主人,您还有什么需要我帮的吗?",
-	"主人，你还需要什么帮助。",
-	"尊敬的主人,您还有其他需要吗?",
+	"有其他需要,就告诉我。",
+	"主人，还需要什么帮助。",
+	"尊敬的主人,您还有什么需要吗?",
+	"如有任何需要,尽管告诉我。",
 	"主人,您还有什么需要吗?",
-	"主人,请吩咐?",
 }
 
 func SpeakerAsk2PlayTextHandler(event *data.StateChangedSimple, body []byte) {
@@ -436,7 +451,7 @@ func SpeakerAsk2PlayTextHandler(event *data.StateChangedSimple, body []byte) {
 			return
 		}
 
-		speakerProcessSend(&conversationor{
+		SpeakerProcessSend(&Conversationor{
 			Conversation: []*chat.ChatMessage{{Role: "assistant", Content: state.Event.Data.NewState.State}},
 			entityId:     en.EntityID,
 		})
@@ -469,7 +484,7 @@ func SpeakerAsk2ConversationHandler(event *data.StateChangedSimple, body []byte)
 			content = v[0].Llm.Text
 		}
 
-		var cs = &conversationor{
+		var cs = &Conversationor{
 			Conversation: []*chat.ChatMessage{{
 				Role:    "user",
 				Content: state.Event.Data.NewState.State,
@@ -481,7 +496,7 @@ func SpeakerAsk2ConversationHandler(event *data.StateChangedSimple, body []byte)
 			entityId: en.EntityID,
 		}
 
-		speakerProcessSend(cs)
+		SpeakerProcessSend(cs)
 	}
 }
 
@@ -593,7 +608,9 @@ func (s *speakerProcess) startPolling(deviceId string) {
 				pausePlay(deviceId)
 			case <-ticker1.C:
 				// 检查最后一次更新时间是否超过20秒
+				s.getDeviceLock(deviceId).Lock()
 				lastUpdate, exists := s.lastUpdateTime[deviceId]
+				s.getDeviceLock(deviceId).Unlock()
 
 				if exists && time.Since(lastUpdate) > time.Second*20 {
 					// 超过20秒，暂停轮询并执行收尾工作

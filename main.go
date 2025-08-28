@@ -1,7 +1,6 @@
 package main
 
 import (
-	"hahub/core"
 	_ "hahub/intelligent"
 	"os"
 	"os/signal"
@@ -28,7 +27,7 @@ func main() {
 	//intelligent.Chaos()
 
 	//启动音箱ai驱动
-	core.CoreChaos()
+	//core.CoreChaos()
 
 	ava.Debugf("Starting Hahub ok! |latency=%.2fs", time.Since(now).Seconds())
 

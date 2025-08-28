@@ -17,7 +17,6 @@ type commandData struct {
 }
 
 func RunDevice(message, aiMessage, deviceId string) string {
-	return "哈哈哈哈"
 
 	device, ok := data.GetDevice()[deviceId]
 	if !ok {
@@ -68,7 +67,7 @@ func RunDevice(message, aiMessage, deviceId string) string {
 
 			entities = append(entities, shortDevice{
 				Name:  deviceName,
-				Id:    state.EntityID,
+				id:    state.EntityID,
 				State: state.State,
 			})
 
@@ -91,10 +90,10 @@ func RunDevice(message, aiMessage, deviceId string) string {
 		var command = make(map[string]interface{})
 
 		for _, v := range entities {
-			if strings.Contains(result, v.Id) {
-				entity = append(entity, entitiesMap[v.Id])
+			if strings.Contains(result, v.id) {
+				entity = append(entity, entitiesMap[v.id])
 
-				var sp = strings.Split(v.Id, ".")
+				var sp = strings.Split(v.id, ".")
 				if len(sp) == 0 {
 					continue
 				}

@@ -12,6 +12,7 @@ const (
 	CategoryXiaomiMiotSpeaker   = "xiaomi_miot_speaker"   // 小米MIOT音箱
 	CategoryAirConditioner      = "air_conditioner"       // 空调
 	CategoryFloorHeating        = "floor_heating"         // 地暖
+	CategoryFreshAir            = "flesh_air"             // 地暖
 	CategoryVirtualEvent        = "virtual_event"         // 虚拟事件
 	CategorySwitch              = "switch"                // 开关
 	CategoryWiredSwitch         = "wired_switch"          // 有线开关
@@ -41,10 +42,12 @@ const (
 	CategoryWater               = "water"                 // 水侵
 	CategoryFire                = "fire"                  // 火灾
 	CategoryWaterHeater         = "water_heater"          //热水器
-	CategoryDimming             = "dimming"               //调光旋钮
 	CategoryPowerconsumption    = "power_consumption"     //用电功率
+	CategoryPowe                = "power"                 //电池电量
 	CateroyBathroomHeater       = "bathroom_heater"       //浴霸
 	CategoryBed                 = "bed"                   //床
+	CategoryDoor                = "door"                  //门
+	CateOther                   = "other"                 //其他的类型
 )
 
 //过滤实体,并在实体中增加字段标注设备类型，设备数据中也加上，在实体数据中加上设备id,区域id，区域名称
@@ -75,9 +78,9 @@ const (
 
 // 实体过滤函数，按注释规则筛选
 // areaMap: area_id -> area_name
-// deviceMap: device_id -> *device
+// deviceMap: device_id -> *Device
 
-func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity {
+func FilterEntities(entities []*Entity, deviceMap map[string]*Device) []*Entity {
 	var filtered []*Entity
 
 	var areaLxStruct = map[string]struct {
@@ -94,7 +97,7 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 
 		func(entity *Entity) {
 
-			var deviceData *device
+			var deviceData *Device
 			//脚本和自动化数据是没有设备id的，注意不要动这里的代码
 			if v, ok := deviceMap[e.DeviceID]; ok {
 				deviceData = v
@@ -104,26 +107,35 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 				e.DeviceName = deviceData.Name
 				e.AreaID = deviceData.AreaID
 				e.AreaName = deviceData.AreaName
+				e.DeviceMode = deviceData.Model
 			}
 
 			// 1. 音箱
 			if deviceData != nil && strings.Contains(deviceData.Model, ".wifispeaker.") {
-				if e.Platform == "xiaomi_home" {
-					category = CategoryXiaomiHomeSpeaker
-				} else if e.Platform == "xiaomi_miot" {
-					category = CategoryXiaomiMiotSpeaker
+				if !strings.Contains(e.OriginalName, "电视") {
+					if e.Platform == "xiaomi_home" {
+						category = CategoryXiaomiHomeSpeaker
+					} else if e.Platform == "xiaomi_miot" {
+						category = CategoryXiaomiMiotSpeaker
+					}
 				}
 				return
 			}
 
 			// 2. 空调
-			if strings.HasPrefix(e.EntityID, "climate.") && strings.Contains(e.OriginalName, "空调") {
+			if strings.HasPrefix(e.EntityID, "climate.") && strings.Contains(e.OriginalName, "空调") && strings.Contains(e.DeviceName, "空调") {
 				category = CategoryAirConditioner
 				return
 			}
 			// 2. 地暖
-			if strings.HasPrefix(e.EntityID, "climate.") && strings.Contains(e.OriginalName, "地暖") {
+			if strings.HasPrefix(e.DeviceName, "地暖") && strings.Contains(e.OriginalName, "地暖") && strings.Contains(e.DeviceName, "地暖") {
 				category = CategoryFloorHeating
+				return
+			}
+
+			// 3. 新风
+			if strings.HasPrefix(e.DeviceName, "新风") && strings.Contains(e.OriginalName, "新风") && strings.Contains(e.DeviceName, "新风") {
+				category = CategoryFreshAir
 				return
 			}
 
@@ -173,31 +185,34 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 
 			// 5. 灯
 			if strings.HasPrefix(e.EntityID, "light.") && !strings.Contains(e.EntityID, "_group_") && !strings.Contains(e.OriginalName, "指示灯") {
-				category = CategoryLight
-				if deviceData != nil {
+				//有些开关里面的实体有light,直接不用
+				if !strings.Contains(e.DeviceName, "开关") {
+					category = CategoryLight
+					if deviceData != nil {
 
-					state, _ := GetState(e.EntityID)
-					if state != nil {
-						var existTemp bool
-						var existRgb bool
-						for _, v := range state.Attributes.SupportedColorModes {
-							if v == "rgb" {
-								existRgb = true
+						state, _ := GetState(e.EntityID)
+						if state != nil {
+							var existTemp bool
+							var existRgb bool
+							for _, v := range state.Attributes.SupportedColorModes {
+								if v == "rgb" {
+									existRgb = true
+								}
+								if v == "color_temp" {
+									existTemp = true
+								}
 							}
-							if v == "color_temp" {
-								existTemp = true
+							if existRgb && !existTemp {
+								subCategory = CategoryLightRgb
 							}
-						}
-						if existRgb && !existTemp {
-							subCategory = CategoryLightRgb
-						}
 
-						if !existRgb && existTemp {
-							subCategory = CategoryLightTemp
-						}
+							if !existRgb && existTemp {
+								subCategory = CategoryLightTemp
+							}
 
-						if existRgb && existTemp {
-							subCategory = CategoryLightRgbAndTemp
+							if existRgb && existTemp {
+								subCategory = CategoryLightRgbAndTemp
+							}
 						}
 					}
 				}
@@ -247,12 +262,10 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 				return
 			}
 
-			// 7. 存在传感器
-			if deviceData != nil && strings.Contains(deviceData.Name, "存在传感器") {
-				if strings.Contains(e.EntityID, "sensor.") && (strings.Contains(e.OriginalName, "人在") || strings.Contains(e.OriginalName, "有人无人")) {
-					category = CategoryHumanPresenceSensor
-					return
-				}
+			// 7. 存在传感器,包含了binary_sensor
+			if strings.Contains(e.EntityID, "sensor.") && (strings.Contains(e.OriginalName, "人在") || strings.Contains(e.OriginalName, "有人无人") || strings.Contains(e.OriginalName, "人体感应")) {
+				category = CategoryHumanPresenceSensor
+				return
 			}
 
 			// 8. 插座
@@ -306,7 +319,7 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 			}
 
 			// 12.1 电视
-			if strings.Contains(e.Name, "电视") && strings.Contains(e.EntityID, "media_player.") && !strings.Contains(e.OriginalName, "红外") {
+			if strings.Contains(e.OriginalName, "电视") && strings.Contains(e.EntityID, "media_player.") && !strings.Contains(e.OriginalName, "红外") {
 				category = CategoryHaTV
 				return
 			}
@@ -346,12 +359,6 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 				return
 			}
 
-			//19.调光类型
-			if deviceData != nil && strings.Contains(deviceData.Name, "旋钮") && strings.Contains(deviceData.Model, "remote") && strings.Contains(e.OriginalName, "旋转") {
-				category = CategoryDimming
-				return
-			}
-
 			//20.热水器
 			if deviceData != nil && strings.Contains(deviceData.Name, "热水器") {
 				waterHeater = append(waterHeater, e)
@@ -365,15 +372,22 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 			}
 
 			//22.功率实体
-			if strings.Contains(e.OriginalName, "功耗参数 电功率") && strings.HasPrefix(e.EntityID, "sensor.") {
+			if strings.Contains(e.OriginalName, "功耗参数") && strings.HasPrefix(e.EntityID, "sensor.") {
 				category = CategoryPowerconsumption
+				return
+			}
+
+			if strings.Contains(e.OriginalName, "电池电量") && strings.HasPrefix(e.EntityID, "sensor.") {
+				category = CategoryPowe
 				return
 			}
 
 			//23.浴霸
 			if deviceData != nil && strings.Contains(deviceData.Name, "浴霸") {
-				category = CateroyBathroomHeater
-				return
+				if strings.HasPrefix(e.EntityID, "climate.") || strings.Contains(e.OriginalName, "换气") {
+					category = CateroyBathroomHeater
+					return
+				}
 			}
 
 			//24.床
@@ -381,6 +395,14 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*device) []*Entity 
 				category = CategoryBed
 				return
 			}
+
+			//门
+			if deviceData != nil && strings.Contains(deviceData.Model, ".door.") && (strings.Contains(e.OriginalName, "门状态") || strings.Contains(e.OriginalName, "电池电量")) {
+				category = CategoryDoor
+				return
+			}
+
+			category = CateOther
 		}(e)
 
 		if category != "" {

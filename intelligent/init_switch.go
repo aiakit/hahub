@@ -7,6 +7,7 @@ import (
 	"github.com/aiakit/ava"
 )
 
+// todo 改为在filter过滤之前callback就设置好开关初始化
 func InitSwitch(c *ava.Context) {
 	e, ok := data.GetEntityCategoryMap()[data.CategoryWiredSwitch]
 	if !ok {

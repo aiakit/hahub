@@ -25,13 +25,11 @@ func GetState(entityId string) (*State, error) {
 }
 
 type StateAll struct {
-	DeviceName   string                 `json:"device_name,omitempty"`
-	EntityID     string                 `json:"entity_id"`
-	State        string                 `json:"State"`
-	Attributes   map[string]interface{} `json:"attributes"`
-	LastChanged  time.Time              `json:"last_changed"`
-	LastReported time.Time              `json:"last_reported"`
-	LastUpdated  time.Time              `json:"last_updated"`
+	DeviceName  string                 `json:"device_name,omitempty"`
+	EntityID    string                 `json:"entity_id,omitempty"`
+	State       string                 `json:"State"`
+	Attributes  map[string]interface{} `json:"attributes"`
+	LastChanged time.Time              `json:"last_changed"`
 }
 
 func GetStates() ([]StateAll, error) {

@@ -27,6 +27,7 @@ func init() {
 	data.RegisterDataHandler(registerVirtualEvent)
 
 	data.Chaos()
+	ava.Debugf("-------初始化完成,系统加载完成------")
 }
 
 // 初始化灯光
@@ -198,3 +199,5 @@ func handleDefaultGradientTimeSettings(entity *data.Entity, option int) *ActionL
 
 	return nil
 }
+
+//馨光场景预设

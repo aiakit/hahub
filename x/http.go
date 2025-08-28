@@ -63,8 +63,6 @@ func Del(c *ava.Context, uri, token string, v interface{}) error {
 
 func Get(c *ava.Context, uri, token string, v interface{}) error {
 
-	var now = time.Now()
-
 	var header = map[string]string{
 		"Authorization": "Bearer " + token,
 		"Content-Type":  "application/json",
@@ -76,7 +74,6 @@ func Get(c *ava.Context, uri, token string, v interface{}) error {
 		return err
 	}
 
-	c.Debugf("latency=%v秒 |uri=%v |FROM=%v", time.Now().Sub(now).Seconds(), uri, string(b))
 	return Unmarshal(b, v)
 }
 

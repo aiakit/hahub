@@ -93,7 +93,6 @@ func init() {
 			{Name: "query_online_number", Description: "查询在线设备总数量"},
 			{Name: "query_online_state", Description: "查询在线设备状态"},
 			{Name: "query_all_number", Description: "查询设备总数量"},
-			{Name: "query_device_state_detail", Description: "查询某个设备详细状态"},
 		},
 	}
 
@@ -150,7 +149,7 @@ func init() {
 var logicDataMap = make(map[string]*ObjectLogic)
 
 // 预调用提示
-var preparePrompts = `根据对话内容，以及我提供的一些功能选项，判断我的意图选择需要执行什么功能，并按照规定的格式返回数据，除了返回的数据格式，禁止有其他内容，如果我没有告诉你楼层信息，默认是一楼。
+var preparePrompts = `根据对话内容，以及我提供的一些功能选项，判断我的意图选择需要执行什么功能，并按照规定的格式返回数据，除了返回的数据格式，禁止有其他内容。如果我没有告诉你楼层信息，默认是一楼。
 功能选项：%s
 返回数据格式：{"功能模块":"功能名称"}
 返回数据例子：{"function":"query_device","function_name":"查询设备","sub_function":{"query_offline_number"}}`

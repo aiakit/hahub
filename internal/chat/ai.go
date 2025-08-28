@@ -3,6 +3,7 @@ package chat
 import (
 	"context"
 	"hahub/x"
+	"time"
 
 	"github.com/aiakit/ava"
 	"github.com/sashabaranov/go-openai"
@@ -118,11 +119,12 @@ func (d *DoubaoProvider) ChatCompletion(messages []*ChatMessage) (string, error)
 
 // ChatCompletionMessage 通用的聊天完成函数
 func ChatCompletionMessage(messages []*ChatMessage) (string, error) {
+	var now = time.Now()
 	s, err := DefaultProvider.ChatCompletion(messages)
 	if err != nil {
 		ava.Debugf("TO=%s| err=%v", x.MustMarshalEscape2String(messages), err)
 		return s, err
 	}
-	ava.Debugf("TO=%s| FROM=%s", x.MustMarshalEscape2String(messages), s)
+	ava.Debugf("latency=%.2f |TO=%s| FROM=%s", time.Since(now).Seconds(), x.MustMarshalEscape2String(messages), s)
 	return s, err
 }

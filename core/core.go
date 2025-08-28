@@ -1,11 +1,13 @@
 package core
 
 import (
+	"fmt"
 	"hahub/data"
 	"hahub/intelligent"
 	"hahub/internal/chat"
 	"hahub/x"
 	"strings"
+	"time"
 
 	"github.com/aiakit/ava"
 )
@@ -61,7 +63,13 @@ func (fr *FunctionRouter) Register(functionName string, handler FunctionHandler)
 // 根据函数名调用对应的函数
 func Call(functionName, deviceId, message, aiMessage string) string {
 	if handler, exists := gFunctionRouter.handlers[functionName]; exists {
-		return handler(message, aiMessage, deviceId)
+		var now = time.Now()
+		result := handler(message, aiMessage, deviceId)
+		if result == "" {
+			return "未知指令"
+		}
+		ava.Debugf("latency=%.2f |funcion_name=%s |message=%s |ai_message=%s", time.Since(now).Seconds(), functionName, message, aiMessage)
+		return result
 	}
 	// 如果没有找到对应的处理器，返回空字符串或错误信息
 	return "未知指令"
@@ -89,33 +97,29 @@ func chatCompletionInternal(msgInput []*chat.ChatMessage) (string, error) {
 }
 
 func chatCompletionHistory(msgInput []*chat.ChatMessage, deviceId string) (string, error) {
-	//history := GetHistory(deviceId)
+	history := GetHistory(deviceId)
 	var message = make([]*chat.ChatMessage, 0, 5)
 
-	//var content = systemPromptsNone
-	//if len(history) > 0 {
-	//	content = fmt.Sprintf(systemPrompts, x.MustMarshal2String(history))
-	//}
-
-	var gShortScenes = make(map[string]*shortScene)
-
-	entities, _ := data.GetEntityCategoryMap()[data.CategoryScript]
-
-	for _, e := range entities {
-		gShortScenes[e.UniqueID] = &shortScene{
-			Id:    e.EntityID,
-			Alias: e.OriginalName,
-		}
+	var content = systemPromptsNone
+	if len(history) > 0 {
+		content = fmt.Sprintf(systemPrompts, x.MustMarshal2String(history))
 	}
-	//
-	//message = append(message, &chat.ChatMessage{
-	//	Role:    "system",
-	//	Content: content + fmt.Sprintf("你可能用得到我的所有智能家居场景数据：%s", x.MustMarshalEscape2String(entities)),
-	//})
+
+	message = append(message, &chat.ChatMessage{
+		Role:    "system",
+		Content: content,
+	})
 
 	message = append(message, msgInput...)
 
-	return chat.ChatCompletionMessage(message)
+	result, err := chat.ChatCompletionMessage(message)
+	if err != nil {
+		return "发生未知错误，请重试", err
+	}
+
+	AddAIMessage(deviceId, result)
+
+	return result, nil
 }
 
 func registerHomingWelcome(simple *data.StateChangedSimple, body []byte) {

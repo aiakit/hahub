@@ -39,12 +39,12 @@ func QueryScene(message, aiMessage, deviceId string) string {
 	}
 
 	//发送所有场景简短数据给ai
-	result, err := chatCompletionHistory([]*chat.ChatMessage{{
+	result, err := chatCompletionInternal([]*chat.ChatMessage{{
 		Role: "user",
 		Content: fmt.Sprintf(`这是我的全部场景信息%s，总数是%d个，根据对话内容将信息返回给我：
 1.查询某个场景："id":""
 2.查询场景数量："你总共有x个场景"`, x.MustMarshalEscape2String(gShortScenes), len(gShortScenes)),
-	}, {Role: "user", Content: message}}, deviceId)
+	}, {Role: "user", Content: message}})
 	if err != nil {
 		ava.Error(err)
 		return "服务器开小差了，请等一会儿再试试"
@@ -64,7 +64,7 @@ func QueryScene(message, aiMessage, deviceId string) string {
 	//拿到场景名称和id
 	e, ok := data.GetEntityByEntityId()[id]
 	if !ok {
-		return "没有找到这个设备"
+		return "没有找到这个场景"
 	}
 
 	var scene = &script{}
