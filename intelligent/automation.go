@@ -282,20 +282,25 @@ type Response struct {
 
 func ChaosAutomation() {
 
+	var now = time.Now()
+
 	c := ava.Background()
 
 	//删除所有自动化
 	DeleteAllAutomations(c)
-
+	ava.Debug("清除所有系统创建的自动化")
 	//处理光照数据
 	initEntityIdByLx(ava.Background())
+	ava.Debug("光照数据已经处理")
 
 	//人体传感器
 	WalkBodySensor(c)
+	ava.Debug("创建人体传感器相关自动化")
 
 	//人体存在传感器
 	WalkPresenceSensor(c)
 	WalkPresenceSensorKeting(c)
+	ava.Debug("创建人在传感器相关自动化")
 
 	//布防
 	Defense(c)
@@ -303,11 +308,15 @@ func ChaosAutomation() {
 	//警报
 	attention(c)
 
+	ava.Debug("创建布防和警报自动化")
+
 	//灯光控制
 	LightControl(c)
+	ava.Debug("创建开关控制灯自动化")
 
 	//插座打开就开灯
 	WalkBodySocketSensor(c)
+	ava.Debug("创建插座灯自动化")
 
 	WalkPresenceSensorAir(c)
 
@@ -315,7 +324,7 @@ func ChaosAutomation() {
 		CreateAutomation(ava.Background(), v)
 	}
 
-	ava.Debugf("all automation created done! |total=%d", len(autos))
+	ava.Debugf("latency=%.2f |all automation created done! |total=%d", time.Since(now).Seconds(), len(autos))
 
 	autos = make([]*Automation, 0, 10)
 

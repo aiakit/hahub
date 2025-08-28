@@ -1,6 +1,9 @@
 package x
 
-import "math"
+import (
+	"math"
+	"strings"
+)
 
 // Levenshtein calculates the Levenshtein distance between two strings.
 func Levenshtein(a, b string) int {
@@ -55,6 +58,19 @@ func Similarity(a, b string) float64 {
 	}
 
 	return 1.0 - float64(distance)/float64(maxLen)
+}
+
+// ContainsAllChars 判断字符串 chars 中的所有字符是否都出现在字符串 str 中。
+// 注意：此函数区分大小写。
+func ContainsAllChars(str, chars string) bool {
+	// 遍历 chars 中的每一个字符
+	for _, char := range chars {
+		// 检查当前字符是否在 str 中
+		if !strings.ContainsRune(str, char) {
+			return false // 只要有一个字符不在 str 中，就返回 false
+		}
+	}
+	return true // 所有字符都在 str 中出现
 }
 
 // maxInt returns the maximum of two integers

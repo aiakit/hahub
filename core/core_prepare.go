@@ -11,22 +11,19 @@ import (
 // eg.场景，执行场景，回家
 // eg.天气，查询天气，小爱入口忽略/云端查询
 const (
-	queryScene                 = "query_scene"
-	runScene                   = "run_scene"
-	runAutomation              = "run_automation"
-	queryAutomation            = "query_automation"
-	controlDevice              = "control_device"
-	queryDevice                = "query_device"
-	timingTask                 = "timing_task"
-	dailyConversation          = "daily_conversation"
-	functionCallInitScene      = "function_call_init_scene"
-	functionCallInitAll        = "function_call_init_all"
-	functionCallInitAutomation = "function_call_init_automation"
-	isHandled                  = "is_handled"
-	isInDevelopment            = "is_in_development"
-	sendMessage2Speaker        = "send_message_to_speaker"
-	evaluate                   = "evaluate"
-	display                    = "display"
+	queryScene          = "query_scene"
+	runScene            = "run_scene"
+	runAutomation       = "run_automation"
+	queryAutomation     = "query_automation"
+	controlDevice       = "control_device"
+	queryDevice         = "query_device"
+	timingTask          = "timing_task"
+	dailyConversation   = "daily_conversation"
+	functionCallInitAll = "function_call_init_all"
+	isHandled           = "is_handled"
+	sendMessage2Speaker = "send_message_to_speaker"
+	evaluate            = "evaluate"
+	display             = "display"
 )
 
 func init() {
@@ -63,19 +60,21 @@ func init() {
 		Description:  "通过用户口令或者手动指令触发运行智能场景",
 		FunctionName: "执行场景",
 		SubFunction: []subFunction{
-			{Name: "trigger_time", Description: "触发条件是之后的某个时间点"},
-			{Name: "trigger_scene", Description: "触发条件是某个场景执行之后"},
-			{Name: "trigger_automation", Description: "触发条件是某个自动化执行之后"},
+			{Name: "trigger_time", Description: "触发条件是时间点"},
+			{Name: "trigger_scene", Description: "触发条件是场景"},
+			{Name: "trigger_automation", Description: "触发条件是自动化"},
+			{Name: "run", Description: "我的意图中没有触发条件，直接运行"},
 		},
 	}
 
 	logicDataMap[runAutomation] = &ObjectLogic{
-		Description:  "运行通过一些自然条件（例如：天气、温度、湿度、时间等）或者设备条件（例如：水浸传感器、人体传感器等设备状态）或者某个事件触发（例如：当执行睡觉场景之后就关闭人来亮灯自动化）对智能家居设备一系列的操作",
+		Description:  "智能家居自动化，通过触发条件自动控制某些设备的流程",
 		FunctionName: "执行自动化",
 		SubFunction: []subFunction{
-			{Name: "trigger_time", Description: "触发条件是之后的某个时间点"},
-			{Name: "trigger_scene", Description: "触发条件是某个场景执行之后"},
-			{Name: "trigger_automation", Description: "触发条件是某个自动化执行之后"},
+			{Name: "trigger_time", Description: "触发条件是时间点"},
+			{Name: "trigger_scene", Description: "触发条件是场景"},
+			{Name: "trigger_automation", Description: "触发条件是自动化"},
+			{Name: "run", Description: "我的意图中没有触发条件，直接运行"},
 			{Name: "turn_on_automation", Description: "开启某个自动化"},
 			{Name: "turn_off_automation", Description: "开启某个自动化"},
 		},
@@ -119,19 +118,9 @@ func init() {
 		FunctionName: "对话",
 	}
 
-	logicDataMap[functionCallInitScene] = &ObjectLogic{
-		Description:  "执行初始化场景函数调用",
-		FunctionName: "初始化场景函数调用",
-	}
-
-	logicDataMap[functionCallInitAutomation] = &ObjectLogic{
-		Description:  "执行初始化自动化函数调用",
-		FunctionName: "初始化自动化函数调用",
-	}
-
 	logicDataMap[functionCallInitAll] = &ObjectLogic{
 		Description:  "执行系统初始化",
-		FunctionName: "执行系统初始化",
+		FunctionName: "系统初始化",
 	}
 
 	logicDataMap[isHandled] = &ObjectLogic{

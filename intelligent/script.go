@@ -5,6 +5,7 @@ import (
 	"hahub/data"
 	"hahub/x"
 	"strings"
+	"time"
 
 	"github.com/aiakit/ava"
 )
@@ -13,38 +14,51 @@ var prefixUrlCreateScript = "%s/api/config/script/config/%s"
 
 func ScriptChaos() {
 
+	var now = time.Now()
+
 	c := ava.Background()
 	//删除所有场景
 	DeleteAllScript(c)
+	ava.Debug("场景已清除")
 
 	//初始化开关选择：场景按键，开关按键类型
 	InitSwitchSelect(c)
+	ava.Debug("开关按键初始化场景已创建")
+
 	//灯光初始化
 	InitLight(c)
+	ava.Debug("灯光初始化场景已创建")
 
 	//初始化开关
 	InitSwitch(c)
+	ava.Debug("开关初始化场景已创建")
 
 	//馨光灯初始化
 	InitXinGuang(c)
+	ava.Debug("预处理馨光场景")
+
 	//初始化灯光场景
 	LightScriptSetting(c)
+	ava.Debug("创建灯光场景")
 	//卧室睡觉场景
 	GoodNightScript(c)
+	ava.Debug("创建睡觉/晚安场景")
 	//起床场景
 	GoodMorningScript(c)
-
+	ava.Debug("创建起床/早安场景")
 	//调光场景
 	dimmmingIncrease(c)
 	dimmmingReduce(c)
+	ava.Debug("创建调光场景")
 
 	//客厅灯光按照序号开启
 	Display(c)
+	ava.Debug("创建灯光展示场景")
 
 	//回家离家
 	InitHoming(c)
 	InitLevingHome(c)
-
+	ava.Debug("创建回家/离家场景")
 	//洗澡
 	TakeAShower(c)
 
@@ -52,7 +66,7 @@ func ScriptChaos() {
 		CreateScript(ava.Background(), v)
 	}
 
-	ava.Debugf("all script created done! |total=%d", len(scripts))
+	ava.Debugf("latency=%.2f |all script created done! |total=%d", time.Since(now).Seconds(), len(scripts))
 
 	scripts = make([]*Script, 0, 10)
 

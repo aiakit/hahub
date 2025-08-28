@@ -41,7 +41,7 @@ func Post(c *ava.Context, uri, token string, data, v interface{}) error {
 
 func Del(c *ava.Context, uri, token string, v interface{}) error {
 
-	var now = time.Now()
+	//var now = time.Now()
 
 	var header = map[string]string{
 		"Authorization": "Bearer " + token,
@@ -54,7 +54,7 @@ func Del(c *ava.Context, uri, token string, v interface{}) error {
 		return err
 	}
 
-	c.Debugf("latency=%v秒 |uri=%v |FROM=%v", time.Now().Sub(now).Seconds(), uri, string(b))
+	//c.Debugf("latency=%v秒 |uri=%v |FROM=%v", time.Now().Sub(now).Seconds(), uri, string(b))
 	if v == nil {
 		return nil
 	}

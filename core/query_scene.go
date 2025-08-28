@@ -34,12 +34,14 @@ func QueryScene(message, aiMessage, deviceId string) string {
 
 	for _, e := range entities {
 		//判断是否有指定的场景
-		if strings.Contains(message, e.OriginalName) || x.Similarity(message, e.Name) > 0.8 {
+		if strings.Contains(message, e.OriginalName) ||
+			x.Similarity(message, e.Name) > 0.8 ||
+			x.ContainsAllChars(message, e.OriginalName) ||
+			x.ContainsAllChars(message, e.Name) {
 			golaScene[e.UniqueID] = &shortScene{
 				id:    e.EntityID,
 				Alias: e.OriginalName,
 			}
-			continue
 		}
 		gShortScenes[e.UniqueID] = &shortScene{
 			id:    e.EntityID,
@@ -52,26 +54,26 @@ func QueryScene(message, aiMessage, deviceId string) string {
 		gShortScenes = golaScene
 	}
 
-	var sendData = make([]*shortScene, 0, 2)
+	var sendData = make([]string, 0, 2)
 	for _, v := range gShortScenes {
-		sendData = append(sendData, v)
+		sendData = append(sendData, v.Alias)
 	}
 
 	var content string
 
 	if strings.Contains(aiMessage, "query_number") {
-		content = fmt.Sprintf(`这是我的全部场景信息%s，我计算好了总数是%d个，根据我的意图用简洁、人性化的语言回答我。`, x.MustMarshalEscape2String(sendData), len(sendData))
+		content = fmt.Sprintf(`这是我的全部场景信息%v，我计算好了总数是%d个，根据我的意图用简洁、人性化的语言回答我。`, sendData, len(sendData))
 	}
 
 	if strings.Contains(aiMessage, "query_detail") {
-		content = fmt.Sprintf(`这是我的全部场景信息%s，根据我的意图用简洁、人性化的语言回答我。
-返回数据格式：["名称1","名称2"]`, x.MustMarshalEscape2String(sendData))
+		content = fmt.Sprintf(`这是我的全部场景信息%v，根据我的意图用简洁、人性化的语言回答我。
+返回数据格式：["名称1","名称2"]`, sendData)
 	}
 
 	if content == "" {
-		content = fmt.Sprintf(`这是我的全部场景信息%s，根据我的意图用简洁、人性化的语言回答我：
+		content = fmt.Sprintf(`这是我的全部场景信息%v，根据我的意图用简洁、人性化的语言回答我：
 功能1:需要获取某个场景，返回["名称1","名称2"]
-功能2:根据场景称统计自动化数量：例如："共有5个场景"`, x.MustMarshalEscape2String(sendData))
+功能2:根据场景称统计自动化数量：例如："共有5个场景"`, sendData)
 	}
 
 	//发送所有场景简短数据给ai
@@ -88,6 +90,7 @@ func QueryScene(message, aiMessage, deviceId string) string {
 	for _, v := range gShortScenes {
 		if strings.Contains(result, v.Alias) {
 			id = v.id
+			break
 		}
 	}
 

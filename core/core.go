@@ -21,13 +21,10 @@ func CoreChaos() {
 	gFunctionRouter.Register(evaluate, Evaluate)
 	gFunctionRouter.Register(display, Display)
 	gFunctionRouter.Register(isHandled, IsDone)
-	gFunctionRouter.Register(functionCallInitAll, InitScene)
-	gFunctionRouter.Register(functionCallInitAll, InitAutomation)
 	gFunctionRouter.Register(queryScene, QueryScene)
 	gFunctionRouter.Register(queryAutomation, QueryAutomation)
 	gFunctionRouter.Register(queryDevice, QueryDevice)
 	gFunctionRouter.Register(sendMessage2Speaker, SendMessagePlay)
-	gFunctionRouter.Register(isInDevelopment, IsInDevelopment)
 	gFunctionRouter.Register(runAutomation, RunAutomation)
 	gFunctionRouter.Register(runScene, RunScene)
 	gFunctionRouter.Register(controlDevice, RunDevice)
@@ -38,6 +35,10 @@ func CoreChaos() {
 	//data.RegisterDataHandler(registerToggleLight)
 
 	chaosSpeaker()
+}
+
+func IsDone(message, aiMessage, deviceId string) string {
+	return ""
 }
 
 // 定义函数处理类型
@@ -65,8 +66,8 @@ func Call(functionName, deviceId, message, aiMessage string) string {
 	if handler, exists := gFunctionRouter.handlers[functionName]; exists {
 		var now = time.Now()
 		result := handler(message, aiMessage, deviceId)
-		if result == "" {
-			return "未知指令"
+		if result == "" && functionName == "is_handled" {
+			return ""
 		}
 		ava.Debugf("latency=%.2f |funcion_name=%s |message=%s |ai_message=%s |FROM=%s", time.Since(now).Seconds(), functionName, message, aiMessage, result)
 		return result

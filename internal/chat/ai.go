@@ -14,7 +14,9 @@ import (
 
 var DefaultQianwenApiKey = "sk-08cdfea5547040209ea0e2d874fff912"
 var DefaultQianwenUrl = "https://dashscope.aliyuncs.com/compatible-mode/v1"
-var DefaultQianwenModel = "qwen-turbo-2025-07-15"
+
+// var DefaultQianwenModel = "qwen-turbo-2025-07-15"
+var DefaultQianwenModel = "qwen-turbo"
 
 //var DefaultQianwenModel = "qwen-turbo-2024-11-01"
 
