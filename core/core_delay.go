@@ -64,7 +64,7 @@ func CoreDelay(message, aiMessage, deviceId string, f FunctionHandler) string {
 
 		for _, e := range entities {
 			gShortScenes[e.UniqueID] = &shortScene{
-				Id:    e.EntityID,
+				id:    e.EntityID,
 				Alias: e.OriginalName,
 			}
 		}
@@ -84,9 +84,9 @@ func CoreDelay(message, aiMessage, deviceId string, f FunctionHandler) string {
 		var alias string
 
 		for _, v := range gShortScenes {
-			if strings.Contains(result, v.Id) {
+			if strings.Contains(result, v.id) {
 				alias = v.Alias
-				id = v.Id
+				id = v.id
 			}
 		}
 
@@ -109,7 +109,7 @@ func CoreDelay(message, aiMessage, deviceId string, f FunctionHandler) string {
 
 		for _, e := range entities {
 			gShortAutomations[e.UniqueID] = &shortScene{
-				Id:    e.EntityID,
+				id:    e.EntityID,
 				Alias: e.OriginalName,
 			}
 		}
@@ -129,8 +129,8 @@ func CoreDelay(message, aiMessage, deviceId string, f FunctionHandler) string {
 		var alias string
 
 		for _, v := range gShortAutomations {
-			if strings.Contains(result, v.Id) {
-				id = v.Id
+			if strings.Contains(result, v.id) {
+				id = v.id
 				alias = v.Alias
 			}
 		}

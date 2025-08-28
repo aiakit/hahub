@@ -33,7 +33,20 @@ func init() {
 
 	logicDataMap[queryScene] = &ObjectLogic{
 		Description:  "通过用户口令或者手动指令触发查询智能场景信息",
-		FunctionName: "查询场景",
+		FunctionName: "查询智能家居场景",
+		SubFunction: []subFunction{
+			{Name: "query_number", Description: "查询场景数量"},
+			{Name: "query_detail", Description: "查询场景详情"},
+		},
+	}
+
+	logicDataMap[queryAutomation] = &ObjectLogic{
+		Description:  "查询智能家居自动化，通过触发条件自动控制某些设备的流程",
+		FunctionName: "查询智能家居自动化",
+		SubFunction: []subFunction{
+			{Name: "query_number", Description: "查询自动化数量"},
+			{Name: "query_detail", Description: "查询自动化详情"},
+		},
 	}
 
 	logicDataMap[evaluate] = &ObjectLogic{
@@ -66,11 +79,6 @@ func init() {
 			{Name: "turn_on_automation", Description: "开启某个自动化"},
 			{Name: "turn_off_automation", Description: "开启某个自动化"},
 		},
-	}
-
-	logicDataMap[queryAutomation] = &ObjectLogic{
-		Description:  "查询通过一些自然条件（例如：天气、温度、湿度、时间等）或者设备条件（例如：水浸传感器、人体传感器等设备状态）或者某个事件触发（例如：当执行睡觉场景之后就关闭人来亮灯自动化）对智能家居设备一系列的操作",
-		FunctionName: "查询自动化",
 	}
 
 	//platform不等于xiaomi_home的设备需要AI操作,例如热水器等
@@ -129,11 +137,6 @@ func init() {
 	logicDataMap[isHandled] = &ObjectLogic{
 		Description:  "在最近一次对话中，判断jinx的回答是否已经处理好了问题，返回这个对象，你不用去重复处理我的请求",
 		FunctionName: "已经处理",
-	}
-
-	logicDataMap[isInDevelopment] = &ObjectLogic{
-		Description:  "在我们的对话中，如果没有找到对应功能，就返回这个对象",
-		FunctionName: "功能开发中",
 	}
 
 	logicDataMap[sendMessage2Speaker] = &ObjectLogic{

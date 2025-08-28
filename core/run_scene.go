@@ -26,7 +26,7 @@ func RunScene(message, aiMessage, deviceId string) string {
 
 		for _, e := range entities {
 			gShortAutomations[e.UniqueID] = &shortScene{
-				Id:    e.EntityID,
+				id:    e.EntityID,
 				Alias: e.OriginalName,
 			}
 		}
@@ -43,8 +43,8 @@ func RunScene(message, aiMessage, deviceId string) string {
 		var id string
 
 		for _, v := range gShortAutomations {
-			if strings.Contains(result, v.Id) {
-				id = v.Id
+			if strings.Contains(result, v.id) {
+				id = v.id
 			}
 		}
 

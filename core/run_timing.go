@@ -170,7 +170,7 @@ actions：表示要控制的设备，通过设备数据和指令数据得到。`
 
 		for _, e := range entities {
 			gShortScenes[e.UniqueID] = &shortScene{
-				Id:    e.EntityID,
+				id:    e.EntityID,
 				Alias: e.OriginalName,
 			}
 		}
@@ -189,8 +189,8 @@ actions：表示要控制的设备，通过设备数据和指令数据得到。`
 		var id string
 
 		for _, v := range gShortScenes {
-			if strings.Contains(result, v.Id) {
-				id = v.Id
+			if strings.Contains(result, v.id) {
+				id = v.id
 			}
 		}
 
@@ -264,7 +264,7 @@ actions：表示要启动的脚本场景entity_id。`, id)},
 
 		for _, e := range entities {
 			gShortAutomations[e.UniqueID] = &shortScene{
-				Id:    e.EntityID,
+				id:    e.EntityID,
 				Alias: e.OriginalName,
 			}
 		}
@@ -283,8 +283,8 @@ actions：表示要启动的脚本场景entity_id。`, id)},
 		var id string
 
 		for _, v := range gShortAutomations {
-			if strings.Contains(result, v.Id) {
-				id = v.Id
+			if strings.Contains(result, v.id) {
+				id = v.id
 			}
 		}
 

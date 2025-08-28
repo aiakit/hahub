@@ -23,8 +23,8 @@ func TestChat(t *testing.T) {
 }
 
 func TestSendMessage(t *testing.T) {
-	//aaa("我有多少个场景","我还不太明白")
-	aaa("小孩房温馨场景", "我不太清楚")
+	//aaa("客厅灯是什么状态", "我还不太明白")
+	aaa("离家自动化是怎样工作的，帮我详细介绍一下", "我不太清楚")
 	select {}
 }
 
