@@ -121,6 +121,8 @@ type Device struct {
 	Model      string  `json:"model"`       //使用的模型
 	Name       string  `json:"name"`        //用户命名的产品名称
 	SwVersion  string  `json:"sw_version"`  //固件版本
+
+	NameByUser string `json:"name_by_user"` //修改设备名称后，ha会用这个字段表示修改后的名称
 }
 
 func callDeviceList() {
@@ -137,6 +139,9 @@ func callDeviceList() {
 		}
 		var filtered []*Device
 		for _, d := range data.Result {
+			if d.NameByUser != "" {
+				d.Name = d.NameByUser
+			}
 			if d.AreaID == "" {
 				continue
 			}

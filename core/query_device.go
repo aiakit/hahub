@@ -64,7 +64,7 @@ func QueryDevice(message, aiMessage, deviceId string) string {
 		}
 
 		// 修改name的构建方式，加入EntityID以避免重复
-		name = areaName + "_" + name + "_" + en.DeviceID
+		//name = areaName + "_" + name + "_" + en.DeviceID
 
 		if len(entities[name]) > 3 {
 			continue
@@ -99,8 +99,8 @@ func QueryDevice(message, aiMessage, deviceId string) string {
 	for _, d := range devicess {
 		if strings.Contains(message, d.Name) {
 			name := d.Name
-			areaName := data.SpiltAreaName(d.AreaName)
-			name = areaName + "_" + name + "_" + d.ID
+			//areaName := data.SpiltAreaName(d.AreaName)
+			//name = areaName + "_" + name + "_" + d.ID
 			if v, ok := entities[name]; ok {
 				entitiesMapTwo[name] = v
 			}
@@ -115,7 +115,8 @@ func QueryDevice(message, aiMessage, deviceId string) string {
 			}
 
 			// 同样修改这里name的构建方式
-			name := areaName + "_" + d.Name + "_" + d.ID
+			//name := areaName + "_" + d.Name + "_" + d.ID
+			name := d.Name
 
 			if _, ok := entities[name]; !ok && !strings.Contains(d.Model, "ir") {
 				ava.Debugf("漏掉计算的设备 |name=%s |mode=%s", name, d.Model)
@@ -365,7 +366,6 @@ func getFilterEntities(message string, entities map[string]*data.Entity) (map[st
 		}
 
 		if e.Category == data.CategoryHaTV {
-			e.DeviceName = e.OriginalName
 			continue
 		}
 		result[e.EntityID] = e

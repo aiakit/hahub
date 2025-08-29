@@ -76,7 +76,7 @@ func levingHomeScript() (*Script, *Automation) {
 		area := data.GetAreas()
 		if len(area) > 0 {
 			for _, v := range area {
-				result := turnOffTv(v)
+				result := TurnOffTv(v)
 				for _, v1 := range result {
 					action = append(action, v1)
 				}

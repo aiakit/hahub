@@ -84,6 +84,14 @@ func RunDevice(message, aiMessage, deviceId string) string {
 				}
 			}
 
+			//删除红外控制
+			if strings.Contains(message, "电视") {
+				if strings.Contains(v.Model, "ir") {
+					delete(device, k)
+					continue
+				}
+			}
+
 			if !strings.Contains(message, "空调") {
 				if strings.Contains(v.Model, "airc") {
 					delete(device, k)
@@ -155,15 +163,13 @@ func RunDevice(message, aiMessage, deviceId string) string {
 			}
 
 			//areaName1 := data.SpiltAreaName(v.AreaName)
-
+			//v.Name = areaName1 + v.Name + v.ID
 			//名称过滤
 			if strings.Contains(message, v.Name) ||
 				x.ContainsAllChars(message, v.Name) || x.Similarity(message, v.Name) > 0.8 {
-				//v.Name = areaName1 + v.Name + v.ID
 				devicesName = append(devicesName, v.Name)
 				deviceKeyMap[v.Name] = v
 			}
-			//v.Name = areaName1 + v.Name + v.ID
 			deviceNames = append(deviceNames, v.Name)
 			deviceKeyMapTwo[v.Name] = v
 		}
@@ -188,7 +194,7 @@ func RunDevice(message, aiMessage, deviceId string) string {
 			content = fmt.Sprintf(`这是我的全部设备名称信息%v，我所在的位置%s，根据我的意图严格返回完整的设备名称。
 1.如果我在卧室，只能控制当前卧室位置的设备。
 2.如果我不在卧室，只能控制非卧室区域的设备。
-返回格式: ["名称1","名称2"]`, deviceNames, areaName)
+返回格式: ["设备名称1","设备名称2"]`, deviceNames, areaName)
 		} else {
 			content = fmt.Sprintf(`这是我的全部设备信息%v，根据我的意图严格返回完整的设备名称。
 返回格式: ["名称1","名称2"]`, x.MustMarshalEscape2String(deviceNames))
@@ -239,7 +245,7 @@ func RunDevice(message, aiMessage, deviceId string) string {
 			sendDeviceEntity = append(sendDeviceEntity, &runDeviceEntitity{
 				Domain:     domain,
 				EntityId:   v.EntityID,
-				EntityName: v.OriginalName,
+				EntityName: v.DeviceName,
 			})
 
 			sendCommandData = append(sendCommandData, &runDeviceCommand{
@@ -264,7 +270,6 @@ func RunDevice(message, aiMessage, deviceId string) string {
 			ava.Error(err)
 			return "服务器开小差了，请重新来一次" + err.Error()
 		}
-		fmt.Println("-----1--", result2)
 
 		s := x.FindJSON(result2)
 		if len(s) == 0 {
@@ -285,6 +290,31 @@ func RunDevice(message, aiMessage, deviceId string) string {
 			if v.EntityID == "" {
 				continue
 			}
+
+			if strings.Contains(result2, "on") {
+				r, err := data.GetState(v.EntityID)
+				if err != nil {
+					ava.Error(err)
+					continue
+				}
+				if strings.Contains(strings.ToLower(r.State), "on") {
+					resultMessage += data.GetEntityByEntityId()[v.EntityID].DeviceName + "是开着的，"
+					continue
+				}
+			}
+
+			if strings.Contains(result2, "off") {
+				r, err := data.GetState(v.EntityID)
+				if err != nil {
+					ava.Error(err)
+					continue
+				}
+				if strings.Contains(strings.ToLower(r.State), "off") {
+					resultMessage += data.GetEntityByEntityId()[v.EntityID].DeviceName + "是关着的，"
+					continue
+				}
+			}
+
 			if strings.Contains(message, "热水器") {
 				//判断是不是美的，美的有bug
 				v1, ok := data.GetEntityByEntityId()[v.EntityID]
@@ -312,10 +342,17 @@ func RunDevice(message, aiMessage, deviceId string) string {
 			}
 			do := domain[0]
 
-			err = x.Post(ava.Background(), fmt.Sprintf("%s/api/services/%s", data.GetHassUrl(), do+"/"+v.SubDomain), data.GetToken(), v.Fields, nil)
-			if err != nil {
-				ava.Error(err)
-				continue
+			var isOpenTv bool
+			if strings.Contains(result2, "on") && strings.Contains(message, "电视") {
+				isOpenTv = turnOnTv(v.EntityID)
+			}
+
+			if !isOpenTv {
+				err = x.Post(ava.Background(), fmt.Sprintf("%s/api/services/%s", data.GetHassUrl(), do+"/"+v.SubDomain), data.GetToken(), v.Fields, nil)
+				if err != nil {
+					ava.Error(err)
+					continue
+				}
 			}
 
 			if resultMessage != "" {
@@ -327,7 +364,7 @@ func RunDevice(message, aiMessage, deviceId string) string {
 				}
 			}
 
-			resultMessage += v.Message
+			resultMessage += v.Messagea + "，"
 		}
 
 		if resultMessage == "" {
@@ -357,4 +394,40 @@ type runDeviceResultData struct {
 	Fields    map[string]interface{} `json:"fields"`
 	SubDomain string                 `json:"sub_domain"`
 	Message   string                 `json:"message"`
+}
+
+// 打开电视的逻辑,解决ha中一些电视无法打开，只可以关闭的问题
+// 1.根据设备id，找到设备
+// 2.判断当前设备的状态是否为关闭
+// 3.找到ir红外控制设备的名称是否和当前电视名称一致,如果一致，使用红外控制打开电视
+func turnOnTv(entityId string) bool {
+	d, ok := data.GetEntityByEntityId()[entityId]
+	if !ok {
+		return false
+	}
+
+	ir, ok := data.GetEntityCategoryMap()[data.CategoryIrTV]
+	if !ok {
+		return false
+	}
+
+	for _, v := range ir {
+		if strings.Contains(v.DeviceName, d.DeviceName) {
+			if !strings.Contains(v.OriginalName, "开机") {
+				continue
+			}
+			//使用红外控制打开电视
+			err := x.Post(ava.Background(), fmt.Sprintf("%s/api/services/button/press", data.GetHassUrl()), data.GetToken(), &data.HttpServiceData{
+				EntityId: v.EntityID,
+			}, nil)
+			if err != nil {
+				ava.Error(err)
+				return false
+			}
+			ava.Debugf("-------使用红外控制打开电视------")
+			return true
+		}
+	}
+
+	return false
 }

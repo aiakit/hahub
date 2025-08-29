@@ -6,7 +6,7 @@ import (
 )
 
 // 使用红外控制控制电视，使用电视接入ha的插件判断电视状态,红外电视名称和ha插件电视名称必须一致
-func turnOffTv(areaId string) []interface{} {
+func TurnOffTv(areaId string) []interface{} {
 	var result = make([]interface{}, 0, 2)
 
 	areanEntities, ok := data.GetEntityAreaMap()[areaId]
@@ -99,7 +99,7 @@ func turnOffTv(areaId string) []interface{} {
 }
 
 // 使用红外控制控制电视，使用电视接入ha的插件判断电视状态,红外电视名称和ha插件电视名称必须一致
-func turnOnTv(areaId string) []interface{} {
+func TurnOnTv(areaId string) []interface{} {
 	var result = make([]interface{}, 0)
 
 	areanEntites, ok := data.GetEntityAreaMap()[areaId]

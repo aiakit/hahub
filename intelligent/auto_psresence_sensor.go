@@ -156,7 +156,7 @@ func presenceSensorOff(areaName string, entity *data.Entity, entities []*data.En
 		result = append(result, e)
 	}
 
-	resultTv := turnOffTv(entity.AreaID)
+	resultTv := TurnOffTv(entity.AreaID)
 	if len(resultTv) > 0 {
 		result = append(result, resultTv...)
 	}

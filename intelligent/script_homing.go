@@ -232,7 +232,7 @@ func homingScript() (*Script, *Automation) {
 	var turnOnMessage = "是否需要为你打开"
 
 	func() {
-		result := turnOnTv(areaId)
+		result := TurnOnTv(areaId)
 		if len(result) > 0 {
 			action = append(action, result...)
 		}
