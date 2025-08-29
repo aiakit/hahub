@@ -5,9 +5,11 @@ import (
 	"hahub/data"
 	"hahub/x"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/aiakit/ava"
+	"github.com/panjf2000/ants/v2"
 )
 
 var prefixUrlCreateScript = "%s/api/config/script/config/%s"
@@ -113,27 +115,41 @@ func GetAutomation(uniqueId string, v interface{}) error {
 }
 
 func CreateScript(c *ava.Context) {
+	var pool, _ = ants.NewPool(8)
+	var wg sync.WaitGroup
+
 	for _, script := range scripts {
-		arealdy, ok := data.GetEntityCategoryMap()[data.CategoryScript]
-		if ok {
-			for _, v := range arealdy {
-				if v.UniqueID == script.id && (strings.Contains(v.OriginalName, "*") || strings.Contains(v.Name, "*")) {
-					return
+		wg.Add(1)
+		scriptItem := script // 解决闭包问题，创建局部变量
+
+		// 提交任务到协程池
+		_ = pool.Submit(func() {
+			defer wg.Done()
+
+			// 检查是否已存在同名场景
+			arealdy, ok := data.GetEntityCategoryMap()[data.CategoryScript]
+			if ok {
+				for _, v := range arealdy {
+					if v.UniqueID == scriptItem.id && (strings.Contains(v.OriginalName, "*") || strings.Contains(v.Name, "*")) {
+						return
+					}
 				}
 			}
-		}
 
-		var response Response
-		err := x.Post(c, fmt.Sprintf(prefixUrlCreateScript, data.GetHassUrl(), script.id), data.GetToken(), script, &response)
-		if err != nil {
-			c.Error(err)
-			return
-		}
-
-		if response.Result != "ok" {
-			c.Errorf("data=%v |result=%s", x.MustMarshal2String(script), x.MustMarshal2String(&response))
-		}
+			var response Response
+			err := x.Post(c, fmt.Sprintf(prefixUrlCreateScript, data.GetHassUrl(), scriptItem.id), data.GetToken(), scriptItem, &response)
+			if err != nil {
+				ava.Error(err)
+				return
+			}
+		})
 	}
+
+	// 等待所有任务完成
+	wg.Wait()
+
+	// 释放协程池资源
+	pool.Release()
 }
 
 func AddScript2Queue(c *ava.Context, script *Script) string {
@@ -153,6 +169,10 @@ func DeleteAllScript(c *ava.Context) {
 	if !ok {
 		return
 	}
+
+	var pool, _ = ants.NewPool(8)
+	var wg sync.WaitGroup
+
 	for _, entity := range entities {
 		if entity == nil {
 			continue
@@ -162,12 +182,26 @@ func DeleteAllScript(c *ava.Context) {
 			continue
 		}
 
-		url := fmt.Sprintf(prefixUrlCreateScript, data.GetHassUrl(), entity.UniqueID)
-		var response Response
-		err := x.Del(c, url, data.GetToken(), &response)
-		if response.Result != "ok" || err != nil {
-			c.Debugf("delete scene |response=%v |id=%s |err=%v", &response, x.MustMarshal2String(entity), err)
-			continue
-		}
+		wg.Add(1)
+		entityItem := entity // 解决闭包问题，创建局部变量
+
+		// 提交任务到协程池
+		_ = pool.Submit(func() {
+			defer wg.Done()
+
+			url := fmt.Sprintf(prefixUrlCreateScript, data.GetHassUrl(), entityItem.UniqueID)
+			var response Response
+			err := x.Del(c, url, data.GetToken(), &response)
+			if response.Result != "ok" || err != nil {
+				c.Debugf("delete scene |response=%v |id=%s |err=%v", &response, x.MustMarshal2String(entityItem), err)
+				return
+			}
+		})
 	}
+
+	// 等待所有任务完成
+	wg.Wait()
+
+	// 释放协程池资源
+	pool.Release()
 }

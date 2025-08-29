@@ -2,6 +2,9 @@ package data
 
 import (
 	"strings"
+	"sync"
+
+	"github.com/panjf2000/ants/v2"
 )
 
 // 区域流明配置
@@ -82,6 +85,7 @@ const (
 
 func FilterEntities(entities []*Entity, deviceMap map[string]*Device) []*Entity {
 	var filtered []*Entity
+	var lock sync.RWMutex
 
 	var areaLxStruct = map[string]struct {
 		lx string
@@ -91,105 +95,148 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*Device) []*Entity 
 	var waterHeater = make([]*Entity, 0)
 
 	var entityIdMap = make(map[string]*Entity, 20)
-	for _, e := range entities {
-		var category string
-		var subCategory string
+	var pool, _ = ants.NewPool(8)
+	var wg sync.WaitGroup
 
-		func(entity *Entity) {
+	for _, entity := range entities {
 
-			var deviceData *Device
-			//脚本和自动化数据是没有设备id的，注意不要动这里的代码
-			if v, ok := deviceMap[e.DeviceID]; ok {
-				deviceData = v
-			}
+		e := entity
+		wg.Add(1)
 
-			if deviceData != nil {
-				e.DeviceName = deviceData.Name
-				e.AreaID = deviceData.AreaID
-				e.AreaName = deviceData.AreaName
-				e.DeviceMode = deviceData.Model
-			}
+		_ = pool.Submit(func() {
 
-			// 1. 音箱
-			if deviceData != nil && strings.Contains(deviceData.Model, ".wifispeaker.") {
-				if !strings.Contains(e.OriginalName, "电视") {
-					if e.Platform == "xiaomi_home" {
-						category = CategoryXiaomiHomeSpeaker
-					} else if e.Platform == "xiaomi_miot" {
-						category = CategoryXiaomiMiotSpeaker
-					}
+			var category string
+			var subCategory string
+
+			func(entity *Entity) {
+				defer wg.Done()
+
+				var deviceData *Device
+				//脚本和自动化数据是没有设备id的，注意不要动这里的代码
+				if v, ok := deviceMap[e.DeviceID]; ok {
+					deviceData = v
 				}
-				return
-			}
 
-			// 2. 空调
-			if strings.HasPrefix(e.EntityID, "climate.") && strings.Contains(e.OriginalName, "空调") && strings.Contains(e.DeviceName, "空调") {
-				category = CategoryAirConditioner
-				return
-			}
-			// 2. 地暖
-			if strings.HasPrefix(e.DeviceName, "地暖") && strings.Contains(e.OriginalName, "地暖") && strings.Contains(e.DeviceName, "地暖") {
-				category = CategoryFloorHeating
-				return
-			}
-
-			// 3. 新风
-			if strings.HasPrefix(e.DeviceName, "新风") && strings.Contains(e.OriginalName, "新风") && strings.Contains(e.DeviceName, "新风") {
-				category = CategoryFreshAir
-				return
-			}
-
-			// 3. 虚拟事件
-			if deviceData != nil && strings.Contains(e.OriginalName, "虚拟事件") && strings.Contains(deviceData.Model, ".gateway.") {
-				category = CategoryVirtualEvent
-				return
-			}
-
-			// 4. 开关,设备和实体都是开关
-			if deviceData != nil && strings.Contains(deviceData.Model, ".switch.") && strings.Contains(e.EntityID, "switch.") {
-				if deviceData != nil && strings.Contains(deviceData.Model, ".switch.") &&
-					!strings.Contains(e.OriginalName, "指示灯") &&
-					!strings.Contains(e.OriginalName, "背光") && !strings.Contains(e.OriginalName, "拓展") {
-					category = CategorySwitch
+				if deviceData != nil {
+					e.DeviceName = deviceData.Name
+					e.AreaID = deviceData.AreaID
+					e.AreaName = deviceData.AreaName
+					e.DeviceMode = deviceData.Model
 				}
-				return
-			}
 
-			// 4.1 有线开关标记
-			if deviceData != nil && strings.Contains(deviceData.Model, ".switch.") && strings.Contains(e.EntityID, "select.") && strings.Contains(e.EntityID, "_mode_") {
-				if deviceData != nil && strings.Contains(deviceData.Model, ".switch.") {
-					st, err := GetState(e.EntityID)
-					if err != nil {
-						return
+				// 1. 音箱
+				if deviceData != nil && strings.Contains(deviceData.Model, ".wifispeaker.") {
+					if !strings.Contains(e.OriginalName, "电视") {
+						if e.Platform == "xiaomi_home" {
+							category = CategoryXiaomiHomeSpeaker
+						} else if e.Platform == "xiaomi_miot" {
+							category = CategoryXiaomiMiotSpeaker
+						}
 					}
-					if strings.Contains(st.State, "有线") {
-						category = CategorySwitchMode
-						return
-					}
-				}
-			}
-
-			// 4.2 切换类开关实体
-			if strings.Contains(e.OriginalName, "开关传感器 单击") && strings.Contains(e.EntityID, "event.") {
-				if deviceData != nil && strings.Contains(deviceData.Model, ".switch.") {
-					category = CategorySwitchClickOnce
 					return
 				}
-			}
 
-			// 4.3 开关场景按键
-			if strings.Contains(e.Name, "场景") && strings.Contains(e.EntityID, "event.") {
-				category = CategorySwitchScene
-				return
-			}
+				// 2. 空调
+				if strings.HasPrefix(e.EntityID, "climate.") && strings.Contains(e.OriginalName, "空调") && strings.Contains(e.DeviceName, "空调") {
+					category = CategoryAirConditioner
+					return
+				}
+				// 2. 地暖
+				if strings.HasPrefix(e.DeviceName, "地暖") && strings.Contains(e.OriginalName, "地暖") && strings.Contains(e.DeviceName, "地暖") {
+					category = CategoryFloorHeating
+					return
+				}
 
-			// 5. 灯
-			if strings.HasPrefix(e.EntityID, "light.") && !strings.Contains(e.EntityID, "_group_") && !strings.Contains(e.OriginalName, "指示灯") {
-				//有些开关里面的实体有light,直接不用
-				if !strings.Contains(e.DeviceName, "开关") {
-					category = CategoryLight
+				// 3. 新风
+				if strings.HasPrefix(e.DeviceName, "新风") && strings.Contains(e.OriginalName, "新风") && strings.Contains(e.DeviceName, "新风") {
+					category = CategoryFreshAir
+					return
+				}
+
+				// 3. 虚拟事件
+				if deviceData != nil && strings.Contains(e.OriginalName, "虚拟事件") && strings.Contains(deviceData.Model, ".gateway.") {
+					category = CategoryVirtualEvent
+					return
+				}
+
+				// 4. 开关,设备和实体都是开关
+				if deviceData != nil && strings.Contains(deviceData.Model, ".switch.") && strings.Contains(e.EntityID, "switch.") {
+					if deviceData != nil && strings.Contains(deviceData.Model, ".switch.") &&
+						!strings.Contains(e.OriginalName, "指示灯") &&
+						!strings.Contains(e.OriginalName, "背光") && !strings.Contains(e.OriginalName, "拓展") {
+						category = CategorySwitch
+					}
+					return
+				}
+
+				// 4.1 有线开关标记
+				if deviceData != nil && strings.Contains(deviceData.Model, ".switch.") && strings.Contains(e.EntityID, "select.") && strings.Contains(e.EntityID, "_mode_") {
+					if deviceData != nil && strings.Contains(deviceData.Model, ".switch.") {
+						st, err := GetState(e.EntityID)
+						if err != nil {
+							return
+						}
+						if strings.Contains(st.State, "有线") {
+							category = CategorySwitchMode
+							return
+						}
+					}
+				}
+
+				// 4.2 切换类开关实体
+				if strings.Contains(e.OriginalName, "开关传感器 单击") && strings.Contains(e.EntityID, "event.") {
+					if deviceData != nil && strings.Contains(deviceData.Model, ".switch.") {
+						category = CategorySwitchClickOnce
+						return
+					}
+				}
+
+				// 4.3 开关场景按键
+				if strings.Contains(e.Name, "场景") && strings.Contains(e.EntityID, "event.") {
+					category = CategorySwitchScene
+					return
+				}
+
+				// 5. 灯
+				if strings.HasPrefix(e.EntityID, "light.") && !strings.Contains(e.EntityID, "_group_") && !strings.Contains(e.OriginalName, "指示灯") {
+					//有些开关里面的实体有light,直接不用
+					if !strings.Contains(e.DeviceName, "开关") {
+						category = CategoryLight
+						if deviceData != nil {
+
+							state, _ := GetState(e.EntityID)
+							if state != nil {
+								var existTemp bool
+								var existRgb bool
+								for _, v := range state.Attributes.SupportedColorModes {
+									if v == "rgb" {
+										existRgb = true
+									}
+									if v == "color_temp" {
+										existTemp = true
+									}
+								}
+								if existRgb && !existTemp {
+									subCategory = CategoryLightRgb
+								}
+
+								if !existRgb && existTemp {
+									subCategory = CategoryLightTemp
+								}
+
+								if existRgb && existTemp {
+									subCategory = CategoryLightRgbAndTemp
+								}
+							}
+						}
+					}
+					return
+				}
+
+				////5.1 灯组
+				if strings.HasPrefix(e.EntityID, "light.") && strings.Contains(e.EntityID, "_group_") {
+					category = CategoryLightGroup
 					if deviceData != nil {
-
 						state, _ := GetState(e.EntityID)
 						if state != nil {
 							var existTemp bool
@@ -215,204 +262,180 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*Device) []*Entity 
 							}
 						}
 					}
-				}
-				return
-			}
-
-			////5.1 灯组
-			if strings.HasPrefix(e.EntityID, "light.") && strings.Contains(e.EntityID, "_group_") {
-				category = CategoryLightGroup
-				if deviceData != nil {
-					state, _ := GetState(e.EntityID)
-					if state != nil {
-						var existTemp bool
-						var existRgb bool
-						for _, v := range state.Attributes.SupportedColorModes {
-							if v == "rgb" {
-								existRgb = true
-							}
-							if v == "color_temp" {
-								existTemp = true
-							}
-						}
-						if existRgb && !existTemp {
-							subCategory = CategoryLightRgb
-						}
-
-						if !existRgb && existTemp {
-							subCategory = CategoryLightTemp
-						}
-
-						if existRgb && existTemp {
-							subCategory = CategoryLightRgbAndTemp
-						}
-					}
-				}
-				return
-			}
-
-			//5.2灯光模式
-			if strings.Contains(e.OriginalName, "默认状态 渐变时间设置，字节[0]开灯渐变时间，字节[1]关灯渐变时间，字节[2]模式渐变时间") {
-				category = CategoryLightModel
-				return
-			}
-			// 6. 窗帘
-			if strings.Contains(e.OriginalName, "窗帘") && strings.HasPrefix(e.EntityID, "cover.") {
-				category = CategoryCurtain
-				return
-			}
-
-			// 7. 存在传感器,包含了binary_sensor
-			if strings.Contains(e.EntityID, "sensor.") && (strings.Contains(e.OriginalName, "人在") || strings.Contains(e.OriginalName, "有人无人") || strings.Contains(e.OriginalName, "人体感应")) {
-				category = CategoryHumanPresenceSensor
-				return
-			}
-
-			// 8. 插座
-			if deviceData != nil && strings.Contains(deviceData.Model, "plug.") && strings.Contains(deviceData.Name, "插座") && strings.Contains(e.OriginalName, "开关 开关") && strings.HasPrefix(e.EntityID, "switch.") {
-				category = CategorySocket
-				return
-			}
-
-			// 9. 人体传感器,binary_sensor
-			if (strings.HasPrefix(e.EntityID, "event.") && strings.Contains(e.OriginalName, "有人")) ||
-				(strings.Contains(e.OriginalName, "接近远离") && strings.HasPrefix(e.EntityID, "binary_sensor.")) {
-				if deviceData != nil && strings.Contains(deviceData.Name, "-") {
-					category = CategoryHumanBodySensor
 					return
 				}
-			}
-			// 10. 温度/湿度
-			if strings.HasPrefix(e.EntityID, "sensor.") && strings.Contains(e.OriginalName, "温湿度传感器 温度") {
-				category = CategoryTemperatureSensor
-				return
-			}
-			if strings.HasPrefix(e.EntityID, "sensor.") && strings.Contains(e.OriginalName, "温湿度传感器 相对湿度") {
-				category = CategoryHumiditySensor
-				return
-			}
-			// 11. 光照,如果一个房间有多个，取当前光照值最高的那个
-			if strings.HasPrefix(e.EntityID, "sensor.") && strings.Contains(e.OriginalName, "光照") {
-				s, err := GetState(e.EntityID)
-				if err == nil {
-					if v, ok := areaLxStruct[deviceData.AreaID]; ok {
-						if strings.Compare(s.State, v.lx) > 0 {
+
+				//5.2灯光模式
+				if strings.Contains(e.OriginalName, "默认状态 渐变时间设置，字节[0]开灯渐变时间，字节[1]关灯渐变时间，字节[2]模式渐变时间") {
+					category = CategoryLightModel
+					return
+				}
+				// 6. 窗帘
+				if strings.Contains(e.OriginalName, "窗帘") && strings.HasPrefix(e.EntityID, "cover.") {
+					category = CategoryCurtain
+					return
+				}
+
+				// 7. 存在传感器,包含了binary_sensor
+				if strings.Contains(e.EntityID, "sensor.") && (strings.Contains(e.OriginalName, "人在") || strings.Contains(e.OriginalName, "有人无人") || strings.Contains(e.OriginalName, "人体感应")) {
+					category = CategoryHumanPresenceSensor
+					return
+				}
+
+				// 8. 插座
+				if deviceData != nil && strings.Contains(deviceData.Model, "plug.") && strings.Contains(deviceData.Name, "插座") && strings.Contains(e.OriginalName, "开关 开关") && strings.HasPrefix(e.EntityID, "switch.") {
+					category = CategorySocket
+					return
+				}
+
+				// 9. 人体传感器,binary_sensor
+				if (strings.HasPrefix(e.EntityID, "event.") && strings.Contains(e.OriginalName, "有人")) ||
+					(strings.Contains(e.OriginalName, "接近远离") && strings.HasPrefix(e.EntityID, "binary_sensor.")) {
+					if deviceData != nil && strings.Contains(deviceData.Name, "-") {
+						category = CategoryHumanBodySensor
+						return
+					}
+				}
+				// 10. 温度/湿度
+				if strings.HasPrefix(e.EntityID, "sensor.") && strings.Contains(e.OriginalName, "温湿度传感器 温度") {
+					category = CategoryTemperatureSensor
+					return
+				}
+				if strings.HasPrefix(e.EntityID, "sensor.") && strings.Contains(e.OriginalName, "温湿度传感器 相对湿度") {
+					category = CategoryHumiditySensor
+					return
+				}
+				// 11. 光照,如果一个房间有多个，取当前光照值最高的那个
+				if strings.HasPrefix(e.EntityID, "sensor.") && strings.Contains(e.OriginalName, "光照") {
+					s, err := GetState(e.EntityID)
+					if err == nil {
+						lock.Lock()
+						if v, ok := areaLxStruct[deviceData.AreaID]; ok {
+							if strings.Compare(s.State, v.lx) > 0 {
+								areaLxStruct[deviceData.AreaID] = struct {
+									lx string
+									e  *Entity
+								}{lx: s.State, e: e}
+							}
+						} else {
 							areaLxStruct[deviceData.AreaID] = struct {
 								lx string
 								e  *Entity
 							}{lx: s.State, e: e}
 						}
-					} else {
-						areaLxStruct[deviceData.AreaID] = struct {
-							lx string
-							e  *Entity
-						}{lx: s.State, e: e}
+						lock.Unlock()
 					}
-				}
-				return
-			}
-
-			// 12. 红外电视
-			if strings.Contains(e.OriginalName, "红外电视") && strings.EqualFold(e.Platform, "xiaomi_home") {
-				category = CategoryIrTV
-				return
-			}
-
-			// 12.1 电视
-			if strings.Contains(e.OriginalName, "电视") && strings.Contains(e.EntityID, "media_player.") && !strings.Contains(e.OriginalName, "红外") {
-				category = CategoryHaTV
-				return
-			}
-
-			// 13. 自动化
-			if strings.HasPrefix(e.EntityID, "automation.") {
-				category = CategoryAutomation
-				return
-			}
-			// 14. 场景
-			if strings.HasPrefix(e.EntityID, "scene.") {
-				category = CategoryScene
-				return
-			}
-
-			//15.馨光类型,场景设置中需要实体id
-			if deviceData != nil && strings.Contains(deviceData.Name, "馨光") {
-				category = CategoryXinGuang
-				return
-			}
-
-			//16.天然气报警
-			if strings.Contains(e.OriginalName, "天然气浓度") {
-				category = CategoryGas
-				return
-			}
-
-			//17.烟雾
-			if strings.Contains(e.OriginalName, "检测到高浓度烟雾") {
-				category = CategoryFire
-				return
-			}
-
-			//18.水
-			if strings.Contains(e.OriginalName, "检测到") && strings.Contains(e.OriginalName, "水") {
-				category = CategoryWater
-				return
-			}
-
-			//20.热水器
-			if deviceData != nil && strings.Contains(deviceData.Name, "热水器") {
-				waterHeater = append(waterHeater, e)
-				return
-			}
-
-			//21.脚本
-			if strings.HasPrefix(e.EntityID, "script.") {
-				category = CategoryScript
-				return
-			}
-
-			//22.功率实体
-			if strings.Contains(e.OriginalName, "功耗参数") && strings.HasPrefix(e.EntityID, "sensor.") {
-				category = CategoryPowerconsumption
-				return
-			}
-
-			if strings.Contains(e.OriginalName, "电池电量") && strings.HasPrefix(e.EntityID, "sensor.") {
-				category = CategoryPowe
-				return
-			}
-
-			//23.浴霸
-			if deviceData != nil && strings.Contains(deviceData.Name, "浴霸") {
-				if strings.HasPrefix(e.EntityID, "climate.") || strings.Contains(e.OriginalName, "换气") {
-					category = CateroyBathroomHeater
 					return
 				}
+
+				// 12. 红外电视
+				if strings.Contains(e.OriginalName, "红外电视") && strings.EqualFold(e.Platform, "xiaomi_home") {
+					category = CategoryIrTV
+					return
+				}
+
+				// 12.1 电视
+				if strings.Contains(e.OriginalName, "电视") && strings.Contains(e.EntityID, "media_player.") && !strings.Contains(e.OriginalName, "红外") {
+					category = CategoryHaTV
+					return
+				}
+
+				// 13. 自动化
+				if strings.HasPrefix(e.EntityID, "automation.") {
+					category = CategoryAutomation
+					return
+				}
+				// 14. 场景
+				if strings.HasPrefix(e.EntityID, "scene.") {
+					category = CategoryScene
+					return
+				}
+
+				//15.馨光类型,场景设置中需要实体id
+				if deviceData != nil && strings.Contains(deviceData.Name, "馨光") {
+					category = CategoryXinGuang
+					return
+				}
+
+				//16.天然气报警
+				if strings.Contains(e.OriginalName, "天然气浓度") {
+					category = CategoryGas
+					return
+				}
+
+				//17.烟雾
+				if strings.Contains(e.OriginalName, "检测到高浓度烟雾") {
+					category = CategoryFire
+					return
+				}
+
+				//18.水
+				if strings.Contains(e.OriginalName, "检测到") && strings.Contains(e.OriginalName, "水") {
+					category = CategoryWater
+					return
+				}
+
+				//20.热水器
+				if deviceData != nil && strings.Contains(deviceData.Name, "热水器") {
+					lock.Lock()
+					waterHeater = append(waterHeater, e)
+					lock.Unlock()
+					return
+				}
+
+				//21.脚本
+				if strings.HasPrefix(e.EntityID, "script.") {
+					category = CategoryScript
+					return
+				}
+
+				//22.功率实体
+				if strings.Contains(e.OriginalName, "功耗参数") && strings.HasPrefix(e.EntityID, "sensor.") {
+					category = CategoryPowerconsumption
+					return
+				}
+
+				if strings.Contains(e.OriginalName, "电池电量") && strings.HasPrefix(e.EntityID, "sensor.") {
+					category = CategoryPowe
+					return
+				}
+
+				//23.浴霸
+				if deviceData != nil && strings.Contains(deviceData.Name, "浴霸") {
+					if strings.HasPrefix(e.EntityID, "climate.") || strings.Contains(e.OriginalName, "换气") {
+						category = CateroyBathroomHeater
+						return
+					}
+				}
+
+				//24.床
+				if deviceData != nil && strings.Contains(deviceData.Model, ".bed.") {
+					category = CategoryBed
+					return
+				}
+
+				//门
+				if deviceData != nil && strings.Contains(deviceData.Model, ".door.") && (strings.Contains(e.OriginalName, "门状态") || strings.Contains(e.OriginalName, "电池电量")) {
+					category = CategoryDoor
+					return
+				}
+
+				category = CateOther
+			}(e)
+
+			if category != "" {
+				// 赋值区域信息
+				e.Category = category
+				e.SubCategory = subCategory
+				lock.Lock()
+				entityIdMap[e.EntityID] = e
+				filtered = append(filtered, e)
+				lock.Unlock()
 			}
-
-			//24.床
-			if deviceData != nil && strings.Contains(deviceData.Model, ".bed.") {
-				category = CategoryBed
-				return
-			}
-
-			//门
-			if deviceData != nil && strings.Contains(deviceData.Model, ".door.") && (strings.Contains(e.OriginalName, "门状态") || strings.Contains(e.OriginalName, "电池电量")) {
-				category = CategoryDoor
-				return
-			}
-
-			category = CateOther
-		}(e)
-
-		if category != "" {
-			// 赋值区域信息
-			e.Category = category
-			e.SubCategory = subCategory
-			entityIdMap[e.EntityID] = e
-			filtered = append(filtered, e)
-		}
+		})
 	}
+	wg.Wait()
+	pool.Release()
 
 	for _, e := range areaLxStruct {
 		e.e.Category = CategoryLxSensor
@@ -461,41 +484,55 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*Device) []*Entity 
 				switchEntities = append(switchEntities, e)
 			}
 		}
+
+		// 使用并发处理每个switch_mode实体
+		var wg sync.WaitGroup
+		pool, _ := ants.NewPool(8)
+
 		// 遍历所有 switch_mode
-		for _, modeEntity := range modeEntities {
-			modeState, err := GetState(modeEntity.EntityID)
-			if err != nil {
-				continue
-			}
-			modeFriendly := modeState.Attributes.FriendlyName
-			modePrefix := getPrefix(modeFriendly)
-			if !strings.Contains(modeState.State, "有线") {
-				continue
-			}
-			// 遍历所有 switch
-			for _, swEntity := range switchEntities {
+		for _, mmm := range modeEntities {
+			wg.Add(1)
+			modeEntity := mmm
 
-				if swEntity.AreaID != entityIdMap[modeEntity.EntityID].AreaID {
-					continue
-				}
-
-				swState, err := GetState(swEntity.EntityID)
+			_ = pool.Submit(func() {
+				defer wg.Done()
+				modeState, err := GetState(modeEntity.EntityID)
 				if err != nil {
-					continue
+					return
 				}
-				swFriendly := swState.Attributes.FriendlyName
-				swPrefix := getPrefix(swFriendly)
-				if modePrefix == swPrefix {
-					if v, ok := deviceMap[swEntity.DeviceID]; ok {
-						if strings.Contains(v.Name, "#") {
-							swEntity.SubCategory = CategoryWiredSwitch
-							swEntity.Category = CategoryLightGroup
+				modeFriendly := modeState.Attributes.FriendlyName
+				modePrefix := getPrefix(modeFriendly)
+				if !strings.Contains(modeState.State, "有线") {
+					return
+				}
+				// 遍历所有 switch
+				for _, swEntity := range switchEntities {
+
+					if swEntity.AreaID != entityIdMap[modeEntity.EntityID].AreaID {
+						continue
+					}
+
+					swState, err := GetState(swEntity.EntityID)
+					if err != nil {
+						continue
+					}
+					swFriendly := swState.Attributes.FriendlyName
+					swPrefix := getPrefix(swFriendly)
+					if modePrefix == swPrefix {
+						if v, ok := deviceMap[swEntity.DeviceID]; ok {
+							if strings.Contains(v.Name, "#") {
+								swEntity.SubCategory = CategoryWiredSwitch
+								swEntity.Category = CategoryLightGroup
+							}
+							break
 						}
-						break
 					}
 				}
-			}
+			})
 		}
+		wg.Wait()
+		// 释放pool资源
+		pool.Release()
 	}
 
 	for _, v := range filtered {

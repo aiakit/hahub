@@ -41,7 +41,7 @@ func Post(c *ava.Context, uri, token string, data, v interface{}) error {
 
 func Del(c *ava.Context, uri, token string, v interface{}) error {
 
-	//var now = time.Now()
+	var now = time.Now()
 
 	var header = map[string]string{
 		"Authorization": "Bearer " + token,
@@ -54,7 +54,7 @@ func Del(c *ava.Context, uri, token string, v interface{}) error {
 		return err
 	}
 
-	//c.Debugf("latency=%v秒 |uri=%v |FROM=%v", time.Now().Sub(now).Seconds(), uri, string(b))
+	c.Debugf("latency=%v秒 |uri=%v |FROM=%v", time.Now().Sub(now).Seconds(), uri, string(b))
 	if v == nil {
 		return nil
 	}
@@ -84,25 +84,21 @@ var (
 func ClientInstance() *http.Client {
 	if Client == nil {
 		Client = &http.Client{
-			Timeout: 10 * time.Second,
+			Timeout: 30 * time.Second, // 增加总超时时间
 			Transport: &http.Transport{
-				//TLSClientConfig:   &tls.Config{InsecureSkipVerify: true},
 				DisableKeepAlives: true,
-				//Proxy:             http.ProxyFromEnvironment,
 				DialContext: (&net.Dialer{
-					Timeout:   30 * time.Second,  // tcp连接超时时间
-					KeepAlive: 600 * time.Second, // 保持长连接的时间
-				}).DialContext, // 设置连接的参数
-				MaxIdleConns:          50,                // 最大空闲连接
-				MaxConnsPerHost:       100,               //每个host建立多少个连接
-				MaxIdleConnsPerHost:   100,               // 每个host保持的空闲连接数
-				ExpectContinueTimeout: 60 * time.Second,  // 等待服务第一响应的超时时间
-				IdleConnTimeout:       600 * time.Second, // 空闲连接的超时时间
+					Timeout:   10 * time.Second, // 减少 TCP 连接超时时间
+					KeepAlive: 30 * time.Second, // 保持长连接的时间
+				}).DialContext,
+				MaxIdleConns:          50,
+				MaxConnsPerHost:       100,
+				MaxIdleConnsPerHost:   50,               // 降低每个 host 的空闲连接数
+				ExpectContinueTimeout: 2 * time.Second,  // 等待服务第一响应的超时时间
+				IdleConnTimeout:       30 * time.Second, // 降低空闲连接的超时时间
 			},
 		}
-		//Client = http.DefaultClient
 	}
-
 	return Client
 }
 
