@@ -58,7 +58,7 @@ func RunAutomation(message, aiMessage, deviceId string) string {
 		result, err := chatCompletionInternal([]*chat.ChatMessage{{
 			Role: "user",
 			Content: fmt.Sprintf(`这是我的全部自动化信息%v，我所在位置是：%s，根据我的意图严格从我的自动化信息数据中选择名称返回给我。
-返回格式：["名称1","名称2"]`, sendData, data.GetAreaName(device.AreaID)),
+返回格式：["名称1","名称2"]`, x.MustMarshalEscape2String(sendData), data.GetAreaName(device.AreaID)),
 		}, {Role: "user", Content: message}})
 		if err != nil {
 			ava.Error(err)

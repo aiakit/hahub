@@ -52,18 +52,18 @@ func QueryAutomation(message, aiMessage, deviceId string) string {
 	var content string
 
 	if strings.Contains(aiMessage, "query_number") {
-		content = fmt.Sprintf(`这是我的全部自动化信息%s，我计算好了总数是%d个，根据我的意图用简洁、人性化的语言回答我。`, sendData, len(sendData))
+		content = fmt.Sprintf(`这是我的全部自动化信息%s，我计算好了总数是%d个，根据我的意图用简洁、人性化的语言回答我。`, x.MustMarshalEscape2String(sendData), len(sendData))
 	}
 
 	if strings.Contains(aiMessage, "query_detail") {
 		content = fmt.Sprintf(`这是我的全部自动化信息%v，根据我的意图用简洁、人性化的语言回答我。
-返回数据格式：["名称1","名称2"]`, sendData)
+返回数据格式：["名称1","名称2"]`, x.MustMarshalEscape2String(sendData))
 	}
 
 	if content == "" {
 		content = fmt.Sprintf(`这是我的全部自动化信息%v，根据我的意图用简洁、人性化的语言回答我：
 功能1:需要获取某个自动化，返回["名称1","名称2"]
-功能2:根据自动化名称统计自动化数量：例如："共有5个自动化"`, sendData)
+功能2:根据自动化名称统计自动化数量：例如："共有5个自动化"`, x.MustMarshalEscape2String(sendData))
 	}
 
 	//发送所有自动化简短数据给ai

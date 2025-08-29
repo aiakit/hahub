@@ -191,7 +191,7 @@ func RunDevice(message, aiMessage, deviceId string) string {
 返回格式: ["名称1","名称2"]`, deviceNames, areaName)
 		} else {
 			content = fmt.Sprintf(`这是我的全部设备信息%v，根据我的意图严格返回完整的设备名称。
-返回格式: ["名称1","名称2"]`, deviceNames)
+返回格式: ["名称1","名称2"]`, x.MustMarshalEscape2String(deviceNames))
 		}
 
 		result, err := chatCompletionInternal([]*chat.ChatMessage{
@@ -312,12 +312,22 @@ func RunDevice(message, aiMessage, deviceId string) string {
 			}
 			do := domain[0]
 
-			resultMessage += v.Message
 			err = x.Post(ava.Background(), fmt.Sprintf("%s/api/services/%s", data.GetHassUrl(), do+"/"+v.SubDomain), data.GetToken(), v.Fields, nil)
 			if err != nil {
 				ava.Error(err)
 				continue
 			}
+
+			if resultMessage != "" {
+				if x.Similarity(resultMessage, v.Message) < 0.5 {
+					resultMessage += v.Message
+					continue
+				} else {
+					continue
+				}
+			}
+
+			resultMessage += v.Message
 		}
 
 		if resultMessage == "" {

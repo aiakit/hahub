@@ -56,7 +56,7 @@ func RunScene(message, aiMessage, deviceId string) string {
 		//发送所有场景简短数据给ai
 		result, err := chatCompletionHistory([]*chat.ChatMessage{{
 			Role:    "user",
-			Content: fmt.Sprintf(`这是我的全部场景信息%v。位置信息%s，根据我的意图严格地从场景信息中选择我要的场景名称返回给我。返回格式: ["名称1","名称2"]`, sendData, data.GetAreaName(device.AreaID)),
+			Content: fmt.Sprintf(`这是我的全部场景信息%v。位置信息%s，根据我的意图严格地从场景信息中选择我要的场景名称返回给我。返回格式: ["名称1","名称2"]`, x.MustMarshalEscape2String(sendData), data.GetAreaName(device.AreaID)),
 		}, {Role: "user", Content: message}}, deviceId)
 		if err != nil {
 			ava.Error(err)
