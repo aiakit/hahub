@@ -16,13 +16,8 @@ import (
 	"github.com/aiakit/ava"
 )
 
-var switchPlay bool = false
-
 // Value:    "[" + message + ",false]", //这是发起指令的穿参数
 func PlayTextAction(deviceID, message string) {
-	if !switchPlay {
-		return
-	}
 
 	entityId, ok := gSpeakerProcess.speakerEntityPlayText[deviceID]
 	if !ok {
@@ -50,25 +45,6 @@ func PlayTextActionDirect(entityId, message string) {
 	if err != nil {
 		ava.Error(err)
 	}
-}
-
-func PlayTextActionWithMemory(deviceID, message string) {
-	entityId, ok := gSpeakerProcess.speakerEntityPlayText[deviceID]
-	if !ok {
-		return
-	}
-
-	err := x.Post(ava.Background(), data.GetHassUrl()+"/api/services/text/set_value", data.GetToken(), &data.HttpServiceData{
-		EntityId: entityId,
-		Value:    message,
-	}, nil)
-	if err != nil {
-		ava.Error(err)
-	}
-	//暂停，等待播放完成
-	time.Sleep(GetPlaybackDuration(message))
-
-	AddXiaoaiMessage(deviceID, message)
 }
 
 func GetPlaybackDuration(message string) time.Duration {
@@ -250,6 +226,7 @@ func (s *speakerProcess) runSpeakerPlayText() {
 			//查找设备id
 			if v, ok := data.GetEntityByEntityId()[message.entityId]; ok {
 				message.deviceId = v.DeviceID
+				ava.Debugf("data=%s |device=%s |entity_id=%s", x.MustMarshalEscape2String(message), x.MustMarshalEscape2String(v), message.entityId)
 			} else {
 				continue
 			}
@@ -280,12 +257,8 @@ func (s *speakerProcess) runSpeakerPlayText() {
 				continue
 			}
 
-			// 使用设备独立的锁
-			deviceLock := s.getDeviceLock(message.deviceId)
-			deviceLock.Lock()
-			s.lastUpdateTime[message.deviceId] = time.Now()
-			s.sendToRemote(message)
-			deviceLock.Unlock()
+			go s.sendToRemote(message)
+
 			//todo: 增加交互优化，如果5秒内没有收到消息，可以主动询问是否需要其他帮助，或者直接终止对话
 		}
 	}
@@ -293,10 +266,15 @@ func (s *speakerProcess) runSpeakerPlayText() {
 
 // 修改:sendToRemote现在发送整个历史记录
 func (s *speakerProcess) sendToRemote(conversations *Conversationor) {
+	deviceLock := s.getDeviceLock(conversations.deviceId)
+	deviceLock.Lock()
+	defer deviceLock.Unlock()
 
 	//1.获取函数调用
 	//2.发起调用,在处理函数中询问ai获取调用数据
 	//3.发送通知
+
+	s.lastUpdateTime[conversations.deviceId] = time.Now()
 
 	var message string
 
@@ -308,14 +286,6 @@ func (s *speakerProcess) sendToRemote(conversations *Conversationor) {
 					break
 				}
 			}
-		}
-		if !switchPlay {
-			if message != "" {
-				AddAIMessage(conversations.deviceId, message)
-				fmt.Println("--------44---", "即将播放", time.Now().Format(time.RFC3339), message)
-
-			}
-			return
 		}
 
 		if message != "" {
@@ -578,7 +548,6 @@ type chatMessage struct {
 }
 
 func (s *speakerProcess) startPolling(deviceId string) {
-	fmt.Println("----------", deviceId)
 
 	// 如果已有轮询在运行，先取消它
 	if cancel, exists := s.pollCancelFuncs[deviceId]; exists && cancel != nil {

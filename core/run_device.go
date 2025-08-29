@@ -113,7 +113,7 @@ func RunDevice(message, aiMessage, deviceId string) string {
 				}
 			}
 
-			if !strings.Contains(message, "音箱") {
+			if !strings.Contains(message, "音箱") && !strings.Contains(message, "音响") {
 				if strings.Contains(v.Model, "wifispeaker") {
 					delete(device, k)
 					continue

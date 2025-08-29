@@ -104,8 +104,8 @@ func init() {
 	}
 
 	logicDataMap[dailyConversation] = &ObjectLogic{
-		Description:  "非智能家居所在领域的其他对话，当收到非智能家居领域的对话时，使用这个对象",
-		FunctionName: "对话",
+		Description:  "学习、技术、情感、心理、生活等领域。",
+		FunctionName: "咨询",
 	}
 
 	logicDataMap[functionCallInitAll] = &ObjectLogic{
@@ -119,11 +119,11 @@ func init() {
 	}
 
 	logicDataMap[sendMessage2Speaker] = &ObjectLogic{
-		Description:  "给其他地方音箱发送消息，例如：我在客厅，给爸爸、儿子、或者奶奶发送消息，音箱会播报我要发送的内容，通过判断音箱设备名称和音箱所在区域获取哪个音箱设备。类似对讲机的功能。",
-		FunctionName: "消息播报",
+		Description:  "家庭对讲功能，允许用户在家中进行语音通话和传话。例如，用户可以通过此功能通知家人晚餐准备好了。",
+		FunctionName: "对讲功能",
 		SubFunction: []subFunction{
-			{Name: "send_message_to_someone", Description: "单播功能，给单个人发送消息"},
-			{Name: "send_message_to_multiple", Description: "广播功能，发送给多人"},
+			{Name: "send_message_to_someone", Description: "向特定人发送消息，适用于私人对话。"},
+			{Name: "send_message_to_multiple", Description: "向所有相关人员发送消息，适用于群体通知。"},
 		},
 	}
 }
