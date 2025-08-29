@@ -378,7 +378,8 @@ func handleData(event *StateChangedSimple, data []byte) {
 	// 遍历所有注册的处理器并执行
 	for _, handler := range dataHandlers {
 		//todo 初始化过滤一些不用的事件
-		handler(event, data)
+		// 使用协程处理避免阻塞
+		go handler(event, data)
 	}
 }
 

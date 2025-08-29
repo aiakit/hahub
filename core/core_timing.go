@@ -117,7 +117,7 @@ func CoreDelay(message, aiMessage, deviceId string, f FunctionHandler) string {
 		}
 
 		//启动协程
-		registerRunScene(message, aiMessage, deviceId, id, alias, f)
+		go registerRunScene(message, aiMessage, deviceId, id, alias, f)
 
 		return "已设置" + alias + "执行时触发"
 	}
@@ -179,7 +179,7 @@ func CoreDelay(message, aiMessage, deviceId string, f FunctionHandler) string {
 		}
 
 		//启动协程
-		registerRunScene(message, aiMessage, deviceId, id, alias, f)
+		go registerRunScene(message, aiMessage, deviceId, id, alias, f)
 
 		return "已设置" + alias + "执行时触发"
 	}
@@ -191,6 +191,7 @@ func registerRunScene(message, AiMessage, deviceId, id, trigger string, ff Funct
 
 	var done = make(chan struct{})
 	fId := data.RegisterDataHandler(func(simple *data.StateChangedSimple, bytes []byte) {
+		ava.Debugf("registerRunScene |data=%s", x.MustMarshal2String(simple))
 		var state chatMessage
 		err := x.Unmarshal(bytes, &state)
 		if err != nil {

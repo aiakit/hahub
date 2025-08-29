@@ -62,9 +62,7 @@ func ScriptChaos() {
 	//洗澡
 	TakeAShower(c)
 
-	for _, v := range scripts {
-		CreateScript(ava.Background(), v)
-	}
+	CreateScript(ava.Background())
 
 	ava.Debugf("latency=%.2f |all script created done! |total=%d", time.Since(now).Seconds(), len(scripts))
 
@@ -114,25 +112,27 @@ func GetAutomation(uniqueId string, v interface{}) error {
 	return nil
 }
 
-func CreateScript(c *ava.Context, script *Script) {
-	arealdy, ok := data.GetEntityCategoryMap()[data.CategoryScript]
-	if ok {
-		for _, v := range arealdy {
-			if v.UniqueID == script.id && (strings.Contains(v.OriginalName, "*") || strings.Contains(v.Name, "*")) {
-				return
+func CreateScript(c *ava.Context) {
+	for _, script := range scripts {
+		arealdy, ok := data.GetEntityCategoryMap()[data.CategoryScript]
+		if ok {
+			for _, v := range arealdy {
+				if v.UniqueID == script.id && (strings.Contains(v.OriginalName, "*") || strings.Contains(v.Name, "*")) {
+					return
+				}
 			}
 		}
-	}
 
-	var response Response
-	err := x.Post(c, fmt.Sprintf(prefixUrlCreateScript, data.GetHassUrl(), script.id), data.GetToken(), script, &response)
-	if err != nil {
-		c.Error(err)
-		return
-	}
+		var response Response
+		err := x.Post(c, fmt.Sprintf(prefixUrlCreateScript, data.GetHassUrl(), script.id), data.GetToken(), script, &response)
+		if err != nil {
+			c.Error(err)
+			return
+		}
 
-	if response.Result != "ok" {
-		c.Errorf("data=%v |result=%s", x.MustMarshal2String(script), x.MustMarshal2String(&response))
+		if response.Result != "ok" {
+			c.Errorf("data=%v |result=%s", x.MustMarshal2String(script), x.MustMarshal2String(&response))
+		}
 	}
 }
 

@@ -17,7 +17,6 @@ const (
 	queryAutomation     = "query_automation"
 	controlDevice       = "control_device"
 	queryDevice         = "query_device"
-	timingTask          = "timing_task"
 	dailyConversation   = "daily_conversation"
 	functionCallInitAll = "function_call_init_all"
 	isHandled           = "is_handled"
@@ -101,16 +100,6 @@ func init() {
 			{Name: "query_online_number", Description: "查询在线设备总数量"},
 			{Name: "query_online_state", Description: "查询在线设备状态"},
 			{Name: "query_all_number", Description: "查询设备总数量"},
-		},
-	}
-
-	logicDataMap[timingTask] = &ObjectLogic{
-		Description:  "创建一个定时任务，周期性执行",
-		FunctionName: "任务",
-		SubFunction: []subFunction{
-			{Name: "control_device", Description: "周期性控制操控某个设备"},
-			{Name: "scene", Description: "周期性运行某个场景"},
-			{Name: "automation", Description: "周期性运行某个自动化"},
 		},
 	}
 

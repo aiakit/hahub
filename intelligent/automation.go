@@ -320,9 +320,7 @@ func ChaosAutomation() {
 
 	WalkPresenceSensorAir(c)
 
-	for _, v := range autos {
-		CreateAutomation(ava.Background(), v)
-	}
+	CreateAutomation(ava.Background())
 
 	ava.Debugf("latency=%.2f |all automation created done! |total=%d", time.Since(now).Seconds(), len(autos))
 
@@ -346,36 +344,37 @@ func Chaos() {
 // 发起自动化创建
 // 在所有homeassistant自动化名称中，不能出现名称一样的自动化
 
-func CreateAutomation(c *ava.Context, automation *Automation) {
-
-	arealdy, ok := data.GetEntityCategoryMap()[data.CategoryAutomation]
-	if ok {
-		for _, v := range arealdy {
-			if v.UniqueID == automation.id && (strings.Contains(v.OriginalName, "*") || strings.Contains(v.Name, "*")) {
-				return
+func CreateAutomation(c *ava.Context) {
+	for _, automation := range autos {
+		arealdy, ok := data.GetEntityCategoryMap()[data.CategoryAutomation]
+		if ok {
+			for _, v := range arealdy {
+				if v.UniqueID == automation.id && (strings.Contains(v.OriginalName, "*") || strings.Contains(v.Name, "*")) {
+					return
+				}
 			}
 		}
-	}
 
-	var response Response
-	err := x.Post(c, fmt.Sprintf(prefixUrlCreateAutomation, data.GetHassUrl(), automation.id), data.GetToken(), automation, &response)
-	if err != nil {
-		c.Error(err)
-		return
-	}
+		var response Response
+		err := x.Post(c, fmt.Sprintf(prefixUrlCreateAutomation, data.GetHassUrl(), automation.id), data.GetToken(), automation, &response)
+		if err != nil {
+			c.Error(err)
+			return
+		}
 
-	if response.Result != "ok" {
-		c.Errorf("data=%v |data=%s", x.MustMarshal2String(automation), x.MustMarshal2String(&response))
-	}
+		if response.Result != "ok" {
+			c.Errorf("data=%v |data=%s", x.MustMarshal2String(automation), x.MustMarshal2String(&response))
+		}
 
-	if strings.Contains(automation.Alias, "布防") || strings.Contains(automation.Alias, "撤防") {
-		return
-	}
+		if strings.Contains(automation.Alias, "布防") || strings.Contains(automation.Alias, "撤防") {
+			return
+		}
 
-	err = TurnOnAutomation(c, automation.id)
-	if err != nil {
-		c.Error(err)
-		return
+		err = TurnOnAutomation(c, automation.id)
+		if err != nil {
+			c.Error(err)
+			return
+		}
 	}
 }
 

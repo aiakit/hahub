@@ -28,7 +28,6 @@ func CoreChaos() {
 	gFunctionRouter.Register(runAutomation, RunAutomation)
 	gFunctionRouter.Register(runScene, RunScene)
 	gFunctionRouter.Register(controlDevice, RunDevice)
-	gFunctionRouter.Register(timingTask, RunTming)
 	gFunctionRouter.Register(dailyConversation, Conversation)
 
 	data.RegisterDataHandler(registerHomingWelcome)

@@ -364,7 +364,7 @@ func RunDevice(message, aiMessage, deviceId string) string {
 				}
 			}
 
-			resultMessage += v.Messagea + "，"
+			resultMessage += v.Message + "，"
 		}
 
 		if resultMessage == "" {

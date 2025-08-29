@@ -50,10 +50,6 @@ func InitXinGuang(c *ava.Context) {
 			AddScript2Queue(c, s)
 		}
 	}()
-
-	for _, e := range scripts {
-		CreateScript(c, e)
-	}
 }
 
 // 设置单个馨光设备开机
