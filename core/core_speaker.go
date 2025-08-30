@@ -17,29 +17,49 @@ import (
 
 // Value:    "[" + message + ",false]", //这是发起指令的穿参数
 func PlayTextAction(deviceID, message string) {
-
 	entityId, ok := gSpeakerProcess.speakerEntityPlayText[deviceID]
 	if !ok {
 		return
 	}
 
-	err := x.Post(ava.Background(), data.GetHassUrl()+"/api/services/notify/send_message", data.GetToken(), &data.HttpServiceData{
-		EntityId: entityId,
-		Message:  message,
-	}, nil)
-	if err != nil {
-		ava.Error(err)
+	// 如果消息长度超过200字符，则拆分为多个片段
+	if len(message) > 800 {
+		// 按200字符拆分消息
+		for i := 0; i < len(message); i += 800 {
+			end := i + 800
+			if end > len(message) {
+				end = len(message)
+			}
+
+			err := x.Post(ava.Background(), data.GetHassUrl()+"/api/services/notify/send_message", data.GetToken(), &data.HttpServiceData{
+				EntityId: entityId,
+				Message:  message[i:end],
+			}, nil)
+			if err != nil {
+				ava.Error(err)
+			}
+			// 暂停，等待播放完成
+			time.Sleep(GetPlaybackDuration(message[i:end]))
+		}
+	} else {
+		err := x.Post(ava.Background(), data.GetHassUrl()+"/api/services/notify/send_message", data.GetToken(), &data.HttpServiceData{
+			EntityId: entityId,
+			Message:  message,
+		}, nil)
+		if err != nil {
+			ava.Error(err)
+		}
+		// 暂停，等待播放完成
+		time.Sleep(GetPlaybackDuration(message))
 	}
-	//暂停，等待播放完成
-	time.Sleep(GetPlaybackDuration(message))
 }
 
 func GetPlaybackDuration(message string) time.Duration {
 	// 设置中文字符和非中文字符的播报时间
 	var (
-		chineseCharDuration    = 120 * time.Millisecond
+		chineseCharDuration    = 130 * time.Millisecond
 		nonChineseCharDuration = 200 * time.Millisecond
-		minPlaybackDuration    = 1 * time.Second
+		minPlaybackDuration    = 2 * time.Second
 	)
 
 	// 计算总播报时间
@@ -106,23 +126,29 @@ type speakerProcess struct {
 	// 添加轮询控制
 	pollCancelFuncs map[string]context.CancelFunc
 
-	isReceivedLock     sync.RWMutex
-	isReceivedPlayText map[string]int32
+	aiSwitchLock sync.RWMutex
+	aiSwitch     map[string]int32
 }
 
-// todo 暂停接收包括改为针对设备，这样两种对话内容都不接收了
-func getIsReceivedPlayText(entityId string) bool {
-	gSpeakerProcess.isReceivedLock.RLock()
-	flag := gSpeakerProcess.isReceivedPlayText[entityId]
-	gSpeakerProcess.isReceivedLock.RUnlock()
-	return atomic.LoadInt32(&flag) == 0
+func aiIsLock(id string) bool {
+	gSpeakerProcess.aiSwitchLock.RLock()
+	flag := gSpeakerProcess.aiSwitch[id]
+	gSpeakerProcess.aiSwitchLock.RUnlock()
+	return atomic.LoadInt32(&flag) != 0
 }
 
-func setIsReceivedPlayText(entityId string, f int32) {
-	gSpeakerProcess.isReceivedLock.Lock()
-	flag := gSpeakerProcess.isReceivedPlayText[entityId]
-	atomic.SwapInt32(&flag, f)
-	gSpeakerProcess.isReceivedLock.Unlock()
+func aiLock(id string) {
+	gSpeakerProcess.aiSwitchLock.Lock()
+	flag := gSpeakerProcess.aiSwitch[id]
+	atomic.SwapInt32(&flag, 1)
+	gSpeakerProcess.aiSwitchLock.Unlock()
+}
+
+func aiUnlock(id string) {
+	gSpeakerProcess.aiSwitchLock.Lock()
+	flag := gSpeakerProcess.aiSwitch[id]
+	atomic.SwapInt32(&flag, 0)
+	gSpeakerProcess.aiSwitchLock.Unlock()
 }
 
 var gSpeakerProcess *speakerProcess
@@ -142,7 +168,7 @@ func chaosSpeaker() {
 		speakerEntityWakeUp:         make(map[string]string),
 		lastUpdateTime:              make(map[string]time.Time),
 		pollCancelFuncs:             make(map[string]context.CancelFunc),
-		isReceivedPlayText:          make(map[string]int32),
+		aiSwitch:                    make(map[string]int32),
 	}
 
 	entitieXiaomiHome, ok := data.GetEntityCategoryMap()[data.CategoryXiaomiHomeSpeaker]
@@ -187,7 +213,27 @@ func chaosSpeaker() {
 }
 
 func SpeakerProcessSend(message *Conversationor) {
-	gSpeakerProcess.playTextMessage <- message
+	var all string
+	for _, v := range message.Conversation {
+		all += v.Content
+	}
+
+	if aiIsLock(message.deviceId) {
+		gSpeakerProcess.playTextMessage <- message
+		if strings.Contains(all, "开启智能管家") {
+			aiUnlock(message.deviceId)
+		}
+		if isRunning {
+			isRunning = false
+		}
+	}
+
+	if !aiIsLock(message.deviceId) {
+		gSpeakerProcess.playTextMessage <- message
+		if strings.Contains(all, "关闭智能管家") {
+			aiLock(message.deviceId)
+		}
+	}
 }
 
 // 获取指定设备的锁，如果不存在则创建
@@ -215,10 +261,6 @@ func (s *speakerProcess) runSpeakerPlayText() {
 			if v, ok := data.GetEntityByEntityId()[message.entityId]; ok {
 				message.deviceId = v.DeviceID
 			} else {
-				continue
-			}
-
-			if v := getOrCreateDeviceState(message.deviceId); v != nil && loadPlayingStats(message.deviceId) == 1 {
 				continue
 			}
 
@@ -264,6 +306,10 @@ func (s *speakerProcess) sendToRemote(conversations *Conversationor) {
 	var ifAsk = true
 
 	defer func() {
+		if len(message) > 1000 {
+			message = "主人，你要的内容太长了..."
+		}
+
 		for _, msg := range conversations.Conversation {
 			if msg.Content == "" {
 				continue
@@ -425,15 +471,6 @@ func SpeakerAsk2PlayTextHandler(event *data.StateChangedSimple, body []byte) {
 	}
 
 	if strings.Contains(state.Event.Data.EntityID, "_play_text") && strings.HasPrefix(state.Event.Data.EntityID, "text.") {
-		v, ok := data.GetEntityByEntityId()[state.Event.Data.EntityID]
-		if !ok {
-			return
-		}
-
-		if !getIsReceivedPlayText(v.DeviceID) {
-			return
-		}
-
 		en, ok := data.GetEntityByEntityId()[state.Event.Data.EntityID]
 		if !ok {
 			return

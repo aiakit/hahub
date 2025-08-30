@@ -51,13 +51,13 @@ func init() {
 
 	logicData = append(logicData, &ObjectLogic{
 		Description:  "对当前智能家居系统完善情况进行等级评估",
-		FunctionName: "智能家居完善度评估",
+		FunctionName: "评估智能系统",
 		f:            Evaluate,
 	})
 
 	logicData = append(logicData, &ObjectLogic{
-		Description:  "执行智能家居演示模式，在运行过程中，可以输入暂停，继续，停止等指令",
-		FunctionName: "智能家居演示模式",
+		Description:  "对我家的智能家居演示和讲解、介绍，用户可以通过输入'演示模式'来启动演示，支持输入暂停、继续、停止等指令。",
+		FunctionName: "演示我家的智能家居系统",
 		f:            Display,
 	})
 

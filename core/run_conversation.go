@@ -16,5 +16,6 @@ func Conversation(message, aiMessage, deviceId string) string {
 		return "服务器开小差了"
 	}
 
+	ava.Debugf("conversation |data=%d", len(result))
 	return result
 }

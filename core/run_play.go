@@ -140,11 +140,11 @@ func SendMessagePlay(message, aiMessage, deviceId string) string {
 			}
 
 			//暂停ai其他对话功能
-			setIsReceivedPlayText(gSpeakerProcess.speakerEntityPlayText[playBody.Id], 1)
+			aiLock(gSpeakerProcess.speakerEntityPlayText[playBody.Id])
 			//发送广播
 			PlayTextAction(playBody.Id, playBody.Content)
 			//唤醒，监听等待
-			setIsReceivedPlayText(gSpeakerProcess.speakerEntityPlayText[playBody.Id], 0)
+			aiUnlock(gSpeakerProcess.speakerEntityPlayText[playBody.Id])
 
 			return getRandMessage()
 		}
@@ -165,11 +165,11 @@ func SendMessagePlay(message, aiMessage, deviceId string) string {
 			}
 
 			//暂停ai其他对话功能
-			setIsReceivedPlayText(gSpeakerProcess.speakerEntityPlayText[playBody.Id], 1)
+			aiLock(gSpeakerProcess.speakerEntityPlayText[playBody.Id])
 			//发送广播
 			PlayTextAction(playBody.Id, playBody.Content)
 			//唤醒，监听等待
-			setIsReceivedPlayText(gSpeakerProcess.speakerEntityPlayText[playBody.Id], 0)
+			aiUnlock(gSpeakerProcess.speakerEntityPlayText[playBody.Id])
 			return
 		}
 
@@ -185,12 +185,12 @@ func SendMessagePlay(message, aiMessage, deviceId string) string {
 
 			go func() {
 				//暂停ai其他对话功能
-				setIsReceivedPlayText(stopId, 1)
+				aiLock(stopId)
 				//发送广播
 				PlayTextAction(playId, playBody.Content)
 				//唤醒，监听等待
 				//开启接收
-				setIsReceivedPlayText(stopId, 0)
+				aiUnlock(stopId)
 			}()
 
 		}

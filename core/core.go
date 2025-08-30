@@ -78,8 +78,8 @@ func findFunction(message string) string {
 	return "开发中"
 }
 
-var systemPrompts = `你是一个智能家居助理。你的中文名:小爱同学,英文名:jax，和你共同工作的另一个AI助理的英文名字叫：jinx,中文名字：金克丝。你的所有回答必须简洁，以下是我们最近的对话记录%s。`
-var systemPromptsNone = `你是一个智能家居助理。你的中文名:小爱同学,英文名:jax，和你共同工作的另一个AI助理的英文名字叫：jinx,中文名字：金克丝。你的所有回答必须简洁。`
+var systemPrompts = `你是一个智能家居助理。你的中文名:小爱同学,英文名:jax，和你共同工作的另一个AI助理的英文名字叫：jinx,中文名字：金克丝。你的所有回答必须简洁内容最长不能超过800字，以下是我们最近的对话记录%s。`
+var systemPromptsNone = `你是一个智能家居助理。你的中文名:小爱同学,英文名:jax，和你共同工作的另一个AI助理的英文名字叫：jinx,中文名字：金克丝。你的所有回答必须简洁内容最长不能超过800字。`
 
 func chatCompletionInternal(msgInput []*chat.ChatMessage) (string, error) {
 	var message = make([]*chat.ChatMessage, 0, 5)
@@ -117,6 +117,10 @@ func chatCompletionHistory(msgInput []*chat.ChatMessage, deviceId string) (strin
 
 func registerHomingWelcome(simple *data.StateChangedSimple, body []byte) {
 
+	if !strings.Contains(simple.Event.Data.NewState.State, "on") {
+		return
+	}
+
 	if (strings.HasPrefix(simple.Event.Data.NewState.EntityID, "automation.") || strings.HasPrefix(simple.Event.Data.NewState.EntityID, "script.")) &&
 		strings.Contains(simple.Event.Data.NewState.Attributes.FriendlyName, "回家") {
 		result, err := chat.ChatCompletionMessage([]*chat.ChatMessage{{
@@ -148,7 +152,7 @@ func registerHomingWelcome(simple *data.StateChangedSimple, body []byte) {
 			return
 		}
 
-		setIsReceivedPlayText(id, 1)
+		aiLock(id)
 
 		err = x.Post(ava.Background(), data.GetHassUrl()+"/api/services/text/set_value", data.GetToken(), &data.HttpServiceData{
 			EntityId: id,
@@ -159,7 +163,7 @@ func registerHomingWelcome(simple *data.StateChangedSimple, body []byte) {
 		}
 
 		x.TimingwheelAfter(GetPlaybackDuration(result), func() {
-			setIsReceivedPlayText(id, 0)
+			aiUnlock(id)
 		})
 	}
 }

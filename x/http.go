@@ -15,8 +15,7 @@ import (
 	"github.com/aiakit/ava"
 )
 
-func Post(c *ava.Context, uri, token string, data, v interface{}) error {
-	//var now = time.Now()
+func PostWithOutLog(c *ava.Context, uri, token string, data, v interface{}) error {
 
 	var body = MustMarshalEscape(data)
 
@@ -44,12 +43,48 @@ func Post(c *ava.Context, uri, token string, data, v interface{}) error {
 		return err
 	}
 
-	//if len(string(b)) < 500 {
-	//	c.Debugf("latency=%v秒 |uri=%s |TO=%v |FROM=%v", time.Now().Sub(now).Seconds(), uri, string(body), string(b))
-	//} else {
-	//	c.Debugf("latency=%v秒 |uri=%s |TO=%v |FROM_LEN=%v", time.Now().Sub(now).Seconds(), uri, string(body), len(string(b)))
-	//
-	//}
+	if v == nil {
+		return nil
+	}
+
+	return Unmarshal(b, v)
+}
+
+func Post(c *ava.Context, uri, token string, data, v interface{}) error {
+	var now = time.Now()
+
+	var body = MustMarshalEscape(data)
+
+	var header = map[string]string{
+		"Authorization": "Bearer " + token,
+		"Content-Type":  "application/json",
+	}
+
+	// 添加重试机制，最多重试3次
+	var b []byte
+	var err error
+	for i := 0; i < 3; i++ {
+		b, err = post(c, uri, body, header)
+		if err == nil {
+			break
+		}
+		c.Debugf("Post请求失败，第%d次重试: %v", i+1, err)
+		if i < 2 { // 避免最后一次重试后不必要的延迟
+			time.Sleep(time.Duration(i+1) * time.Second) // 逐步增加重试间隔
+		}
+	}
+
+	if err != nil {
+		ava.Error(err)
+		return err
+	}
+
+	if len(string(b)) < 500 {
+		c.Debugf("latency=%v秒 |uri=%s |TO=%v |FROM=%v", time.Now().Sub(now).Seconds(), uri, string(body), string(b))
+	} else {
+		c.Debugf("latency=%v秒 |uri=%s |TO=%v |FROM_LEN=%v", time.Now().Sub(now).Seconds(), uri, string(body), len(string(b)))
+
+	}
 
 	if v == nil {
 		return nil
