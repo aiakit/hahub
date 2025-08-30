@@ -163,7 +163,7 @@ func RunDevice(message, aiMessage, deviceId string) string {
 			}
 
 			//areaName1 := data.SpiltAreaName(v.AreaName)
-			//v.Name = areaName1 + v.Name + v.ID
+			//v.OriginalName = areaName1 + v.OriginalName + v.ID
 			//名称过滤
 			if strings.Contains(message, v.Name) ||
 				x.ContainsAllChars(message, v.Name) || x.Similarity(message, v.Name) > 0.8 {

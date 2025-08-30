@@ -219,13 +219,15 @@ func SpeakerProcessSend(message *Conversationor) {
 	}
 
 	if aiIsLock(message.deviceId) {
-		gSpeakerProcess.playTextMessage <- message
 		if strings.Contains(all, "开启智能管家") {
 			aiUnlock(message.deviceId)
 		}
-		if isRunning {
-			isRunning = false
+		isRunningLock.Lock()
+		if descriptionIsRunning {
+			descriptionIsRunning = false
+			aiUnlock(message.deviceId)
 		}
+		isRunningLock.Unlock()
 	}
 
 	if !aiIsLock(message.deviceId) {

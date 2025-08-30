@@ -34,7 +34,7 @@ func TurnOffTv(areaId string) []interface{} {
 			// 匹配相同名称的设备
 			if e.Category == data.CategoryIrTV && strings.Contains(e.OriginalName, "关机") {
 				for _, ha := range areanEntities {
-					if ha.Category == data.CategoryHaTV && ha.Name == e.DeviceName {
+					if ha.Category == data.CategoryHaTV && ha.OriginalName == e.DeviceName {
 						// 查找红外电视的关机按钮
 						act = new(IfThenELSEAction)
 						act.If = append(act.If, ifCondition{
@@ -127,7 +127,7 @@ func TurnOnTv(areaId string) []interface{} {
 			// 匹配相同名称的设备
 			if e.Category == data.CategoryIrTV && strings.Contains(e.OriginalName, "开机") {
 				for _, ha := range areanEntites {
-					if ha.Category == data.CategoryHaTV && ha.Name == e.DeviceName {
+					if ha.Category == data.CategoryHaTV && ha.OriginalName == e.DeviceName {
 						// 查找红外电视的开机按钮
 						act = new(IfThenELSEAction)
 						act.If = append(act.If, ifCondition{

@@ -361,7 +361,7 @@ func CreateAutomation(c *ava.Context) {
 			arealdy, ok := data.GetEntityCategoryMap()[data.CategoryAutomation]
 			if ok {
 				for _, v := range arealdy {
-					if v.UniqueID == automation.id && (strings.Contains(v.OriginalName, "*") || strings.Contains(v.Name, "*")) {
+					if v.UniqueID == automation.id && (strings.Contains(v.OriginalName, "*") || strings.Contains(v.OriginalName, "*")) {
 						return
 					}
 				}
@@ -443,7 +443,7 @@ func DeleteAllAutomations(c *ava.Context) {
 			continue
 		}
 
-		if strings.Contains(entity.OriginalName, "*") || entity.Name != "" {
+		if strings.Contains(entity.OriginalName, "*") {
 			continue
 		}
 

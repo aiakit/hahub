@@ -115,7 +115,7 @@ func QueryDevice(message, aiMessage, deviceId string) string {
 			}
 
 			// 同样修改这里name的构建方式
-			//name := areaName + "_" + d.Name + "_" + d.ID
+			//name := areaName + "_" + d.OriginalName + "_" + d.ID
 			name := d.Name
 
 			if _, ok := entities[name]; !ok && !strings.Contains(d.Model, "ir") {

@@ -66,9 +66,8 @@ func CoreDelay(message, aiMessage, deviceId string, f FunctionHandler) string {
 		for _, e := range entities {
 			//判断是否有指定的场景
 			if strings.Contains(message, e.OriginalName) ||
-				x.Similarity(message, e.Name) > 0.8 ||
-				x.ContainsAllChars(message, e.OriginalName) ||
-				x.ContainsAllChars(message, e.Name) {
+				x.Similarity(message, e.OriginalName) > 0.8 ||
+				x.ContainsAllChars(message, e.OriginalName) {
 
 				gShortScenes[e.UniqueID] = &shortScene{
 					id:    e.EntityID,
@@ -132,7 +131,7 @@ func CoreDelay(message, aiMessage, deviceId string, f FunctionHandler) string {
 		}
 
 		for _, e := range entities {
-			if strings.Contains(message, e.OriginalName) || x.Similarity(message, e.Name) > 0.8 {
+			if strings.Contains(message, e.OriginalName) || x.Similarity(message, e.OriginalName) > 0.8 {
 				golaAutomation[e.UniqueID] = &shortScene{
 					id:    e.EntityID,
 					Alias: e.OriginalName,

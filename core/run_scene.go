@@ -28,9 +28,8 @@ func RunScene(message, aiMessage, deviceId string) string {
 
 		for _, e := range entities {
 			if strings.Contains(message, e.OriginalName) ||
-				x.Similarity(message, e.Name) > 0.8 ||
-				x.ContainsAllChars(message, e.OriginalName) ||
-				x.ContainsAllChars(message, e.Name) {
+				x.Similarity(message, e.OriginalName) > 0.8 ||
+				x.ContainsAllChars(message, e.OriginalName) {
 
 				gShortScenes[e.UniqueID] = &shortScene{
 					id:    e.EntityID,

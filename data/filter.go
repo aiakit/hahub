@@ -192,7 +192,7 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*Device) []*Entity 
 				}
 
 				// 4.3 开关场景按键
-				if strings.Contains(e.Name, "场景") && strings.Contains(e.EntityID, "event.") {
+				if strings.Contains(e.OriginalName, "场景") && strings.Contains(e.EntityID, "event.") {
 					category = CategorySwitchScene
 					return
 				}
@@ -535,7 +535,10 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*Device) []*Entity 
 		pool.Release()
 	}
 
-	for _, v := range filtered {
+	for k, v := range filtered {
+		if v.Name != "" {
+			filtered[k].OriginalName = v.Name
+		}
 		gHub.deviceIdState[v.DeviceID] = append(gHub.deviceIdState[v.DeviceID], v)
 		name := strings.Split(v.OriginalName, " ")
 		if len(name) == 0 {

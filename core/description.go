@@ -81,13 +81,15 @@ type simple struct {
 // step: 起始步骤 (0=介绍灯光, 1=播报总体情况, 2=逐个介绍场景和自动化)
 // sceneIndex: 场景介绍起始索引
 // automationIndex: 自动化介绍起始索引
-var isRunning bool
+var descriptionIsRunning bool
 var isRunningLock sync.RWMutex
 
 func executeSteps(deviceId string) {
 	aiLock(deviceId)
 	defer aiUnlock(deviceId)
-	isRunning = true
+	isRunningLock.Lock()
+	descriptionIsRunning = true
+	isRunningLock.Unlock()
 
 	// 第一步：介绍灯光
 	lightDevices := data.GetEntityCategoryMap()[data.CategoryLight]
@@ -115,7 +117,10 @@ func executeSteps(deviceId string) {
 	}
 
 	if len(lightDevices) > 0 {
-		if !isRunning {
+		isRunningLock.RLock()
+		running := descriptionIsRunning
+		isRunningLock.RUnlock()
+		if !running {
 			return
 		}
 		lightResult, err := chatCompletionInternal([]*chat.ChatMessage{
@@ -130,7 +135,10 @@ func executeSteps(deviceId string) {
 			ava.Error(err)
 			return
 		} else {
-			if !isRunning {
+			isRunningLock.RLock()
+			running := descriptionIsRunning
+			isRunningLock.RUnlock()
+			if !running {
 				return
 			}
 			// 这里应该调用语音播报接口
@@ -179,7 +187,10 @@ func executeSteps(deviceId string) {
 		})
 	}
 
-	if !isRunning {
+	isRunningLock.RLock()
+	running := descriptionIsRunning
+	isRunningLock.RUnlock()
+	if !running {
 		return
 	}
 	summaryResult, err := chatCompletionInternal([]*chat.ChatMessage{
@@ -199,7 +210,10 @@ func executeSteps(deviceId string) {
 		ava.Error(err)
 		return
 	} else {
-		if !isRunning {
+		isRunningLock.RLock()
+		running := descriptionIsRunning
+		isRunningLock.RUnlock()
+		if !running {
 			return
 		}
 
@@ -214,7 +228,10 @@ func executeSteps(deviceId string) {
 
 	// 介绍场景，从指定索引开始
 	for _, scene := range scenesThree {
-		if !isRunning {
+		isRunningLock.RLock()
+		running := descriptionIsRunning
+		isRunningLock.RUnlock()
+		if !running {
 			return
 		}
 		sceneResult, err := chatCompletionInternal([]*chat.ChatMessage{
@@ -229,7 +246,10 @@ func executeSteps(deviceId string) {
 			ava.Error(err)
 			return
 		} else {
-			if !isRunning {
+			isRunningLock.RLock()
+			running := descriptionIsRunning
+			isRunningLock.RUnlock()
+			if !running {
 				return
 			}
 			// 这里应该调用语音播报接口
@@ -239,7 +259,10 @@ func executeSteps(deviceId string) {
 
 	// 介绍自动化，从指定索引开始
 	for _, automation := range automationsThree {
-		if !isRunning {
+		isRunningLock.RLock()
+		running := descriptionIsRunning
+		isRunningLock.RUnlock()
+		if !running {
 			return
 		}
 		autoResult, err := chatCompletionInternal([]*chat.ChatMessage{
@@ -254,7 +277,10 @@ func executeSteps(deviceId string) {
 			ava.Error(err)
 			return
 		} else {
-			if !isRunning {
+			isRunningLock.RLock()
+			running := descriptionIsRunning
+			isRunningLock.RUnlock()
+			if !running {
 				return
 			}
 			// 这里应该调用语音播报接口

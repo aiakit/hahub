@@ -35,9 +35,9 @@ func QueryScene(message, aiMessage, deviceId string) string {
 	for _, e := range entities {
 		//判断是否有指定的场景
 		if strings.Contains(message, e.OriginalName) ||
-			x.Similarity(message, e.Name) > 0.8 ||
+			x.Similarity(message, e.OriginalName) > 0.8 ||
 			x.ContainsAllChars(message, e.OriginalName) ||
-			x.ContainsAllChars(message, e.Name) {
+			x.ContainsAllChars(message, e.OriginalName) {
 			golaScene[e.UniqueID] = &shortScene{
 				id:    e.EntityID,
 				Alias: e.OriginalName,

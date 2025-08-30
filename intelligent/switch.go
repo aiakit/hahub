@@ -128,7 +128,7 @@ func InitSwitchSelect(c *ava.Context) {
 		//场景按键
 		for _, e := range entities {
 			areaName := data.SpiltAreaName(e.AreaName)
-			bn := strings.Trim(e.Name, " ")
+			bn := strings.Trim(e.OriginalName, " ")
 
 			//如果是场景开关
 			var ss = &switchSelect{

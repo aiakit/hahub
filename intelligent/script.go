@@ -130,7 +130,7 @@ func CreateScript(c *ava.Context) {
 			arealdy, ok := data.GetEntityCategoryMap()[data.CategoryScript]
 			if ok {
 				for _, v := range arealdy {
-					if v.UniqueID == scriptItem.id && (strings.Contains(v.OriginalName, "*") || strings.Contains(v.Name, "*")) {
+					if v.UniqueID == scriptItem.id && (strings.Contains(v.OriginalName, "*") || strings.Contains(v.OriginalName, "*")) {
 						return
 					}
 				}
@@ -178,7 +178,7 @@ func DeleteAllScript(c *ava.Context) {
 			continue
 		}
 
-		if strings.Contains(entity.OriginalName, "*") || entity.Name != "" {
+		if strings.Contains(entity.OriginalName, "*") {
 			continue
 		}
 

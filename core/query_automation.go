@@ -25,9 +25,8 @@ func QueryAutomation(message, aiMessage, deviceId string) string {
 		//判断是否有指定的自动化
 		//判断是否有指定的场景
 		if strings.Contains(message, e.OriginalName) ||
-			x.Similarity(message, e.Name) > 0.8 ||
-			x.ContainsAllChars(message, e.OriginalName) ||
-			x.ContainsAllChars(message, e.Name) {
+			x.Similarity(message, e.OriginalName) > 0.8 ||
+			x.ContainsAllChars(message, e.OriginalName) {
 			golaAutomation[e.UniqueID] = &shortScene{
 				id:    e.EntityID,
 				Alias: e.OriginalName,
