@@ -11,6 +11,7 @@ import (
 
 	"github.com/aiakit/ava"
 	"github.com/gorilla/websocket"
+	"github.com/panjf2000/ants/v2"
 
 	jsoniter "github.com/json-iterator/go"
 )
@@ -375,12 +376,20 @@ func handleData(event *StateChangedSimple, data []byte) {
 	gHub.lock.RLock()
 	defer gHub.lock.RUnlock()
 
+	var pool, _ = ants.NewPool(4)
+
+	var wg sync.WaitGroup
 	// 遍历所有注册的处理器并执行
 	for _, handler := range dataHandlers {
-		//todo 初始化过滤一些不用的事件
-		// 使用协程处理避免阻塞
-		go handler(event, data)
+		wg.Add(1)
+		h := handler
+		pool.Submit(func() {
+			h(event, data)
+			wg.Done()
+		})
 	}
+	wg.Wait()
+	pool.Release()
 }
 
 func callService() {

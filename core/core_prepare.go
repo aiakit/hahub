@@ -119,11 +119,11 @@ func init() {
 	}
 
 	logicDataMap[sendMessage2Speaker] = &ObjectLogic{
-		Description:  "家庭对讲功能，允许用户在家中进行语音通话和传话。例如，用户可以通过此功能通知家人晚餐准备好了。",
+		Description:  "家庭对讲功能，允许用户在家中进行语音通话和传话。例如，用户可以通过此功能通知家人晚餐准备好了。带有‘喊’、‘叫’、‘通知’等字眼都属于对讲功能。",
 		FunctionName: "对讲功能",
 		SubFunction: []subFunction{
-			{Name: "send_message_to_someone", Description: "向特定人发送消息，适用于私人对话。"},
-			{Name: "send_message_to_multiple", Description: "向所有相关人员发送消息，适用于群体通知。"},
+			{Name: "send_message_to_someone", Description: "向特定位置或人员发送消息，适用于点对点对讲。"},
+			{Name: "send_message_to_all", Description: "向所有人员发送消息，适用于群体消息通知。"},
 		},
 	}
 }
@@ -133,8 +133,7 @@ var logicDataMap = make(map[string]*ObjectLogic)
 // 预调用提示
 var preparePrompts = `根据对话内容，以及我提供的一些功能选项，判断我的意图选择需要执行什么功能，并按照规定的格式返回数据，除了返回的数据格式，禁止有其他内容。如果我没有告诉你楼层信息，默认是一楼。
 功能选项：%s
-返回数据格式：{"功能模块":"功能名称"}
-返回数据例子：{"function":"query_device","function_name":"查询设备","sub_function":{"query_offline_number"}}`
+返回数据格式：{"function":"query_device","function_name":"查询设备","sub_function":{"query_offline_number"}}`
 
 // todo: 加入当前对话位置名称，方便操作对应位置的设备
 func prepareCall(messageInput []*chat.ChatMessage, deviceId string) (string, error) {

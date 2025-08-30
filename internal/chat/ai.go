@@ -121,12 +121,20 @@ func (d *DoubaoProvider) ChatCompletion(messages []*ChatMessage) (string, error)
 
 // ChatCompletionMessage 通用的聊天完成函数
 func ChatCompletionMessage(messages []*ChatMessage) (string, error) {
+	var sendData = make([]*ChatMessage, 0)
+	for _, v := range messages {
+		if v.Role == "" || v.Content == "" {
+			continue
+		}
+		sendData = append(sendData, v)
+	}
+
 	var now = time.Now()
-	s, err := DefaultProvider.ChatCompletion(messages)
+	s, err := DefaultProvider.ChatCompletion(sendData)
 	if err != nil {
-		ava.Debugf("TO=%s| err=%v", x.MustMarshalEscape2String(messages), err)
+		ava.Debugf("TO=%s| err=%v", x.MustMarshalEscape2String(sendData), err)
 		return s, err
 	}
-	ava.Debugf("latency=%.2f |TO=%s| FROM=%s", time.Since(now).Seconds(), x.MustMarshalEscape2String(messages), s)
+	ava.Debugf("latency=%.2f |TO=%s| FROM=%s", time.Since(now).Seconds(), x.MustMarshalEscape2String(sendData), s)
 	return s, err
 }

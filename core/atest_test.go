@@ -33,14 +33,15 @@ func TestSendMessage(t *testing.T) {
 	//aaa("走廊灯亮度调到50，色温调到3000", "我不太清楚")
 	//aaa("关闭客厅电视", "我不太清楚")
 	//aaa("每天下午5点关闭客厅电视", "我不太清楚")
-	aaa("叫小陈来吃饭了", "我不太清楚")
+	//aaa("叫花花别玩了", "我不太清楚")
+	aaa("告诉所有人我饿了", "我不太清楚")
 	select {}
 }
 
 func aaa(message1, message2 string) {
 	SpeakerProcessSend(&Conversationor{
-		Conversation: []*chat.ChatMessage{{Role: "user", Content: message1}, {Role: "assistant", Content: message2, Name: "jinx"}},
-		entityId:     "text.xiaomi_lx06_ae32_play_text", //父母房音响测试
-		deviceId:     "323aa55fea880a7e5bdb075f6a8ef925",
+		Conversation: []*chat.ChatMessage{{Role: "user", Content: message1, Name: "master"}, {Role: "assistant", Content: message2, Name: "jinx"}},
+		entityId:     "text.xiaomi_l16a_3165_play_text",
+		deviceId:     "f6bdc4c4292eccc26412727d62148dfd",
 	})
 }

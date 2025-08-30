@@ -3,7 +3,7 @@ package core
 type ObjectLogic struct {
 	Description  string        `json:"description"`
 	Object       []*Object     `json:"object"`
-	FunctionName string        `json:"function_name"`
+	FunctionName string        `json:"function_name,omitempty"`
 	SubFunction  []subFunction `json:"sub_function"`
 }
 
