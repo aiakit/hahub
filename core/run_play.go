@@ -42,10 +42,9 @@ func SendMessagePlay(message, aiMessage, deviceId string) string {
 4.name字段是你通过上下文得到的目标人员名称。
 返回JSON格式：{"id":"设备id","content":"","need_position":false,"name":"目标人员名称"}`, x.MustMarshalEscape2String(speaker), x.MustMarshalEscape2String(speakerData))
 	} else if strings.Contains(aiMessage, "send_message_to_all") {
-		content = fmt.Sprintf(`音箱设备数据：%s，根据我意图找出目标所在位置的音箱设备，你需要将我的话进行整理表达放到content字段中，并按照格式返回给我。
-返回JSON格式：
-1.传递消息给多个人：
-{"content":"小陈快来吃饭了"}`, x.MustMarshalEscape2String(speaker))
+		content = fmt.Sprintf(`音箱设备数据：%s，根据我意图找出目标所在位置的设备，并按照格式返回给我。
+1.content是你用俏皮的语气把我的意图告诉目标对象。
+返回JSON格式：{"content":""}`, x.MustMarshalEscape2String(speaker))
 	} else {
 		return "请告诉我你要发送消息给谁。"
 	}
@@ -176,9 +175,14 @@ func SendMessagePlay(message, aiMessage, deviceId string) string {
 
 		//默认广播
 		for xiaomiIotDeviceID := range gSpeakerProcess.speakerEntityPlayText {
-			//todo 广播消息不发给自己
 			stopId := xiaomiIotDeviceID
 			playId := xiaomiIotDeviceID
+
+			//消息不发送给自己
+			if playId == deviceId {
+				continue
+			}
+
 			go func() {
 				//暂停ai其他对话功能
 				setIsReceivedPlayText(stopId, 1)

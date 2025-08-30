@@ -17,18 +17,11 @@ var gFunctionRouter *FunctionRouter
 func CoreChaos() {
 	gFunctionRouter = NewFunctionRouter()
 
-	gFunctionRouter.Register(functionCallInitAll, InitALL)
-	gFunctionRouter.Register(evaluate, Evaluate)
-	gFunctionRouter.Register(display, Display)
-	gFunctionRouter.Register(isHandled, IsDone)
-	gFunctionRouter.Register(queryScene, QueryScene)
-	gFunctionRouter.Register(queryAutomation, QueryAutomation)
-	gFunctionRouter.Register(queryDevice, QueryDevice)
-	gFunctionRouter.Register(sendMessage2Speaker, SendMessagePlay)
-	gFunctionRouter.Register(runAutomation, RunAutomation)
-	gFunctionRouter.Register(runScene, RunScene)
-	gFunctionRouter.Register(controlDevice, RunDevice)
-	gFunctionRouter.Register(dailyConversation, Conversation)
+	for _, v := range logicData {
+		gFunctionRouter.Register(v.FunctionName, v.f)
+	}
+
+	gFunctionRouter.Register("开发中", IsInDevelopment)
 
 	data.RegisterDataHandler(registerHomingWelcome)
 	//data.RegisterDataHandler(registerToggleLight)
@@ -76,13 +69,13 @@ func Call(functionName, deviceId, message, aiMessage string) string {
 }
 
 func findFunction(message string) string {
-	for k := range logicDataMap {
-		if strings.Contains(message, k) {
-			return k
+	for _, v := range logicData {
+		if strings.Contains(message, v.FunctionName) {
+			return v.FunctionName
 		}
 	}
 
-	return "is_in_development"
+	return "开发中"
 }
 
 var systemPrompts = `你是一个智能家居助理。你的中文名:小爱同学,英文名:jax，和你共同工作的另一个AI助理的英文名字叫：jinx,中文名字：金克丝。你的所有回答必须简洁，以下是我们最近的对话记录%s。`
