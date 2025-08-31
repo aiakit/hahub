@@ -76,7 +76,6 @@ func callAreaList() {
 				continue
 			}
 
-			areaMap[a.AreaId] = a.Name
 			gHub.areas = append(gHub.areas, a.AreaId)
 			gHub.areaName[a.AreaId] = a.Name
 		}
@@ -138,6 +137,7 @@ func callDeviceList() {
 			return
 		}
 		var filtered []*Device
+		gHub.lock.RLock()
 		for _, d := range data.Result {
 			if d.NameByUser != "" {
 				d.Name = d.NameByUser
@@ -145,12 +145,14 @@ func callDeviceList() {
 			if d.AreaID == "" {
 				continue
 			}
-			if name, ok := areaMap[d.AreaID]; ok {
+			if name, ok := gHub.areaName[d.AreaID]; ok {
 				d.AreaName = name
 			}
 			filtered = append(filtered, d)
 			gHub.deviceMap[d.ID] = d
 		}
+		gHub.lock.RUnlock()
+
 		data.Result = filtered
 		data.Total = len(filtered)
 		ava.Debugf("total Device=%d", len(filtered))
@@ -275,9 +277,7 @@ func callEntityList() {
 		shortEntities := FilterEntities(filtered, GetDevice())
 		shortData := EntityList{ID: data.ID, Type: data.Type, Success: data.Success, Result: shortEntities}
 		shortData.Total = len(shortEntities)
-		for _, d := range shortEntities {
-			entityShortMap[d.EntityID] = d
-		}
+
 		writeToFile("entity_short.json", &shortData)
 
 		gHub.lock.Lock()
@@ -389,14 +389,16 @@ func callStates() {
 			return
 		}
 		var filter = make([]*State, 0, 1024)
+		gHub.lock.RLock()
 		for _, v := range data.Result {
 			tmp := x.MustMarshal(v)
 			id := x.Json.Get(tmp, "entity_id").ToString()
-			if _, ok := entityShortMap[id]; ok {
+			if _, ok := gHub.entityIdMap[id]; ok {
 				filter = append(filter, v)
-				stateMap[id] = v
 			}
 		}
+		gHub.lock.RUnlock()
+
 		data.Result = filter
 		data.Total = len(data.Result)
 		ava.Debugf("total states=%d", len(data.Result))

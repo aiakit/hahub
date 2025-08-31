@@ -140,6 +140,12 @@ func init() {
 		},
 		f: SendMessagePlay,
 	})
+
+	logicData = append(logicData, &ObjectLogic{
+		Description:  "判断某个区域是否有人",
+		FunctionName: "区域是否有人",
+		f:            isAnyoneHere,
+	})
 }
 
 // 预调用提示

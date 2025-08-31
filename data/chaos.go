@@ -125,6 +125,27 @@ func GetAreaName(areaId string) string {
 	return data
 }
 
+var areaNames []string
+
+func GetAreaNames() []string {
+	if len(areaNames) == 0 {
+		gHub.lock.RLock()
+		areaNames = make([]string, 0)
+		for _, v := range gHub.areaName {
+			areaNames = append(areaNames, SpiltAreaName(v))
+		}
+		gHub.lock.RUnlock()
+	}
+	return areaNames
+}
+
+func GetAreaMap() map[string]string {
+	gHub.lock.RLock()
+	data := gHub.areaName
+	gHub.lock.RUnlock()
+	return data
+}
+
 func GetAreas() []string {
 	gHub.lock.RLock()
 	data := gHub.areas
@@ -284,10 +305,6 @@ func Chaos() {
 
 // 初始化数据，设备信息-区域信息
 // 版本信息，获取版本号，替换缓存数据
-var areaMap = make(map[string]string, 10) // area_id -> name
-var entityShortMap = make(map[string]*Entity, 10)
-var stateMap = make(map[string]*State, 10)
-
 func callback() {
 	for msg := range channelMessage {
 		id := jsoniter.Get(msg, "id").ToInt64()
