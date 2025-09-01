@@ -136,6 +136,7 @@ func callDeviceList() {
 			ava.Errorf("Unmarshal deviceList error: %v", err)
 			return
 		}
+
 		var filtered []*Device
 		gHub.lock.RLock()
 		for _, d := range data.Result {
@@ -156,7 +157,7 @@ func callDeviceList() {
 		data.Result = filtered
 		data.Total = len(filtered)
 		ava.Debugf("total Device=%d", len(filtered))
-		writeToFile("Device.json", data)
+		writeToFile("device.json", data)
 		initMutex.Lock()
 		initState.devicesLoaded = true
 		initMutex.Unlock()

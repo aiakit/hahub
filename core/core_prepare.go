@@ -146,6 +146,31 @@ func init() {
 		FunctionName: "区域是否有人",
 		f:            isAnyoneHere,
 	})
+
+	logicData = append(logicData, &ObjectLogic{
+		Description:  "用于记录和管理个人记事内容的功能",
+		FunctionName: "记事本添加和查询",
+		f:            RunNote,
+		SubFunction: []subFunction{
+			{Name: "add_note", Description: "添加记事内容"},
+			{Name: "query_note", Description: "查询记事内容"},
+		},
+	})
+	logicData = append(logicData, &ObjectLogic{
+		Description:  "sos紧急请求功能",
+		FunctionName: "sos紧急求助",
+		f:            RunSOS,
+	})
+
+	logicData = append(logicData, &ObjectLogic{
+		Description:  "用于记录和管理家庭留言内容的功能",
+		FunctionName: "家庭留言功能添加和查询",
+		f:            RunNote,
+		SubFunction: []subFunction{
+			{Name: "add_message", Description: "添加留言内容"},
+			{Name: "query_message", Description: "查询留言内容"},
+		},
+	})
 }
 
 // 预调用提示

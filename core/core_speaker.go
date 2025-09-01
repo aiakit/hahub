@@ -2,6 +2,7 @@ package core
 
 import (
 	"hahub/data"
+	"hahub/intelligent"
 	"hahub/internal/chat"
 	"hahub/x"
 	"regexp"
@@ -216,6 +217,10 @@ func SpeakerProcessSend(message *Conversationor) {
 	var all string
 	for _, v := range message.Conversation {
 		all += v.Content
+	}
+
+	if strings.Contains(all, "救") {
+		intelligent.RunSript("script.sos")
 	}
 
 	if aiIsLock(message.deviceId) {

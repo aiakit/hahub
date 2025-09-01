@@ -8,6 +8,7 @@ import (
 )
 
 // 洗澡，楼层，热水器开关，温度检测，浴霸
+// 打开浴霸暖风就不要开启换气
 func TakeAShower(c *ava.Context) {
 
 	//判断是否有热水器

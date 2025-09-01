@@ -193,3 +193,14 @@ func virtualEventNotify(message string) []*ActionCommon {
 
 	return result
 }
+
+// persistentNotification 创建一个持久化通知动作
+func persistentNotification(title, message string) *ActionNotify {
+	return &ActionNotify{
+		Action: "notify.persistent_notification",
+		Data: struct {
+			Message string `json:"message,omitempty"`
+			Title   string `json:"title,omitempty"`
+		}{message, title},
+	}
+}

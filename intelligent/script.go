@@ -64,6 +64,9 @@ func ScriptChaos() {
 	//洗澡
 	TakeAShower(c)
 
+	//sos
+	Sos(c)
+
 	CreateScript(ava.Background())
 
 	ava.Debugf("latency=%.2f |all script created done! |total=%d", time.Since(now).Seconds(), len(scripts))

@@ -80,20 +80,20 @@ func TurnOffTv(areaId string) []interface{} {
 		}
 	}
 
-	// 只有红外电视设备的情况
-	for _, e := range areanEntities {
-		if sameEntity[e.EntityID] {
-			continue
-		}
-
-		if e.Category == data.CategoryIrTV && strings.Contains(e.OriginalName, "关机") {
-			result = append(result, &ActionCommon{
-				DeviceID: e.DeviceID,
-				Domain:   "button",
-				EntityID: e.EntityID,
-				Type:     "press"})
-		}
-	}
+	// 只有红外电视设备的情况，直接忽略，不然容易错误启动设备
+	//for _, e := range areanEntities {
+	//	if sameEntity[e.EntityID] {
+	//		continue
+	//	}
+	//
+	//	if e.Category == data.CategoryIrTV && strings.Contains(e.OriginalName, "关机") {
+	//		result = append(result, &ActionCommon{
+	//			DeviceID: e.DeviceID,
+	//			Domain:   "button",
+	//			EntityID: e.EntityID,
+	//			Type:     "press"})
+	//	}
+	//}
 
 	return result
 }
@@ -174,19 +174,19 @@ func TurnOnTv(areaId string) []interface{} {
 	}
 
 	// 只有红外电视设备的情况
-	for _, e := range areanEntites {
-		if sameEntity[e.EntityID] {
-			continue
-		}
-
-		if e.Category == data.CategoryIrTV && strings.Contains(e.OriginalName, "开机") {
-			result = append(result, &ActionCommon{
-				DeviceID: e.DeviceID,
-				Domain:   "button",
-				EntityID: e.EntityID,
-				Type:     "press"})
-		}
-	}
+	//for _, e := range areanEntites {
+	//	if sameEntity[e.EntityID] {
+	//		continue
+	//	}
+	//
+	//	if e.Category == data.CategoryIrTV && strings.Contains(e.OriginalName, "开机") {
+	//		result = append(result, &ActionCommon{
+	//			DeviceID: e.DeviceID,
+	//			Domain:   "button",
+	//			EntityID: e.EntityID,
+	//			Type:     "press"})
+	//	}
+	//}
 
 	return result
 }

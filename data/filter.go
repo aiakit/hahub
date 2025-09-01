@@ -1,6 +1,7 @@
 package data
 
 import (
+	"fmt"
 	"strings"
 	"sync"
 
@@ -452,6 +453,7 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*Device) []*Entity 
 	}
 
 	for _, e := range waterHeater {
+		fmt.Println("---2--", e.OriginalName)
 		e.Category = CategoryWaterHeater
 		if deviceMap != nil {
 			if dev, ok := deviceMap[e.DeviceID]; ok && dev != nil {
