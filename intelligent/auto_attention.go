@@ -145,7 +145,7 @@ func doNotify(title, message string, auto *Automation) {
 						Message string `json:"message,omitempty"`
 						Title   string `json:"title,omitempty"`
 					}{message, title},
-					Target: struct {
+					Target: &struct {
 						DeviceID string `json:"device_id,omitempty"`
 					}{DeviceID: v.DeviceID},
 				})

@@ -1,7 +1,6 @@
 package data
 
 import (
-	"fmt"
 	"strings"
 	"sync"
 
@@ -123,6 +122,13 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*Device) []*Entity 
 					e.AreaID = deviceData.AreaID
 					e.AreaName = deviceData.AreaName
 					e.DeviceMode = deviceData.Model
+					if e.OriginalName == "" && e.Name == "" {
+						e.OriginalName = deviceData.Name
+					}
+				}
+
+				if e.Name != "" {
+					e.OriginalName = e.Name
 				}
 
 				// 1. 音箱
@@ -420,8 +426,6 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*Device) []*Entity 
 					category = CategoryDoor
 					return
 				}
-
-				category = CateOther
 			}(e)
 
 			if category != "" {
@@ -453,7 +457,6 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*Device) []*Entity 
 	}
 
 	for _, e := range waterHeater {
-		fmt.Println("---2--", e.OriginalName)
 		e.Category = CategoryWaterHeater
 		if deviceMap != nil {
 			if dev, ok := deviceMap[e.DeviceID]; ok && dev != nil {
@@ -542,13 +545,6 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*Device) []*Entity 
 			filtered[k].OriginalName = v.Name
 		}
 		gHub.deviceIdState[v.DeviceID] = append(gHub.deviceIdState[v.DeviceID], v)
-		name := strings.Split(v.OriginalName, " ")
-		if len(name) == 0 {
-			continue
-		}
-		deviceName := name[0]
-
-		gHub.deviceStateByName[deviceName] = append(gHub.deviceStateByName[deviceName], v)
 	}
 
 	return filtered

@@ -267,7 +267,7 @@ type ActionNotify struct {
 		Message string `json:"message,omitempty"`
 		Title   string `json:"title,omitempty"`
 	} `json:"data,omitempty"`
-	Target struct {
+	Target *struct {
 		DeviceID string `json:"device_id,omitempty"`
 	} `json:"target,omitempty"`
 }

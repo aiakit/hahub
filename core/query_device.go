@@ -378,10 +378,6 @@ func getFilterEntities(message string, entities map[string]*data.Entity) (map[st
 			continue
 		}
 
-		if e.Category == data.CateOther {
-			continue
-		}
-
 		if e.Category == data.CategoryVirtualEvent {
 			continue
 		}

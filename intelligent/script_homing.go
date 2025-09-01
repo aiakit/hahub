@@ -51,7 +51,7 @@ func homingScript() (*Script, *Automation) {
 							Message string `json:"message,omitempty"`
 							Title   string `json:"title,omitempty"`
 						}{Message: "欢迎主人回家"},
-						Target: struct {
+						Target: &struct {
 							DeviceID string `json:"device_id,omitempty"`
 						}{DeviceID: e.DeviceID},
 					})
@@ -79,7 +79,7 @@ func homingScript() (*Script, *Automation) {
 							Message string `json:"message,omitempty"`
 							Title   string `json:"title,omitempty"`
 						}{Message: "[播放一段轻音乐,true]"},
-						Target: struct {
+						Target: &struct {
 							DeviceID string `json:"device_id,omitempty"`
 						}{DeviceID: e.DeviceID},
 					})
@@ -198,7 +198,7 @@ func homingScript() (*Script, *Automation) {
 								Message string `json:"message,omitempty"`
 								Title   string `json:"title,omitempty"`
 							}{Message: "[室内湿度,false]", Title: ""},
-							Target: struct {
+							Target: &struct {
 								DeviceID string `json:"device_id,omitempty"`
 							}{DeviceID: e.DeviceID},
 						})
@@ -218,7 +218,7 @@ func homingScript() (*Script, *Automation) {
 								Message string `json:"message,omitempty"`
 								Title   string `json:"title,omitempty"`
 							}{Message: "[室内温度,false]", Title: ""},
-							Target: struct {
+							Target: &struct {
 								DeviceID string `json:"device_id,omitempty"`
 							}{DeviceID: e.DeviceID},
 						})
@@ -288,7 +288,7 @@ func homingScript() (*Script, *Automation) {
 								Message string `json:"message,omitempty"`
 								Title   string `json:"title,omitempty"`
 							}{Message: turnOnMessage + "热水器"},
-							Target: struct {
+							Target: &struct {
 								DeviceID string `json:"device_id,omitempty"`
 							}{DeviceID: e.DeviceID},
 						})

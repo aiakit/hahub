@@ -33,7 +33,7 @@ func ExecuteTextCommand(DeviceId string, command string, silent bool) *ActionNot
 			Message string `json:"message,omitempty"`
 			Title   string `json:"title,omitempty"`
 		}{Message: fmt.Sprintf("[%s,%v]", command, silent)},
-		Target: struct {
+		Target: &struct {
 			DeviceID string `json:"device_id,omitempty"`
 		}{DeviceID: DeviceId},
 	}

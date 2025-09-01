@@ -1,6 +1,7 @@
 package intelligent
 
 import (
+	"fmt"
 	"hahub/data"
 	"strings"
 
@@ -60,6 +61,7 @@ func TakeAShower(c *ava.Context) {
 				if ok1 {
 					for _, e1 := range vv {
 						if strings.HasPrefix(e1.EntityID, "sensor.") && strings.Contains(e1.OriginalName, "温度") {
+							fmt.Println("------9")
 							isExsitTemperature = true
 							var act IfThenELSEAction
 							act.If = append(act.If, ifCondition{
@@ -73,7 +75,7 @@ func TakeAShower(c *ava.Context) {
 
 							//美的插件有bug
 							var tem float64 = 39
-							if e1.Platform == "midea_ac_lan" {
+							if e.Platform == "midea_ac_lan" {
 								tem *= 2
 							}
 
@@ -87,7 +89,7 @@ func TakeAShower(c *ava.Context) {
 
 							//todo 美的插件有bug
 							tem = 42
-							if e1.Platform == "midea_ac_lan" {
+							if e.Platform == "midea_ac_lan" {
 								tem *= 2
 							}
 
@@ -100,7 +102,6 @@ func TakeAShower(c *ava.Context) {
 							})
 
 							action = append(action, act)
-
 							break
 						}
 					}
