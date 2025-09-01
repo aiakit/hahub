@@ -314,7 +314,7 @@ func (s *speakerProcess) sendToRemote(conversations *Conversationor) {
 
 	defer func() {
 		if len(message) > 1000 {
-			message = "主人，你要的内容太长了..."
+			message = "宿主，你要的内容太长了..."
 		}
 
 		for _, msg := range conversations.Conversation {
@@ -375,7 +375,7 @@ func (s *speakerProcess) sendToRemote(conversations *Conversationor) {
 	//todo 拦截器,走拦截器逻辑
 	prepare, err := prepareCall(conversations.Conversation, conversations.deviceId)
 	if err != nil {
-		message = "主人，请稍等，网络开小差了，请重试一次..."
+		message = "宿主，请稍等，网络开小差了，请重试一次..."
 		return
 	}
 
@@ -453,18 +453,18 @@ func wakeup(deviceId string) {
 var askMessage = []string{
 	"还有什么我能为您效劳的吗?",
 	"还有什么需要帮助吗?我随时待命。",
-	"尊敬的主人,您还有什么需要吗?",
+	"尊敬的宿主,您还有什么需要吗?",
 	"您还有什么需要吗?",
 	"请告诉我您还需要我为你做什么。",
 	"如有需要,尽管告诉我。",
-	"主人,请告诉我还需要什么帮助。",
-	"主人,您还有什么吩咐吗?",
-	"主人,您还有什么需要我帮的吗?",
+	"宿主,请告诉我还需要什么帮助。",
+	"宿主,您还有什么吩咐吗?",
+	"宿主,您还有什么需要我帮的吗?",
 	"有其他需要,就告诉我。",
-	"主人，还需要什么帮助。",
-	"尊敬的主人,您还有什么需要吗?",
+	"宿主，还需要什么帮助。",
+	"尊敬的宿主,您还有什么需要吗?",
 	"如有任何需要,尽管告诉我。",
-	"主人,您还有什么需要吗?",
+	"宿主,您还有什么需要吗?",
 }
 
 func SpeakerAsk2PlayTextHandler(event *data.StateChangedSimple, body []byte) {

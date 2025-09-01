@@ -93,7 +93,7 @@ func GoodMorningScript(c *ava.Context) {
 
 				for _, e := range speakers {
 					if e.AreaID == areaId {
-						var message = `主人，早安！愿这清新的晨光带给您无限的活力与希望。愿您在新的一天中与美好相遇，拥抱每一个温馨的瞬间。相信今天会是充满机遇的一天！`
+						var message = `宿主，早安！愿这清新的晨光带给您无限的活力与希望。愿您在新的一天中与美好相遇，拥抱每一个温馨的瞬间。相信今天会是充满机遇的一天！`
 						if strings.Contains(e.AreaName, areaName) && strings.Contains(e.OriginalName, "播放文本") && strings.HasPrefix(e.EntityID, "notify.") {
 							if e.DeviceID == xiaomiHomeSpeakerDeviceId {
 								script.Sequence = append(script.Sequence, PlayText(e.EntityID, message))

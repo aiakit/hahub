@@ -127,7 +127,7 @@ func levingHomeScript() (*Script, *Automation) {
 	//					Data: struct {
 	//						Message string `json:"message,omitempty"`
 	//						Title   string `json:"title,omitempty"`
-	//					}{Message: "主人即将离家，请检查是否关闭所有电器设备", Title: ""},
+	//					}{Message: "宿主即将离家，请检查是否关闭所有电器设备", Title: ""},
 	//				})
 	//			}
 	//		}

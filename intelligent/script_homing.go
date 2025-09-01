@@ -50,7 +50,7 @@ func homingScript() (*Script, *Automation) {
 						Data: struct {
 							Message string `json:"message,omitempty"`
 							Title   string `json:"title,omitempty"`
-						}{Message: "欢迎主人回家"},
+						}{Message: "欢迎宿主回家"},
 						Target: &struct {
 							DeviceID string `json:"device_id,omitempty"`
 						}{DeviceID: e.DeviceID},

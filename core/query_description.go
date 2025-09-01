@@ -67,7 +67,7 @@ func Evaluate(message, aiMessage, deviceId string) string {
 // 2.逐个介绍场景和自动化
 func Display(message, aiMessage, deviceId string) string {
 	executeSteps(deviceId)
-	return "好的主人，正在加载数据，即将启动演示模式。"
+	return "好的宿主，正在加载数据，即将启动演示模式。"
 }
 
 type simple struct {
@@ -142,7 +142,7 @@ func executeSteps(deviceId string) {
 				return
 			}
 			// 这里应该调用语音播报接口
-			PlayTextAction(deviceId, "主人，你好，我将为你介绍家里的智能灯情况。")
+			PlayTextAction(deviceId, "宿主，你好，我将为你介绍家里的智能灯情况。")
 			PlayTextAction(deviceId, lightResult)
 		}
 	}

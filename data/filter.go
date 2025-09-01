@@ -284,7 +284,7 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*Device) []*Entity 
 				}
 
 				// 7. 存在传感器,包含了binary_sensor
-				if strings.Contains(e.EntityID, "sensor.") && (strings.Contains(e.OriginalName, "人在") || strings.Contains(e.OriginalName, "有人无人") || strings.Contains(e.OriginalName, "人体感应")) {
+				if strings.Contains(e.EntityID, "sensor.") && strings.Contains(e.DeviceName, "存在传感器") && (strings.Contains(e.OriginalName, "人在") || strings.Contains(e.OriginalName, "有人无人") || strings.Contains(e.OriginalName, "人体感应")) {
 					category = CategoryHumanPresenceSensor
 					return
 				}

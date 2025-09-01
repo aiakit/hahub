@@ -125,7 +125,7 @@ func registerHomingWelcome(simple *data.StateChangedSimple, body []byte) {
 		strings.Contains(simple.Event.Data.NewState.Attributes.FriendlyName, "回家") {
 		result, err := chat.ChatCompletionMessage([]*chat.ChatMessage{{
 			Role:    "user",
-			Content: "你是一个智能家居系统，我是你的主人，我现在回家了，你得想一句俏皮话欢迎我。",
+			Content: "你是一个智能家居系统，我是你的宿主，我现在回家了，你得想一句俏皮话欢迎我。",
 		}})
 
 		if err != nil {
