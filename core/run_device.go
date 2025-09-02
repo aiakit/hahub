@@ -16,16 +16,20 @@ func RunDevice(message, aiMessage, deviceId string) string {
 		//让ai把意图拆分
 		//根据拆分执行不同设备的不同动作
 
-		device := data.GetDevice()
+		device := data.GetDevices()
 		if len(device) == 0 {
 			ava.Debug("没有设备")
 			return "没有找到设备"
 		}
+		var deviceMap = make(map[string]*data.Device, 10)
+		for _, v := range device {
+			deviceMap[v.ID] = v
+		}
 
 		var areaName string
 		if deviceId != "" {
-			dd, ok := data.GetDevice()[deviceId]
-			if ok {
+			dd := data.GetDevice(deviceId)
+			if dd != nil {
 				areaName = data.SpiltAreaName(dd.AreaName)
 			}
 		}
@@ -46,7 +50,7 @@ func RunDevice(message, aiMessage, deviceId string) string {
 		var deviceKeyMapTwo = make(map[string]*data.Device)
 
 		//先找到设备名称
-		for k, v := range device {
+		for _, v := range device {
 			//区域过滤
 			if len(areaNames) > 0 {
 				var isExist bool
@@ -65,21 +69,21 @@ func RunDevice(message, aiMessage, deviceId string) string {
 			//类型过滤，过滤最多的两个
 			if !strings.Contains(message, "灯") {
 				if strings.Contains(v.Model, "light") {
-					delete(device, k)
+					delete(deviceMap, v.ID)
 					continue
 				}
 			}
 
 			if !strings.Contains(message, "开关") {
 				if strings.Contains(v.Model, "switch") {
-					delete(device, k)
+					delete(deviceMap, v.ID)
 					continue
 				}
 			}
 
 			if !strings.Contains(message, "电视") {
 				if strings.Contains(v.Model, "tv") {
-					delete(device, k)
+					delete(deviceMap, v.ID)
 					continue
 				}
 			}
@@ -87,77 +91,77 @@ func RunDevice(message, aiMessage, deviceId string) string {
 			//删除红外控制
 			if strings.Contains(message, "电视") {
 				if strings.Contains(v.Model, "ir") {
-					delete(device, k)
+					delete(deviceMap, v.ID)
 					continue
 				}
 			}
 
 			if !strings.Contains(message, "空调") {
 				if strings.Contains(v.Model, "airc") {
-					delete(device, k)
+					delete(deviceMap, v.ID)
 					continue
 				}
 			}
 
 			if !strings.Contains(message, "插座") {
 				if strings.Contains(v.Model, "plug") {
-					delete(device, k)
+					delete(deviceMap, v.ID)
 					continue
 				}
 			}
 
 			if !strings.Contains(message, "帘") {
 				if strings.Contains(v.Model, "curtain") {
-					delete(device, k)
+					delete(deviceMap, v.ID)
 					continue
 				}
 			}
 
 			if !strings.Contains(message, "音箱") && !strings.Contains(message, "音响") {
 				if strings.Contains(v.Model, "wifispeaker") {
-					delete(device, k)
+					delete(deviceMap, v.ID)
 					continue
 				}
 			}
 
 			if !strings.Contains(message, "存在传感器") {
 				if strings.Contains(v.Model, "sensor_occupy") {
-					delete(device, k)
+					delete(deviceMap, v.ID)
 					continue
 				}
 			}
 
 			if !strings.Contains(message, "存在传感器") {
 				if strings.Contains(v.Model, "sensor_occupy") {
-					delete(device, k)
+					delete(deviceMap, v.ID)
 					continue
 				}
 			}
 
 			if !strings.Contains(message, "人体传感器") {
 				if strings.Contains(v.Model, "motion") {
-					delete(device, k)
+					delete(deviceMap, v.ID)
 					continue
 				}
 			}
 
 			if !(strings.Contains(message, "水") && strings.Contains(message, "传感器")) {
 				if strings.Contains(v.Model, "flood") {
-					delete(device, k)
+					delete(deviceMap, v.ID)
 					continue
 				}
 			}
 
 			if !(strings.Contains(message, "空开") || strings.Contains(message, "阀") || strings.Contains(message, "闸")) {
 				if strings.Contains(v.Model, "valve") {
-					delete(device, k)
+					delete(deviceMap, v.ID)
 					continue
 				}
 			}
 
 			if !strings.Contains(message, "床") {
 				if strings.Contains(v.Model, "bed") {
-					delete(device, k)
+					delete(deviceMap, v.ID)
 					continue
 				}
 			}
@@ -238,8 +242,8 @@ func RunDevice(message, aiMessage, deviceId string) string {
 				continue
 			}
 			domain := prefix[0]
-			command, ok := data.GetService()[domain]
-			if !ok {
+			command := data.GetService(domain)
+			if command == nil {
 				continue
 			}
 			sendDeviceEntity = append(sendDeviceEntity, &runDeviceEntitity{

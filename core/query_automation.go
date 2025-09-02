@@ -137,11 +137,12 @@ func QueryAutomation(message, aiMessage, deviceId string) string {
 				automation.Actions[index] = dd
 			}
 			if k == "device_id" {
-				if _, ok := v.(string); !ok {
+				did := ""
+				if did, ok = v.(string); !ok {
 					continue
 				}
-				ee, ok := data.GetDevice()[v.(string)]
-				if !ok {
+				ee := data.GetDevice(did)
+				if ee == nil {
 					continue
 				}
 				dd["device_name"] = ee.Name
@@ -156,11 +157,12 @@ func QueryAutomation(message, aiMessage, deviceId string) string {
 
 				for k2, v2 := range v1 {
 					if k2 == "entity_id" || k2 == "device_id" {
-						if _, ok := v2.(string); !ok {
+						v2Id := ""
+						if v2Id, ok = v2.(string); !ok {
 							continue
 						}
-						ee, ok := data.GetDevice()[v2.(string)]
-						if !ok {
+						ee := data.GetDevice(v2Id)
+						if ee == nil {
 							continue
 						}
 						dd["device_name"] = ee.Name

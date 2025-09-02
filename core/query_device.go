@@ -91,7 +91,7 @@ func QueryDevice(message, aiMessage, deviceId string) string {
 
 	var countTotal = len(entities)
 
-	var devicess = data.GetDevice()
+	var devicess = data.GetDevices()
 	//如果是具体某个设备
 
 	var entitiesMapTwo = make(map[string][]shortDevice, 4)

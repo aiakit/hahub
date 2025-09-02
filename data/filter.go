@@ -50,6 +50,7 @@ const (
 	CateroyBathroomHeater       = "bathroom_heater"       //浴霸
 	CategoryBed                 = "bed"                   //床
 	CategoryDoor                = "door"                  //门
+	CategoryIPhone              = "iphone"                //苹果手机
 	CateOther                   = "other"                 //其他的类型
 )
 
@@ -83,7 +84,7 @@ const (
 // areaMap: area_id -> area_name
 // deviceMap: device_id -> *Device
 
-func FilterEntities(entities []*Entity, deviceMap map[string]*Device) []*Entity {
+func FilterEntities(entities []*Entity) []*Entity {
 	var filtered []*Entity
 	var lock sync.RWMutex
 
@@ -113,7 +114,7 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*Device) []*Entity 
 
 				var deviceData *Device
 				//脚本和自动化数据是没有设备id的，注意不要动这里的代码
-				if v, ok := deviceMap[e.DeviceID]; ok {
+				if v := GetDevice(e.DeviceID); v != nil {
 					deviceData = v
 				}
 
@@ -129,6 +130,11 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*Device) []*Entity 
 
 				if e.Name != "" {
 					e.OriginalName = e.Name
+				}
+
+				if strings.Contains(e.OriginalName, "iphone") {
+					category = CategoryIPhone
+					return
 				}
 
 				// 1. 音箱
@@ -444,12 +450,10 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*Device) []*Entity 
 
 	for _, e := range areaLxStruct {
 		e.e.Category = CategoryLxSensor
-		if deviceMap != nil {
-			if dev, ok := deviceMap[e.e.DeviceID]; ok && dev != nil {
-				e.e.AreaID = dev.AreaID
-				e.e.AreaName = dev.AreaName
-				e.e.DeviceName = dev.Name // 新增：赋值设备名称
-			}
+		if dev := GetDevice(e.e.DeviceID); dev != nil {
+			e.e.AreaID = dev.AreaID
+			e.e.AreaName = dev.AreaName
+			e.e.DeviceName = dev.Name // 新增：赋值设备名称
 		}
 		entityIdMap[e.e.EntityID] = e.e
 		filtered = append(filtered, e.e)
@@ -458,12 +462,10 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*Device) []*Entity 
 
 	for _, e := range waterHeater {
 		e.Category = CategoryWaterHeater
-		if deviceMap != nil {
-			if dev, ok := deviceMap[e.DeviceID]; ok && dev != nil {
-				e.AreaID = dev.AreaID
-				e.AreaName = dev.AreaName
-				e.DeviceName = dev.Name // 新增：赋值设备名称
-			}
+		if dev := GetDevice(e.DeviceID); dev != nil {
+			e.AreaID = dev.AreaID
+			e.AreaName = dev.AreaName
+			e.DeviceName = dev.Name // 新增：赋值设备名称
 		}
 		entityIdMap[e.EntityID] = e
 		filtered = append(filtered, e)
@@ -524,7 +526,7 @@ func FilterEntities(entities []*Entity, deviceMap map[string]*Device) []*Entity 
 					swFriendly := swState.Attributes.FriendlyName
 					swPrefix := getPrefix(swFriendly)
 					if modePrefix == swPrefix {
-						if v, ok := deviceMap[swEntity.DeviceID]; ok {
+						if v := GetDevice(swEntity.DeviceID); v != nil {
 							if strings.Contains(v.Name, "#") {
 								swEntity.SubCategory = CategoryWiredSwitch
 								swEntity.Category = CategoryLightGroup

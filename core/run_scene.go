@@ -12,8 +12,8 @@ import (
 )
 
 func RunScene(message, aiMessage, deviceId string) string {
-	device, ok := data.GetDevice()[deviceId]
-	if !ok {
+	device := data.GetDevice(deviceId)
+	if device == nil {
 		return "没有找到位置设备"
 	}
 

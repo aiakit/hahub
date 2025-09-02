@@ -148,7 +148,7 @@ func init() {
 	})
 
 	logicData = append(logicData, &ObjectLogic{
-		Description:  "用于记录和管理个人记事内容的功能",
+		Description:  "用于记录和管理个人日程和重要事情备忘内容的功能",
 		FunctionName: "记事本添加和查询",
 		f:            RunNote,
 		SubFunction: []subFunction{

@@ -64,6 +64,7 @@ type hub struct {
 	callbackMapLock *sync.Mutex
 
 	// 实体类型映射和实体ID映射
+	//entityCategoryMap map[string][]*Entity // key: 设备类型(Category)，value: []*Entity
 	entityCategoryMap map[string][]*Entity // key: 设备类型(Category)，value: []*Entity
 	entityIdMap       map[string]*Entity   // key: 实体ID(EntityID)，value: *Entity
 
@@ -72,6 +73,7 @@ type hub struct {
 
 	deviceIdState map[string][]*Entity //设备id：所有实体
 	deviceMap     map[string]*Device   //设备id：设备信息
+	devices       []*Device
 
 	areas    []string
 	areaName map[string]string
@@ -81,16 +83,23 @@ type hub struct {
 	service map[string]interface{}
 }
 
-func GetDevice() map[string]*Device {
+func GetDevice(deviceId string) *Device {
 	gHub.lock.RLock()
-	data := gHub.deviceMap
+	data := gHub.deviceMap[deviceId]
 	gHub.lock.RUnlock()
 	return data
 }
 
-func GetService() map[string]interface{} {
+func GetDevices() []*Device {
 	gHub.lock.RLock()
-	data := gHub.service
+	data := gHub.devices
+	gHub.lock.RUnlock()
+	return data
+}
+
+func GetService(domain string) interface{} {
+	gHub.lock.RLock()
+	data := gHub.service[domain]
 	gHub.lock.RUnlock()
 
 	return data
@@ -176,6 +185,7 @@ func newHub() {
 		entityIdMap:       make(map[string]*Entity),
 		entityAreaMap:     make(map[string][]*Entity),
 		deviceMap:         make(map[string]*Device),
+		devices:           make([]*Device, 0),
 		areaName:          make(map[string]string),
 		areas:             make([]string, 0, 2),
 		callbackMapFunc:   make(map[int]func(data []byte)),
@@ -191,6 +201,7 @@ func releaseCache() {
 		gHub.entityIdMap = make(map[string]*Entity)
 		gHub.entityAreaMap = make(map[string][]*Entity)
 		gHub.deviceMap = make(map[string]*Device)
+		gHub.devices = make([]*Device, 0)
 		gHub.areaName = make(map[string]string)
 		gHub.areas = make([]string, 0, 2)
 		gHub.callbackMapFunc = make(map[int]func(data []byte))

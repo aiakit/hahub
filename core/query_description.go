@@ -17,7 +17,7 @@ func Evaluate(message, aiMessage, deviceId string) string {
 	//设备数量，开启情况
 	//场景数量介绍,大致有哪些场景
 	//自动化情况介绍，大致有哪些自动化
-	device := data.GetDevice()
+	device := data.GetDevices()
 	var d = make([]*shortDevice, 0)
 	for _, e := range device {
 		d = append(d, &shortDevice{
@@ -148,7 +148,7 @@ func executeSteps(deviceId string) {
 	}
 	// 第二步：简单播报情况，设备类型，设备数量，场景，自动化
 	// 在播报总体情况时也需要检查控制命令
-	devices := data.GetDevice()
+	devices := data.GetDevices()
 
 	var simpleDeviceTwo = make([]*simple, 0)
 	var deviceMap = make(map[string]bool)

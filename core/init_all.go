@@ -17,7 +17,7 @@ func InitALL(message, aiMessage, deviceId string) string {
 	//设备数量，开启情况
 	//场景数量介绍,大致有哪些场景
 	//自动化情况介绍，大致有哪些自动化
-	device := data.GetDevice()
+	device := data.GetDevices()
 	var d = make([]*shortDevice, 0)
 	for _, e := range device {
 		d = append(d, &shortDevice{

@@ -151,6 +151,7 @@ func callDeviceList() {
 			}
 			filtered = append(filtered, d)
 			gHub.deviceMap[d.ID] = d
+			gHub.devices = append(gHub.devices, d)
 		}
 		gHub.lock.RUnlock()
 
@@ -275,7 +276,7 @@ func callEntityList() {
 		writeToFile("entity.json", &data)
 		writeToFile("entity_test.json", &dataALL)
 
-		shortEntities := FilterEntities(filtered, GetDevice())
+		shortEntities := FilterEntities(filtered)
 		shortData := EntityList{ID: data.ID, Type: data.Type, Success: data.Success, Result: shortEntities}
 		shortData.Total = len(shortEntities)
 
