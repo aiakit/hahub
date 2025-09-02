@@ -20,6 +20,7 @@ import (
 var note = make([]string, 0, 10)
 var noteLock sync.RWMutex
 
+// todo 多次测试得不到正确结果。
 func RunNote(message, aiMessage, deviceId string) string {
 
 	//查询记事本
@@ -60,8 +61,10 @@ func RunNote(message, aiMessage, deviceId string) string {
 		result, err := chatCompletionInternal([]*chat.ChatMessage{
 			{
 				Role: "system",
-				Content: fmt.Sprintf(`你的一个职责是记事本，根据我给你的内容中提取记事的内容。如果我告诉了你我是谁你要返回到内容中，这样我才能知道是谁记录的此次事情。当前时间：%v，如果需要定时，按照当前时间和单位秒计算结果到timing字段中,返回JSON格式：
-{"timing":333,"content":"内容"}`, time.Now()),
+				Content: fmt.Sprintf(`你是一个日程安排管家，根据我的意图分析并返回结果。当前时间：%v。
+1. content: 日程发生之后，站在你的角度通知我的内容，例如：“下午4点56分到了，记得开会。”。
+2. dely: 日程是在多少秒之后，如果我告诉了你一个已经发生了的时间，为负数。
+返回JSON格式：{"dely":0,"content":""}`, time.Now().Format(time.DateTime)),
 			},
 			{
 				Role:    "user",
@@ -74,40 +77,56 @@ func RunNote(message, aiMessage, deviceId string) string {
 		}
 
 		var resultObject struct {
-			Timing  int    `json:"timing"`
+			Timing  int    `json:"dely"`
 			Content string `json:"content"`
 		}
 
-		err = x.Unmarshal([]byte(result), &resultObject)
+		err = x.Unmarshal([]byte(x.FindJSON(result)), &resultObject)
 		if err != nil {
 			ava.Error(err)
 			return "解析内容出错"
 		}
 
-		if resultObject.Timing > 0 {
-			registerNote(resultObject.Timing, resultObject.Content, deviceId)
+		if resultObject.Content == "" {
+			return "提取内容失败了"
 		}
+
+		msg := registerNote(resultObject.Timing, resultObject.Content, deviceId)
 
 		noteLock.Lock()
 		// 添加特殊字符前缀并保存到数组
 		note = append(note, result)
 		noteLock.Unlock()
 
-		return replyMessage[len(replyMessage)-1]
+		return msg
 	}
 
 	return ""
 }
 
-func registerNote(timing int, content, deviceId string) {
+func registerNote(timing int, content, deviceId string) string {
 	entityId, ok := gSpeakerProcess.speakerEntityPlayText[deviceId]
 	if !ok {
 		ava.Debugf("没有找到播放的音箱设备:%s", deviceId)
-		return
+		return ""
 	}
 
-	x.TimingwheelAfter(time.Second*time.Duration(timing), func() {
+	if timing > 0 {
+		x.TimingwheelAfter(time.Second*time.Duration(timing), func() {
 
+			err := x.Post(ava.Background(), data.GetHassUrl()+"/api/services/notify/send_message", data.GetToken(), &data.HttpServiceData{
+				EntityId: entityId,
+				Message:  content,
+			}, nil)
+			if err != nil {
+				ava.Error(err)
+			}
+		})
+		return replyMessage[len(replyMessage)-1]
+	}
+
+	if timing <= 0 {
+		aiLock(deviceId)
 		err := x.Post(ava.Background(), data.GetHassUrl()+"/api/services/notify/send_message", data.GetToken(), &data.HttpServiceData{
 			EntityId: entityId,
 			Message:  content,
@@ -115,5 +134,9 @@ func registerNote(timing int, content, deviceId string) {
 		if err != nil {
 			ava.Error(err)
 		}
-	})
+		GetPlaybackDuration(content)
+		aiUnlock(deviceId)
+	}
+
+	return ""
 }

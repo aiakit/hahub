@@ -147,30 +147,30 @@ func init() {
 		f:            isAnyoneHere,
 	})
 
-	logicData = append(logicData, &ObjectLogic{
-		Description:  "用于记录和管理个人日程和重要事情备忘内容的功能",
-		FunctionName: "记事本添加和查询",
-		f:            RunNote,
-		SubFunction: []subFunction{
-			{Name: "add_note", Description: "添加记事内容"},
-			{Name: "query_note", Description: "查询记事内容"},
-		},
-	})
+	//logicData = append(logicData, &ObjectLogic{
+	//	Description:  "用于记录和管理个人日程和重要事情备忘内容的功能",
+	//	FunctionName: "日程安排",
+	//	f:            RunNote,
+	//	SubFunction: []subFunction{
+	//		{Name: "add_note", Description: "添加记事内容"},
+	//		{Name: "query_note", Description: "查询记事内容"},
+	//	},
+	//})
 	logicData = append(logicData, &ObjectLogic{
 		Description:  "sos紧急请求功能",
 		FunctionName: "sos紧急求助",
 		f:            RunSOS,
 	})
 
-	logicData = append(logicData, &ObjectLogic{
-		Description:  "用于记录和管理家庭留言内容的功能",
-		FunctionName: "家庭留言功能添加和查询",
-		f:            RunNote,
-		SubFunction: []subFunction{
-			{Name: "add_message", Description: "添加留言内容"},
-			{Name: "query_message", Description: "查询留言内容"},
-		},
-	})
+	//logicData = append(logicData, &ObjectLogic{
+	//	Description:  "用于记录和管理家庭留言内容的功能",
+	//	FunctionName: "家庭留言功能添加和查询",
+	//	f:            RunMessage,
+	//	SubFunction: []subFunction{
+	//		{Name: "add_message", Description: "添加留言内容"},
+	//		{Name: "query_message", Description: "查询留言内容"},
+	//	},
+	//})
 }
 
 // 预调用提示
@@ -181,7 +181,7 @@ var preparePrompts = `根据对话内容，以及我提供的一些功能选项�
 // todo: 加入当前对话位置名称，方便操作对应位置的设备
 func prepareCall(messageInput []*chat.ChatMessage, deviceId string) (string, error) {
 	var messageList = make([]*chat.ChatMessage, 0, 6)
-	messageList = append(messageList, &chat.ChatMessage{Role: "user", Content: fmt.Sprintf(preparePrompts, x.MustMarshalEscape2String(logicData))})
+	messageList = append(messageList, &chat.ChatMessage{Role: "system", Content: fmt.Sprintf(preparePrompts, x.MustMarshalEscape2String(logicData))})
 
 	if len(messageInput) > 0 {
 		messageList = append(messageList, messageInput...)

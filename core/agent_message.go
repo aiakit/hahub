@@ -60,7 +60,7 @@ func RunMessage(message, aiMessage, deviceId string) string {
 		result, err := chatCompletionInternal([]*chat.ChatMessage{
 			{
 				Role:    "system",
-				Content: fmt.Sprintf(`你的一个职责是留言功能，根据我给你的内容中提取留言的内容。如果我知道了留言人信息，请包含在回复内容中。当前时间：%v`, time.Now()),
+				Content: fmt.Sprintf(`你的一个职责是留言功能，根据我给你的内容中提取留言的内容。如果我知道了留言人信息，请包含在回复内容中。当前时间：%v`, time.Now().Format(time.DateTime)),
 			},
 			{
 				Role:    "user",

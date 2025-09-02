@@ -6,6 +6,7 @@ import (
 	"hahub/x"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/aiakit/ava"
 )
@@ -40,11 +41,12 @@ func SendMessagePlay(message, aiMessage, deviceId string) string {
 2.content是你用俏皮的语气把我的意图告诉目标对象。
 3.设备id是通过人员位置信息得到对应的音箱设备id，我需要通过设备id进行消息播放。
 4.name字段是你通过上下文得到的目标人员名称。
-返回JSON格式：{"id":"设备id","content":"","need_position":false,"name":"目标人员名称"}`, x.MustMarshalEscape2String(speaker), x.MustMarshalEscape2String(speakerData))
+5.如果需要定时，按照当前时间和单位秒计算结果到timing字段中
+返回JSON格式：{"id":"设备id","content":"","need_position":false,"name":"目标人员名称","timing":0}`, x.MustMarshalEscape2String(speaker), x.MustMarshalEscape2String(speakerData))
 	} else if strings.Contains(aiMessage, "send_message_to_all") {
-		content = fmt.Sprintf(`音箱设备数据：%s，根据我意图找出目标所在位置的设备，并按照格式返回给我。
+		content = fmt.Sprintf(`音箱设备数据：%s，当前时间：%v,根据我意图找出目标所在位置的设备，并按照格式返回给我。
 1.content是你用俏皮的语气把我的意图告诉目标对象。
-返回JSON格式：{"content":""}`, x.MustMarshalEscape2String(speaker))
+返回JSON格式：{"content":""}`, time.Now().Format(time.DateTime), x.MustMarshalEscape2String(speaker))
 	} else {
 		return "请告诉我你要发送消息给谁。"
 	}
