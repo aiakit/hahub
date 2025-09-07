@@ -1,0 +1,12 @@
+input_text:
+  my_input_text:
+    name: "Input Text"
+    initial: "欢迎来到金大侠的家!"
+  my_input_text_1:
+    name: "Input Text"
+  my_input_text_2:
+    name: "Input Text"
+  my_input_text_3:
+    name: "Input Text"
+  my_input_text_4:
+    name: "Input Text"
