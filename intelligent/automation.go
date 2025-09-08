@@ -348,7 +348,7 @@ func Chaos() {
 // 在所有homeassistant自动化名称中，不能出现名称一样的自动化
 
 func CreateAutomation(c *ava.Context) {
-	var pool, _ = ants.NewPool(8)
+	var pool, _ = ants.NewPool(4)
 	var wg sync.WaitGroup
 
 	for _, auto := range autos {
@@ -437,7 +437,7 @@ func DeleteAllAutomations(c *ava.Context) {
 		return
 	}
 
-	var pool, _ = ants.NewPool(8)
+	var pool, _ = ants.NewPool(4)
 	var wg sync.WaitGroup
 
 	for _, entity := range entities {

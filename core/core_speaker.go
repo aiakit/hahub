@@ -303,6 +303,28 @@ func (s *speakerProcess) sendToRemote(conversations *Conversationor) {
 	deviceLock.Lock()
 	defer deviceLock.Unlock()
 
+	for _, msg := range conversations.Conversation {
+		if msg.Content == "" {
+			continue
+		}
+
+		switch msg.Role {
+		case "user":
+			AddUserMessage(conversations.deviceId, msg.Content)
+			sendMessage2Panel("input_text.my_input_text_1", "宿主："+msg.Content)
+		case "assistant":
+			if msg.Name == "jinx" {
+				AddXiaoaiMessage(conversations.deviceId, msg.Content)
+				sendMessage2Panel("input_text.my_input_text_2", "小爱："+msg.Content)
+			} else {
+				AddAIMessage(conversations.deviceId, msg.Content)
+				sendMessage2Panel("input_text.my_input_text_3", "AI："+msg.Content)
+			}
+		case "system":
+			AddSystemMessage(conversations.deviceId, msg.Content)
+		}
+	}
+
 	//1.获取函数调用
 	//2.发起调用,在处理函数中询问ai获取调用数据
 	//3.发送通知
@@ -317,28 +339,9 @@ func (s *speakerProcess) sendToRemote(conversations *Conversationor) {
 			message = "宿主，你要的内容太长了..."
 		}
 
-		for _, msg := range conversations.Conversation {
-			if msg.Content == "" {
-				continue
-			}
-
-			switch msg.Role {
-			case "user":
-				AddUserMessage(conversations.deviceId, msg.Content)
-			case "assistant":
-				if msg.Name == "jinx" {
-					AddXiaoaiMessage(conversations.deviceId, msg.Content)
-				} else {
-					AddAIMessage(conversations.deviceId, msg.Content)
-				}
-			case "system":
-				AddSystemMessage(conversations.deviceId, msg.Content)
-			}
-		}
-
 		if message != "" {
 			AddAIMessage(conversations.deviceId, message)
-
+			sendMessage2Panel("input_text.my_input_text_3", "AI："+message)
 			// 暂停轮询
 			if cancel, exists := gSpeakerProcess.pollCancelFuncs[conversations.deviceId]; exists && cancel != nil {
 				cancel()
@@ -448,6 +451,7 @@ func wakeup(deviceId string) {
 	if err != nil {
 		ava.Error(err)
 	}
+	sendMessage2Panel("input_text.my_input_text_2", "小爱："+"唤醒中。。。。。")
 }
 
 var askMessage = []string{
@@ -632,6 +636,11 @@ func (s *speakerProcess) startPolling(deviceId string) {
 
 		defer ticker.Stop()
 		defer ticker1.Stop()
+		defer func() {
+			sendMessage2Panel("input_text.my_input_text_1", "")
+			sendMessage2Panel("input_text.my_input_text_2", "")
+			sendMessage2Panel("input_text.my_input_text_3", "")
+		}()
 
 		for {
 			select {
@@ -658,4 +667,11 @@ func (s *speakerProcess) startPolling(deviceId string) {
 			}
 		}
 	}()
+}
+
+func sendMessage2Panel(entityId string, message string) {
+	x.Post(ava.Background(), data.GetHassUrl()+"/api/services/input_text/set_value", data.GetToken(), &data.HttpServiceData{
+		EntityId: entityId,
+		Value:    message,
+	}, nil)
 }

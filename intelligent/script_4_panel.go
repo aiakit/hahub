@@ -150,7 +150,7 @@ func Panel(c *ava.Context) {
 
 			var turnOffScriptId string
 			if len(s1.Sequence) > 0 {
-				turnOffScriptId = AddScript2Queue(c, s)
+				turnOffScriptId = AddScript2Queue(c, s1)
 			}
 
 			if entityId != "" {
@@ -296,7 +296,7 @@ func Panel(c *ava.Context) {
 
 	if len(allOffLight) > 0 {
 		var s1 = &Script{
-			Alias:       "全屋关灯",
+			Alias:       "关闭所有灯",
 			Description: "全屋全部区域直接关灯",
 		}
 		for _, a := range allOffLight {
@@ -304,57 +304,58 @@ func Panel(c *ava.Context) {
 		}
 
 		if len(s1.Sequence) > 0 {
-			id := AddScript2Queue(c, s1)
-			var a = &Automation{
-				Alias:       "HomePanel" + "全屋关灯",
-				Description: "3D面板上按下按键全屋关灯",
-				Mode:        "single",
-				Triggers: []*Triggers{{
-					EntityID: "input_boolean.quan_wu_deng",
-					Trigger:  "state",
-					To:       "on",
-					From:     "off",
-				}},
-			}
-			a.Actions = append(a.Actions, &ActionService{
-				Action: "script.turn_on",
-				Target: &struct {
-					EntityId string `json:"entity_id"`
-				}{EntityId: id},
-			})
-			AddAutomation2Queue(c, a)
+			AddScript2Queue(c, s1)
+			//var a = &Automation{
+			//	Alias:       "HomePanel" + "全屋关灯",
+			//	Description: "3D面板上按下按键全屋关灯",
+			//	Mode:        "single",
+			//	Triggers: []*Triggers{{
+			//		EntityID: "input_boolean.quan_wu_guan_deng",
+			//		Trigger:  "state",
+			//		To:       "on",
+			//		From:     "off",
+			//	}},
+			//}
+			//a.Actions = append(a.Actions, &ActionService{
+			//	Action: "script.turn_on",
+			//	Target: &struct {
+			//		EntityId string `json:"entity_id"`
+			//	}{EntityId: id},
+			//})
+			//AddAutomation2Queue(c, a)
 		}
 	}
 
 	if len(allOnLight) > 0 {
 		var s1 = &Script{
-			Alias:       "全屋开灯",
+			Alias:       "打开所有灯",
 			Description: "全屋全部区域直接开灯",
 		}
-		for _, a := range allOffLight {
+		for _, a := range allOnLight {
 			s1.Sequence = append(s1.Sequence, a)
 		}
 
 		if len(s1.Sequence) > 0 {
-			id := AddScript2Queue(c, s1)
-			var a = &Automation{
-				Alias:       "HomePanel" + "全屋开灯",
-				Description: "3D面板上按下按键全屋开灯",
-				Mode:        "single",
-				Triggers: []*Triggers{{
-					EntityID: "input_boolean.quan_wu_deng",
-					Trigger:  "state",
-					To:       "on",
-					From:     "off",
-				}},
-			}
-			a.Actions = append(a.Actions, &ActionService{
-				Action: "script.turn_on",
-				Target: &struct {
-					EntityId string `json:"entity_id"`
-				}{EntityId: id},
-			})
-			AddAutomation2Queue(c, a)
+			AddScript2Queue(c, s1)
+			//id := AddScript2Queue(c, s1)
+			//var a = &Automation{
+			//	Alias:       "HomePanel" + "全屋开灯",
+			//	Description: "3D面板上按下按键全屋开灯",
+			//	Mode:        "single",
+			//	Triggers: []*Triggers{{
+			//		EntityID: "input_boolean.quan_wu_kai_deng",
+			//		Trigger:  "state",
+			//		To:       "on",
+			//		From:     "off",
+			//	}},
+			//}
+			//a.Actions = append(a.Actions, &ActionService{
+			//	Action: "script.turn_on",
+			//	Target: &struct {
+			//		EntityId string `json:"entity_id"`
+			//	}{EntityId: id},
+			//})
+			//AddAutomation2Queue(c, a)
 		}
 	}
 }

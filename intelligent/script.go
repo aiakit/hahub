@@ -121,7 +121,7 @@ func GetAutomation(uniqueId string, v interface{}) error {
 }
 
 func CreateScript(c *ava.Context) {
-	var pool, _ = ants.NewPool(8)
+	var pool, _ = ants.NewPool(4)
 	var wg sync.WaitGroup
 
 	for _, script := range scripts {
@@ -176,7 +176,7 @@ func DeleteAllScript(c *ava.Context) {
 		return
 	}
 
-	var pool, _ = ants.NewPool(8)
+	var pool, _ = ants.NewPool(4)
 	var wg sync.WaitGroup
 
 	for _, entity := range entities {

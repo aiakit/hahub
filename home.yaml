@@ -493,8 +493,9 @@ views:
               text-align: center
               line-height: 67px
           - type: action-button
+            title: 关灯
             target:
-              entity_id: script.quan_wu_deng
+              entity_id: script.quan_wu_guan_deng
             action: script.turn_on
             style:
               left: 1102px

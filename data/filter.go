@@ -97,7 +97,7 @@ func FilterEntities(entities []*Entity) []*Entity {
 	var waterHeater = make([]*Entity, 0)
 
 	var entityIdMap = make(map[string]*Entity, 20)
-	var pool, _ = ants.NewPool(8)
+	var pool, _ = ants.NewPool(4)
 	var wg sync.WaitGroup
 
 	for _, entity := range entities {
@@ -500,7 +500,7 @@ func FilterEntities(entities []*Entity) []*Entity {
 
 		// 使用并发处理每个switch_mode实体
 		var wg sync.WaitGroup
-		pool, _ := ants.NewPool(8)
+		pool, _ := ants.NewPool(4)
 
 		// 遍历所有 switch_mode
 		for _, mmm := range modeEntities {

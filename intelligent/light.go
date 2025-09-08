@@ -39,7 +39,7 @@ func turnOnLight(e *data.Entity, brightnessPct float64, kelvin int, openConditio
 	//只打开开关
 	if e.SubCategory == data.CategoryWiredSwitch {
 		result = append(result, &ActionLight{
-			Action: "switch.turn_off",
+			Action: "switch.turn_on",
 			Target: &targetLightData{EntityId: e.EntityID, DeviceId: e.DeviceID},
 		})
 		if openCondition {
