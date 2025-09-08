@@ -70,7 +70,7 @@ func (o *OpenAIProvider) ChatCompletion(messages []*ChatMessage) (string, error)
 	)
 
 	if err != nil {
-		ava.Errorf("openai ChatCompletion error=%v |data=%s", err, x.MustMarshalEscape2String(messages))
+		ava.Errorf("openai ChatCompletion error=%v |data=%s", err, x.MustMarshal2String(messages))
 		return "", err
 	}
 
@@ -131,9 +131,9 @@ func ChatCompletionMessage(messages []*ChatMessage) (string, error) {
 	var now = time.Now()
 	s, err := DefaultProvider.ChatCompletion(sendData)
 	if err != nil {
-		ava.Debugf("TO=%s| err=%v", x.MustMarshalEscape2String(sendData), err)
+		ava.Debugf("TO=%s| err=%v", x.MustMarshal2String(sendData), err)
 		return s, err
 	}
-	ava.Debugf("latency=%.2f |TO=%s| FROM=%s", time.Since(now).Seconds(), x.MustMarshalEscape2String(sendData), s)
+	ava.Debugf("latency=%.2f |TO=%s| FROM=%s", time.Since(now).Seconds(), x.MustMarshal2String(sendData), s)
 	return s, err
 }

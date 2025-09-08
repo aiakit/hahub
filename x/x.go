@@ -1,8 +1,6 @@
 package x
 
 import (
-	"bytes"
-	"encoding/json"
 	"math/rand"
 	"strconv"
 	"strings"
@@ -24,32 +22,8 @@ func Unmarshal(b []byte, v interface{}) error {
 	return nil
 }
 
-func MustMarshalEscape(v interface{}) []byte {
-	var buf bytes.Buffer
-	encoder := json.NewEncoder(&buf)
-	encoder.SetEscapeHTML(false) // 设置不转义 HTML
-
-	if err := encoder.Encode(v); err != nil {
-		return nil // 返回编码错误
-	}
-
-	return buf.Bytes() // 返回解析结果
-}
-
-func MustMarshalEscape2String(v interface{}) string {
-	var buf bytes.Buffer
-	encoder := json.NewEncoder(&buf)
-	encoder.SetEscapeHTML(false) // 设置不转义 HTML
-
-	if err := encoder.Encode(v); err != nil {
-		return "" // 返回编码错误
-	}
-
-	return buf.String() // 返回解析结果
-}
-
 func MustMarshal(v interface{}) []byte {
-	b, _ := json.Marshal(v)
+	b, _ := Json.Marshal(v)
 	return b
 }
 

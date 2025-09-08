@@ -40,7 +40,7 @@ func RunMessage(message, aiMessage, deviceId string) string {
 		result, err := chatCompletionInternal([]*chat.ChatMessage{
 			{
 				Role:    "system",
-				Content: fmt.Sprintf(`请根据用户的查询请求，从以下留言内容中提取相关信息并回答用户: %s。如果留言为空，请告知我暂无留言。如果有留言，请按时间顺序列出留言内容。`, x.MustMarshalEscape2String(sendData)),
+				Content: fmt.Sprintf(`请根据用户的查询请求，从以下留言内容中提取相关信息并回答用户: %s。如果留言为空，请告知我暂无留言。如果有留言，请按时间顺序列出留言内容。`, x.MustMarshal2String(sendData)),
 			},
 			{
 				Role:    "user",

@@ -50,7 +50,7 @@ func Evaluate(message, aiMessage, deviceId string) string {
 当前设备信息:%s。
 当前场景信息:%s。
 当前是否使用AI助手：是。
-当前自动化信息：%s`, x.MustMarshalEscape2String(d), x.MustMarshalEscape2String(s), x.MustMarshalEscape2String(a)),
+当前自动化信息：%s`, x.MustMarshal2String(d), x.MustMarshal2String(s), x.MustMarshal2String(a)),
 		},
 	})
 	if err != nil {
@@ -128,7 +128,7 @@ func executeSteps(deviceId string) {
 				Role: "system",
 				Content: fmt.Sprintf(`你是一个智能家居展示专家，现在你需要介绍当前的灯光设备情况。
 请用简洁的自然语言描述家里的灯光情况，你的描述中，标点或符号只能有逗号和句号。例如：总共有多少个区域，多少灯亮着。
-灯光设备信息：%s`, x.MustMarshalEscape2String(simples)),
+灯光设备信息：%s`, x.MustMarshal2String(simples)),
 			},
 		})
 		if err != nil {
@@ -203,7 +203,7 @@ func executeSteps(deviceId string) {
 - 自动化数量
 设备信息：%s
 场景信息：%s
-自动化信息：%s`, x.MustMarshalEscape2String(simpleDevice), x.MustMarshalEscape2String(simpleScript), x.MustMarshalEscape2String(simpleAutomation)),
+自动化信息：%s`, x.MustMarshal2String(simpleDevice), x.MustMarshal2String(simpleScript), x.MustMarshal2String(simpleAutomation)),
 		},
 	})
 	if err != nil {
@@ -239,7 +239,7 @@ func executeSteps(deviceId string) {
 				Role: "system",
 				Content: fmt.Sprintf(`你是一个智能家居展示专家，现在你需要详细介绍一个场景。
 请用自然语言描述这个场景的名称和功能，你的描述中，标点或符号只能有逗号和句号。
-场景信息：%s`, x.MustMarshalEscape2String(scene)),
+场景信息：%s`, x.MustMarshal2String(scene)),
 			},
 		})
 		if err != nil {
@@ -270,7 +270,7 @@ func executeSteps(deviceId string) {
 				Role: "system",
 				Content: fmt.Sprintf(`你是一个智能家居展示专家，现在你需要详细介绍一个自动化。
 请用自然语言描述这个自动化的名称和触发条件及执行动作。你的描述中，标点或符号只能有逗号和句号。
-自动化信息：%s`, x.MustMarshalEscape2String(automation)),
+自动化信息：%s`, x.MustMarshal2String(automation)),
 			},
 		})
 		if err != nil {

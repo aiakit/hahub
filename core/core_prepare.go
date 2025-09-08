@@ -181,7 +181,7 @@ var preparePrompts = `根据对话内容，以及我提供的一些功能选项�
 // todo: 加入当前对话位置名称，方便操作对应位置的设备
 func prepareCall(messageInput []*chat.ChatMessage, deviceId string) (string, error) {
 	var messageList = make([]*chat.ChatMessage, 0, 6)
-	messageList = append(messageList, &chat.ChatMessage{Role: "system", Content: fmt.Sprintf(preparePrompts, x.MustMarshalEscape2String(logicData))})
+	messageList = append(messageList, &chat.ChatMessage{Role: "system", Content: fmt.Sprintf(preparePrompts, x.MustMarshal2String(logicData))})
 
 	if len(messageInput) > 0 {
 		messageList = append(messageList, messageInput...)

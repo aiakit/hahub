@@ -95,7 +95,7 @@ func chatCompletionHistory(msgInput []*chat.ChatMessage, deviceId string) (strin
 
 	var content = systemPromptsNone
 	if len(history) > 0 {
-		content = fmt.Sprintf(systemPrompts, x.MustMarshalEscape2String(history))
+		content = fmt.Sprintf(systemPrompts, x.MustMarshal2String(history))
 	}
 
 	message = append(message, &chat.ChatMessage{

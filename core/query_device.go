@@ -224,7 +224,7 @@ func QueryDevice(message, aiMessage, deviceId string) string {
 
 	result, err := chatCompletionInternal([]*chat.ChatMessage{
 		{Role: "user", Content: fmt.Sprintf(`这是我的全部设备%s，根据我的意图找出对应的设备名称给我。
-返回格式: ["设备名称1","设备名称2"]`, x.MustMarshalEscape2String(sendData))},
+返回格式: ["设备名称1","设备名称2"]`, x.MustMarshal2String(sendData))},
 		{Role: "user", Content: message},
 	})
 	if err != nil {
@@ -250,7 +250,7 @@ func QueryDevice(message, aiMessage, deviceId string) string {
 	}
 
 	result2, err := chatCompletionInternal([]*chat.ChatMessage{
-		{Role: "user", Content: fmt.Sprintf(`这是我的设备状态信息%s，根据我的意图用20字以内人性化的语言回答我设备状态是怎么样的。`, x.MustMarshalEscape2String(entity))},
+		{Role: "user", Content: fmt.Sprintf(`这是我的设备状态信息%s，根据我的意图用20字以内人性化的语言回答我设备状态是怎么样的。`, x.MustMarshal2String(entity))},
 		{Role: "user", Content: message},
 	})
 	if err != nil {

@@ -201,7 +201,7 @@ func RunDevice(message, aiMessage, deviceId string) string {
 返回格式: ["设备名称1","设备名称2"]`, deviceNames, areaName)
 		} else {
 			content = fmt.Sprintf(`这是我的全部设备信息%v，根据我的意图严格返回完整的设备名称。
-返回格式: ["名称1","名称2"]`, x.MustMarshalEscape2String(deviceNames))
+返回格式: ["名称1","名称2"]`, x.MustMarshal2String(deviceNames))
 		}
 
 		result, err := chatCompletionInternal([]*chat.ChatMessage{
@@ -267,7 +267,7 @@ func RunDevice(message, aiMessage, deviceId string) string {
 4.target是指令信息数据fields中是否包含target。
 5.sub_domain是指令信息domain更下一级的指令划分。
 6.必须严格根据设备信息中的domain去寻找指令信息。
-返回JSON格式：[{"entity_id":"实体id","target":true,"fields":{"rgb_color":[255, 100, 100]},"sub_domain":"turn_on","message":"xx灯已打开，颜色调整为xx"}]`, x.MustMarshalEscape2String(sendDeviceEntity), x.MustMarshalEscape2String(sendCommandData))},
+返回JSON格式：[{"entity_id":"实体id","target":true,"fields":{"rgb_color":[255, 100, 100]},"sub_domain":"turn_on","message":"xx灯已打开，颜色调整为xx"}]`, x.MustMarshal2String(sendDeviceEntity), x.MustMarshal2String(sendCommandData))},
 			{Role: "user", Content: message},
 		})
 		if err != nil {

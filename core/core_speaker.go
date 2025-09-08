@@ -1,6 +1,7 @@
 package core
 
 import (
+	"context"
 	"fmt"
 	"hahub/data"
 	"hahub/intelligent"
@@ -11,8 +12,7 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
-
-	"context"
+	"unicode/utf8"
 
 	"github.com/aiakit/ava"
 )
@@ -312,15 +312,14 @@ func (s *speakerProcess) sendToRemote(conversations *Conversationor) {
 		switch msg.Role {
 		case "user":
 			AddUserMessage(conversations.deviceId, msg.Content)
-			fmt.Println("---1", msg.Content)
-			sendMessage2Panel("input_text.my_input_text_1", "宿主: "+msg.Content)
+			sendMessage2Panel("input_text.my_input_text_1", fmt.Sprintf("宿主: %s", msg.Content))
 		case "assistant":
 			if msg.Name == "jinx" {
 				AddXiaoaiMessage(conversations.deviceId, msg.Content)
-				sendMessage2Panel("input_text.my_input_text_2", "小爱: "+msg.Content)
+				sendMessage2Panel("input_text.my_input_text_2", fmt.Sprintf("小爱: %s", msg.Content))
 			} else {
 				AddAIMessage(conversations.deviceId, msg.Content)
-				sendMessage2Panel("input_text.my_input_text_3", "AI :"+msg.Content)
+				sendMessage2Panel("input_text.my_input_text_3", fmt.Sprintf("AI  :%s"+msg.Content))
 			}
 		case "system":
 			AddSystemMessage(conversations.deviceId, msg.Content)
@@ -343,7 +342,7 @@ func (s *speakerProcess) sendToRemote(conversations *Conversationor) {
 
 		if message != "" {
 			AddAIMessage(conversations.deviceId, message)
-			sendMessage2Panel("input_text.my_input_text_3", "AI :"+message)
+			sendMessage2Panel("input_text.my_input_text_3", fmt.Sprintf("AI  :%s", message))
 			// 暂停轮询
 			if cancel, exists := gSpeakerProcess.pollCancelFuncs[conversations.deviceId]; exists && cancel != nil {
 				cancel()
@@ -431,7 +430,7 @@ func pausePlay(deviceId string) {
 		return
 	}
 
-	err := x.Post(ava.Background(), data.GetHassUrl()+"/api/services/media_player/volume_mute", data.GetToken(), &data.HttpServiceDataPlayPause{
+	err := x.PostWithOutLog(ava.Background(), data.GetHassUrl()+"/api/services/media_player/volume_mute", data.GetToken(), &data.HttpServiceDataPlayPause{
 		EntityId:      entityId,
 		IsVolumeMuted: true,
 	}, nil)
@@ -453,7 +452,7 @@ func wakeup(deviceId string) {
 	if err != nil {
 		ava.Error(err)
 	}
-	sendMessage2Panel("input_text.my_input_text_2", "小爱："+"唤醒中......")
+	sendMessage2Panel("input_text.my_input_text_2", "小爱 :唤醒中...")
 }
 
 var askMessage = []string{
@@ -638,11 +637,11 @@ func (s *speakerProcess) startPolling(deviceId string) {
 
 		defer ticker.Stop()
 		defer ticker1.Stop()
-		defer func() {
-			sendMessage2Panel("input_text.my_input_text_1", " ")
-			sendMessage2Panel("input_text.my_input_text_2", " ")
-			sendMessage2Panel("input_text.my_input_text_3", " ")
-		}()
+		//defer func() {
+		//	sendMessage2Panel("input_text.my_input_text_1", " ")
+		//	sendMessage2Panel("input_text.my_input_text_2", " ")
+		//	sendMessage2Panel("input_text.my_input_text_3", " ")
+		//}()
 
 		for {
 			select {
@@ -672,29 +671,34 @@ func (s *speakerProcess) startPolling(deviceId string) {
 }
 
 func sendMessage2Panel(entityId string, message string) {
-	fmt.Println("-------", message)
-	// 如果消息长度小于30，直接发送
-	if len(message) < 20 {
-		x.Post(ava.Background(), data.GetHassUrl()+"/api/services/input_text/set_value", data.GetToken(), &data.HttpServiceData{
-			EntityId: entityId,
-			Value:    message,
-		}, nil)
-		return
-	}
+	fmt.Println("-------", utf8.RuneCountInString(message))
 
-	// 如果消息长度大于或等于30，按每20个字发送
-	for i := 0; i < len(message); i += 20 {
-		end := i + 20
-		if end > len(message) {
-			end = len(message)
+	// 计算要发送的消息数量
+	var chunkSize = 25
+	runes := []rune(message) // 转换为 rune 切片，以正确处理中文字符
+
+	for len(runes) > 0 {
+		// 如果剩余的字符长度小于或等于 chunkSize，直接发送剩余的消息
+		if len(runes) <= chunkSize {
+			x.Post(ava.Background(), data.GetHassUrl()+"/api/services/input_text/set_value", data.GetToken(), &data.HttpServiceData{
+				EntityId: entityId,
+				Value:    string(runes), // 转回字符串
+			}, nil)
+			break
 		}
-		part := message[i:end]
 
-		// 发送当前片段
+		// 截取前 chunkSize 个字符
+		chunk := runes[:chunkSize]
 		x.Post(ava.Background(), data.GetHassUrl()+"/api/services/input_text/set_value", data.GetToken(), &data.HttpServiceData{
 			EntityId: entityId,
-			Value:    part,
+			Value:    string(chunk), // 转回字符串
 		}, nil)
-		time.Sleep(time.Millisecond * 1)
+
+		// 更新 runes，去掉已发送的部分
+		runes = runes[chunkSize:]
+
+		if len(runes) > 0 {
+			time.Sleep(time.Second * 2)
+		}
 	}
 }

@@ -40,7 +40,7 @@ func RunNote(message, aiMessage, deviceId string) string {
 		result, err := chatCompletionInternal([]*chat.ChatMessage{
 			{
 				Role:    "system",
-				Content: fmt.Sprintf(`请根据用户的查询请求，从以下记事本内容中提取相关信息并回答用户: %s。如果记事本为空，请告知我暂无记事。如果记事本中有人物称谓，记得也返回给我。`, x.MustMarshalEscape2String(sendData)),
+				Content: fmt.Sprintf(`请根据用户的查询请求，从以下记事本内容中提取相关信息并回答用户: %s。如果记事本为空，请告知我暂无记事。如果记事本中有人物称谓，记得也返回给我。`, x.MustMarshal2String(sendData)),
 			},
 			{
 				Role:    "user",

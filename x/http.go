@@ -18,7 +18,7 @@ import (
 
 func PostWithOutLog(c *ava.Context, uri, token string, data, v interface{}) error {
 
-	var body = MustMarshalEscape(data)
+	var body = MustMarshal(data)
 
 	var header = map[string]string{
 		"Authorization": "Bearer " + token,
@@ -54,13 +54,13 @@ func PostWithOutLog(c *ava.Context, uri, token string, data, v interface{}) erro
 func Post(c *ava.Context, uri, token string, data, v interface{}) error {
 	var now = time.Now()
 
-	fmt.Printf("----%v", data)
+	fmt.Printf("----%v \n", data)
 	var body = MustMarshal(data)
 	fmt.Println("-=------1--", string(body))
 
 	var header = map[string]string{
 		"Authorization": "Bearer " + token,
-		"Content-Type":  "application/json",
+		"Content-Type":  "application/json; charset=utf-8",
 	}
 
 	// 添加重试机制，最多重试3次
@@ -139,7 +139,7 @@ func Get(c *ava.Context, uri, token string, v interface{}) error {
 	//var now = time.Now()
 	var header = map[string]string{
 		"Authorization": "Bearer " + token,
-		"Content-Type":  "application/json",
+		"Content-Type":  "application/json; charset=utf-8",
 	}
 
 	// 添加重试机制，最多重试3次

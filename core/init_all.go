@@ -50,7 +50,7 @@ func InitALL(message, aiMessage, deviceId string) string {
 当前设备信息:%s。
 当前场景信息:%s。
 当前是否使用AI助手：是。
-当前自动化信息：%s`, x.MustMarshalEscape2String(d), x.MustMarshalEscape2String(s), x.MustMarshalEscape2String(a)),
+当前自动化信息：%s`, x.MustMarshal2String(d), x.MustMarshal2String(s), x.MustMarshal2String(a)),
 		},
 	})
 	if err != nil {
