@@ -1,6 +1,7 @@
 package core
 
 import (
+	"fmt"
 	"hahub/data"
 	"hahub/intelligent"
 	"hahub/internal/chat"
@@ -311,14 +312,15 @@ func (s *speakerProcess) sendToRemote(conversations *Conversationor) {
 		switch msg.Role {
 		case "user":
 			AddUserMessage(conversations.deviceId, msg.Content)
-			sendMessage2Panel("input_text.my_input_text_1", "宿主："+msg.Content)
+			fmt.Println("---1", msg.Content)
+			sendMessage2Panel("input_text.my_input_text_1", "宿主: "+msg.Content)
 		case "assistant":
 			if msg.Name == "jinx" {
 				AddXiaoaiMessage(conversations.deviceId, msg.Content)
-				sendMessage2Panel("input_text.my_input_text_2", "小爱："+msg.Content)
+				sendMessage2Panel("input_text.my_input_text_2", "小爱: "+msg.Content)
 			} else {
 				AddAIMessage(conversations.deviceId, msg.Content)
-				sendMessage2Panel("input_text.my_input_text_3", "AI："+msg.Content)
+				sendMessage2Panel("input_text.my_input_text_3", "AI :"+msg.Content)
 			}
 		case "system":
 			AddSystemMessage(conversations.deviceId, msg.Content)
@@ -341,7 +343,7 @@ func (s *speakerProcess) sendToRemote(conversations *Conversationor) {
 
 		if message != "" {
 			AddAIMessage(conversations.deviceId, message)
-			sendMessage2Panel("input_text.my_input_text_3", "AI："+message)
+			sendMessage2Panel("input_text.my_input_text_3", "AI :"+message)
 			// 暂停轮询
 			if cancel, exists := gSpeakerProcess.pollCancelFuncs[conversations.deviceId]; exists && cancel != nil {
 				cancel()
@@ -451,7 +453,7 @@ func wakeup(deviceId string) {
 	if err != nil {
 		ava.Error(err)
 	}
-	sendMessage2Panel("input_text.my_input_text_2", "小爱："+"唤醒中。。。。。")
+	sendMessage2Panel("input_text.my_input_text_2", "小爱："+"唤醒中......")
 }
 
 var askMessage = []string{
@@ -637,9 +639,9 @@ func (s *speakerProcess) startPolling(deviceId string) {
 		defer ticker.Stop()
 		defer ticker1.Stop()
 		defer func() {
-			sendMessage2Panel("input_text.my_input_text_1", "")
-			sendMessage2Panel("input_text.my_input_text_2", "")
-			sendMessage2Panel("input_text.my_input_text_3", "")
+			sendMessage2Panel("input_text.my_input_text_1", " ")
+			sendMessage2Panel("input_text.my_input_text_2", " ")
+			sendMessage2Panel("input_text.my_input_text_3", " ")
 		}()
 
 		for {
@@ -670,8 +672,29 @@ func (s *speakerProcess) startPolling(deviceId string) {
 }
 
 func sendMessage2Panel(entityId string, message string) {
-	x.Post(ava.Background(), data.GetHassUrl()+"/api/services/input_text/set_value", data.GetToken(), &data.HttpServiceData{
-		EntityId: entityId,
-		Value:    message,
-	}, nil)
+	fmt.Println("-------", message)
+	// 如果消息长度小于30，直接发送
+	if len(message) < 20 {
+		x.Post(ava.Background(), data.GetHassUrl()+"/api/services/input_text/set_value", data.GetToken(), &data.HttpServiceData{
+			EntityId: entityId,
+			Value:    message,
+		}, nil)
+		return
+	}
+
+	// 如果消息长度大于或等于30，按每20个字发送
+	for i := 0; i < len(message); i += 20 {
+		end := i + 20
+		if end > len(message) {
+			end = len(message)
+		}
+		part := message[i:end]
+
+		// 发送当前片段
+		x.Post(ava.Background(), data.GetHassUrl()+"/api/services/input_text/set_value", data.GetToken(), &data.HttpServiceData{
+			EntityId: entityId,
+			Value:    part,
+		}, nil)
+		time.Sleep(time.Millisecond * 1)
+	}
 }

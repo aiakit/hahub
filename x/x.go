@@ -49,7 +49,7 @@ func MustMarshalEscape2String(v interface{}) string {
 }
 
 func MustMarshal(v interface{}) []byte {
-	b, _ := Json.Marshal(v)
+	b, _ := json.Marshal(v)
 	return b
 }
 
