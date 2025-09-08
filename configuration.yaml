@@ -1,0 +1,33 @@
+# Loads default set of integrations. Do not remove.
+default_config:
+
+# Load frontend themes from the themes folder
+frontend:
+  themes: !include_dir_merge_named themes
+  extra_module_url:
+    - /hacsfiles/lovelace-card-mod/card-mod.js
+
+automation: !include automations.yaml
+script: !include scripts.yaml
+scene: !include scenes.yaml
+
+# Custom Panels
+panel_custom:
+  - name: Supervisor
+    url_path: hassio/system # url_path needs to be unique for each panel_custom config
+    sidebar_title: Supervisor
+    sidebar_icon: mdi:home-assistant # https://materialdesignicons.com/
+    module_url: /local/panel-redirect.js # 'local' is '/config/www/'
+
+input_text:
+  my_input_text:
+    name: "Input Text"
+    initial: "欢迎来到金大侠的AI智能家居!"
+  my_input_text_1:
+    name: "Input Text"
+  my_input_text_2:
+    name: "Input Text"
+  my_input_text_3:
+    name: "Input Text"
+  my_input_text_4:
+    name: "Input Text"

@@ -6,7 +6,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"net"
 	"net/http"
@@ -54,9 +53,7 @@ func PostWithOutLog(c *ava.Context, uri, token string, data, v interface{}) erro
 func Post(c *ava.Context, uri, token string, data, v interface{}) error {
 	var now = time.Now()
 
-	fmt.Printf("----%v \n", data)
 	var body = MustMarshal(data)
-	fmt.Println("-=------1--", string(body))
 
 	var header = map[string]string{
 		"Authorization": "Bearer " + token,

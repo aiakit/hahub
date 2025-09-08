@@ -428,7 +428,6 @@ func turnOnTv(entityId string) bool {
 				ava.Error(err)
 				return false
 			}
-			ava.Debugf("-------使用红外控制打开电视------")
 			return true
 		}
 	}

@@ -12,7 +12,6 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
-	"unicode/utf8"
 
 	"github.com/aiakit/ava"
 )
@@ -536,6 +535,34 @@ func SpeakerAsk2ConversationHandler(event *data.StateChangedSimple, body []byte)
 			entityId: en.EntityID,
 		}
 
+		if strings.Contains(state.Event.Data.NewState.State, "扫地机器人") &&
+			(strings.Contains(state.Event.Data.NewState.State, "开始") || strings.Contains(state.Event.Data.NewState.State, "启动")) {
+			s := data.GetEntityCategoryMap()[data.CategoryInputBoolean]
+			if len(s) > 0 {
+				for _, e := range s {
+					if strings.Contains(e.OriginalName, "扫地机器人") {
+						x.PostWithOutLog(ava.Background(), data.GetHassUrl()+"/api/services/input_boolean/turn_on", data.GetToken(), &data.HttpServiceData{
+							EntityId: "",
+						}, nil)
+					}
+				}
+			}
+		}
+
+		if strings.Contains(state.Event.Data.NewState.State, "扫地机器人") &&
+			(strings.Contains(state.Event.Data.NewState.State, "停止") || strings.Contains(state.Event.Data.NewState.State, "回")) {
+			s := data.GetEntityCategoryMap()[data.CategoryInputBoolean]
+			if len(s) > 0 {
+				for _, e := range s {
+					if strings.Contains(e.OriginalName, "扫地机器人") {
+						x.PostWithOutLog(ava.Background(), data.GetHassUrl()+"/api/services/input_boolean/turn_off", data.GetToken(), &data.HttpServiceData{
+							EntityId: "",
+						}, nil)
+					}
+				}
+			}
+		}
+
 		ava.Debugf("speaker ask2 conversation: %s |data=%s", x.MustMarshal2String(cs), string(body))
 
 		SpeakerProcessSend(cs)
@@ -637,11 +664,11 @@ func (s *speakerProcess) startPolling(deviceId string) {
 
 		defer ticker.Stop()
 		defer ticker1.Stop()
-		//defer func() {
-		//	sendMessage2Panel("input_text.my_input_text_1", " ")
-		//	sendMessage2Panel("input_text.my_input_text_2", " ")
-		//	sendMessage2Panel("input_text.my_input_text_3", " ")
-		//}()
+		defer func() {
+			sendMessage2Panel("input_text.my_input_text_1", " ")
+			sendMessage2Panel("input_text.my_input_text_2", " ")
+			sendMessage2Panel("input_text.my_input_text_3", " ")
+		}()
 
 		for {
 			select {
@@ -671,7 +698,6 @@ func (s *speakerProcess) startPolling(deviceId string) {
 }
 
 func sendMessage2Panel(entityId string, message string) {
-	fmt.Println("-------", utf8.RuneCountInString(message))
 
 	// 计算要发送的消息数量
 	var chunkSize = 25
