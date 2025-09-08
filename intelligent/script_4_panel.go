@@ -16,7 +16,85 @@ func Panel(c *ava.Context) {
 		return
 	}
 
+	for areaId, areaName := range area {
+		var entityId string
+		areaName = data.SpiltAreaName(areaName)
+		for _, v := range entitiesBoolean {
+			if !strings.Contains(v.OriginalName, "电视") {
+				continue
+			}
+
+			if strings.Contains(v.OriginalName, areaName) {
+				entityId = v.EntityID
+				break
+			}
+		}
+
+		if entityId != "" {
+			turnOn := TurnOnTv(areaId)
+			if len(turnOn) > 0 {
+				var s = &Script{
+					Alias:       areaName + "打开电视",
+					Description: areaName + "区域灯直接打开电视",
+				}
+				s.Sequence = turnOn
+				turnOnScriptId := AddScript2Queue(c, s)
+
+				var a = &Automation{
+					Alias:       "HomePanel" + areaName + "打开电视",
+					Description: "3D面板上按下按键打开电视",
+					Mode:        "single",
+					Triggers: []*Triggers{{
+						EntityID: entityId,
+						Trigger:  "state",
+						To:       "on",
+						From:     "off",
+					}},
+				}
+				a.Actions = append(a.Actions, &ActionService{
+					Action: "script.turn_on",
+					Target: &struct {
+						EntityId string `json:"entity_id"`
+					}{EntityId: turnOnScriptId},
+				})
+				AddAutomation2Queue(c, a)
+			}
+
+			turnOff := TurnOffTv(areaId)
+			if len(turnOff) > 0 {
+				var s = &Script{
+					Alias:       areaName + "关闭电视",
+					Description: areaName + "区域灯直接关闭电视",
+				}
+				s.Sequence = turnOff
+
+				turnOffScriptId := AddScript2Queue(c, s)
+
+				var a = &Automation{
+					Alias:       "HomePanel" + areaName + "关闭电视",
+					Description: "3D面板上按下按键关闭电视",
+					Mode:        "single",
+					Triggers: []*Triggers{{
+						EntityID: entityId,
+						Trigger:  "state",
+						To:       "off",
+						From:     "on",
+					}},
+				}
+				a.Actions = append(a.Actions, &ActionService{
+					Action: "script.turn_on",
+					Target: &struct {
+						EntityId string `json:"entity_id"`
+					}{EntityId: turnOffScriptId},
+				})
+				AddAutomation2Queue(c, a)
+			}
+		}
+
+	}
+
 	var allOffLight = make([]*ActionLight, 0, 10)
+	var allOnLight = make([]*ActionLight, 0, 10)
 
 	for areaId, areaName := range area {
 		var entityId string
@@ -48,6 +126,7 @@ func Panel(c *ava.Context) {
 			}
 			for _, a := range actions {
 				s.Sequence = append(s.Sequence, a)
+				allOnLight = append(allOnLight, a)
 			}
 
 			var turnOnScriptId string
@@ -87,6 +166,7 @@ func Panel(c *ava.Context) {
 							EntityID: entityId,
 							Trigger:  "state",
 							To:       "on",
+							From:     "off",
 						}},
 					}
 					a.Actions = append(a.Actions, &ActionService{
@@ -107,6 +187,7 @@ func Panel(c *ava.Context) {
 							EntityID: entityId,
 							Trigger:  "state",
 							To:       "off",
+							From:     "on",
 						}},
 					}
 					a.Actions = append(a.Actions, &ActionService{
@@ -223,7 +304,57 @@ func Panel(c *ava.Context) {
 		}
 
 		if len(s1.Sequence) > 0 {
-			AddScript2Queue(c, s1)
+			id := AddScript2Queue(c, s1)
+			var a = &Automation{
+				Alias:       "HomePanel" + "全屋关灯",
+				Description: "3D面板上按下按键全屋关灯",
+				Mode:        "single",
+				Triggers: []*Triggers{{
+					EntityID: "input_boolean.quan_wu_deng",
+					Trigger:  "state",
+					To:       "on",
+					From:     "off",
+				}},
+			}
+			a.Actions = append(a.Actions, &ActionService{
+				Action: "script.turn_on",
+				Target: &struct {
+					EntityId string `json:"entity_id"`
+				}{EntityId: id},
+			})
+			AddAutomation2Queue(c, a)
+		}
+	}
+
+	if len(allOnLight) > 0 {
+		var s1 = &Script{
+			Alias:       "全屋开灯",
+			Description: "全屋全部区域直接开灯",
+		}
+		for _, a := range allOffLight {
+			s1.Sequence = append(s1.Sequence, a)
+		}
+
+		if len(s1.Sequence) > 0 {
+			id := AddScript2Queue(c, s1)
+			var a = &Automation{
+				Alias:       "HomePanel" + "全屋开灯",
+				Description: "3D面板上按下按键全屋开灯",
+				Mode:        "single",
+				Triggers: []*Triggers{{
+					EntityID: "input_boolean.quan_wu_deng",
+					Trigger:  "state",
+					To:       "on",
+					From:     "off",
+				}},
+			}
+			a.Actions = append(a.Actions, &ActionService{
+				Action: "script.turn_on",
+				Target: &struct {
+					EntityId string `json:"entity_id"`
+				}{EntityId: id},
+			})
+			AddAutomation2Queue(c, a)
 		}
 	}
 }

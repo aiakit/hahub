@@ -31,7 +31,7 @@ views:
               'off': /local/sweet/138/透明.png
               unavailable: /local/sweet/138/透明.png
           - type: image
-            entity: input_boolean.dian_shi_kai_guan
+            entity: input_boolean.ke_ting_dian_shi_kai_guan
             tap_action: none
             hold_action: none
             style:
@@ -419,7 +419,7 @@ views:
               font-size: 1.5em
               color: LightSkyBlue
               width: 10%
-              heigth: 10%
+              height: 10%
           - type: state-label
             entity: input_text.my_input_text_1
             style:
@@ -428,7 +428,7 @@ views:
               font-size: 1em
               color: Lime
               width: 10%
-              heigth: 10%
+              height: 10%
           - type: state-label
             entity: input_text.my_input_text_2
             style:
@@ -437,7 +437,7 @@ views:
               font-size: 1em
               color: Maroon
               width: 10%
-              heigth: 10%
+              height: 10%
           - type: state-label
             entity: input_text.my_input_text_3
             style:
@@ -446,12 +446,12 @@ views:
               font-size: 1em
               color: Blue
               width: 10%
-              heigth: 10%
+              height: 10%
           - type: action-button
             target:
-              entity_id: light.ftd_cn_1121427912_ftdlmp_s_2_light
+              entity_id: script.hui_jia_chang_jing
             title: 回家
-            action: light.turn_on
+            action: script.turn_on
             style:
               left: 1020px
               top: 60px
@@ -464,9 +464,9 @@ views:
               line-height: 67px
           - type: action-button
             target:
-              entity_id: light.ftd_cn_1121427912_ftdlmp_s_2_light
+              entity_id: script.li_jia_chang_jing
             title: 离家
-            action: light.turn_on
+            action: script.turn_on
             style:
               left: 1102px
               top: 60px
@@ -479,9 +479,9 @@ views:
               line-height: 67px
           - type: action-button
             target:
-              entity_id: light.ftd_cn_1121427912_ftdlmp_s_2_light
+              entity_id: script.ke_ting_hui_ke_chang_jing
             title: 会客
-            action: light.turn_on
+            action: script.turn_on
             style:
               left: 1020px
               top: 129px
@@ -494,9 +494,8 @@ views:
               line-height: 67px
           - type: action-button
             target:
-              entity_id: light.ftd_cn_1121427912_ftdlmp_s_2_light
-            title: 关灯
-            action: light.turn_on
+              entity_id: script.quan_wu_deng
+            action: script.turn_on
             style:
               left: 1102px
               top: 129px
