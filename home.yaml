@@ -10,7 +10,7 @@ kiosk_mode:
       hide_sidebar: false
 views:
   - type: panel
-    title: Home
+    title: ipad
     path: home
     cards:
       - type: picture-elements
@@ -507,3 +507,4 @@ views:
               box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2)
               text-align: center
               line-height: 67px
+    icon: mdi:home

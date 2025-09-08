@@ -52,6 +52,7 @@ const (
 	CategoryDoor                = "door"                  //门
 	CategoryIPhone              = "iphone"                //苹果手机
 	CateOther                   = "other"                 //其他的类型
+	CategoryInputBoolean        = "input_boolean"         //针对自己创建的按钮
 )
 
 //过滤实体,并在实体中增加字段标注设备类型，设备数据中也加上，在实体数据中加上设备id,区域id，区域名称
@@ -134,6 +135,11 @@ func FilterEntities(entities []*Entity) []*Entity {
 
 				if strings.Contains(e.OriginalName, "iphone") {
 					category = CategoryIPhone
+					return
+				}
+
+				if strings.HasPrefix(e.EntityID, "input_boolean.") {
+					category = CategoryInputBoolean
 					return
 				}
 

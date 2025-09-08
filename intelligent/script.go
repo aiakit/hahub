@@ -64,6 +64,9 @@ func ScriptChaos() {
 	//洗澡
 	TakeAShower(c)
 
+	//区域直接开关灯
+	Panel(c)
+
 	//sos
 	Sos(c)
 

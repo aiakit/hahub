@@ -181,6 +181,8 @@ type Triggers struct {
 	Below     float64     `json:"below,omitempty"`
 	For       *For        `json:"for,omitempty"`
 	Name      string      `json:"name,omitempty"`
+	From      string      `json:"from,omitempty"`
+	To        string      `json:"to,omitempty"`
 }
 
 type Conditions struct {

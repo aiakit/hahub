@@ -39,11 +39,8 @@ func turnOnLight(e *data.Entity, brightnessPct float64, kelvin int, openConditio
 	//只打开开关
 	if e.SubCategory == data.CategoryWiredSwitch {
 		result = append(result, &ActionLight{
-			Type:        "turn_on",
-			DeviceID:    e.DeviceID,
-			EntityID:    e.EntityID,
-			Domain:      "switch",
-			subCategory: e.SubCategory,
+			Action: "switch.turn_off",
+			Target: &targetLightData{EntityId: e.EntityID, DeviceId: e.DeviceID},
 		})
 		if openCondition {
 			result = append(result, &ActionLight{
@@ -80,7 +77,7 @@ func turnOnLight(e *data.Entity, brightnessPct float64, kelvin int, openConditio
 		Data: &actionLightData{
 			BrightnessStepPct: brightnessPct,
 		},
-		Target: &targetLightData{DeviceId: e.DeviceID},
+		Target: &targetLightData{EntityId: e.EntityID, DeviceId: e.DeviceID},
 
 		subCategory: e.SubCategory,
 	}
@@ -253,16 +250,14 @@ func turnOffLight(e *data.Entity) *ActionLight {
 
 	if e.SubCategory == data.CategoryWiredSwitch {
 		return &ActionLight{
-			Type:     "turn_off",
-			DeviceID: e.DeviceID,
-			EntityID: e.EntityID,
-			Domain:   "switch",
+			Action: "switch.turn_off",
+			Target: &targetLightData{EntityId: e.EntityID, DeviceId: e.DeviceID},
 		}
 	}
 
 	return &ActionLight{
 		Action: "light.turn_off",
-		Target: &targetLightData{DeviceId: e.DeviceID},
+		Target: &targetLightData{EntityId: e.EntityID, DeviceId: e.DeviceID},
 	}
 }
 

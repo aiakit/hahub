@@ -90,16 +90,10 @@ func Display(c *ava.Context) {
 	var actionsSort = make([]*ActionLight, 0, len(actions))
 	for _, e := range lightStripNumbers {
 		for _, e1 := range actions {
-			deviceId := e1.DeviceID
-			if deviceId == "" && e1.Target != nil {
-				deviceId = e1.Target.DeviceId
-			}
-
-			if deviceId == "" {
+			if e1.Target == nil || e1.Target.EntityId == "" {
 				continue
 			}
-
-			if e.Entity.DeviceID == deviceId {
+			if e.Entity.EntityID == e1.Target.EntityId {
 				actionsSort = append(actionsSort, e1)
 				break
 			}
