@@ -55,7 +55,7 @@ views:
               'off': /local/sweet/138/透明.png
               unavailable: /local/sweet/138/透明.png
           - type: image
-            entity: input_boolean.ke_ting_dian_shi_kai_guan
+            entity: media_player.85_neo_qled_qa85qn82dajxxz
             tap_action: none
             hold_action: none
             style:
@@ -245,7 +245,7 @@ views:
               left: 42%
               top: 69%
               rotate: 64deg
-              opacity: 0
+              opacity: 1
               '--mdc-icon-size': 4vw
           - type: state-icon
             entity: input_boolean.chu_fang_deng
@@ -256,7 +256,7 @@ views:
               left: 56%
               top: 67%
               rotate: 117deg
-              opacity: 0
+              opacity: 1
               '--mdc-icon-size': 5vw
           - type: state-icon
             entity: input_boolean.dian_jing_fang_deng
@@ -267,7 +267,7 @@ views:
               left: 60%
               top: 61%
               rotate: 96deg
-              opacity: 0
+              opacity: 1
               '--mdc-icon-size': 5vw
           - type: state-icon
             entity: input_boolean.er_lou_wei_sheng_jian_deng
@@ -278,7 +278,7 @@ views:
               left: 3%
               top: 40%
               rotate: 64deg
-              opacity: 0
+              opacity: 1
               '--mdc-icon-size': 6vw
           - type: state-icon
             entity: input_boolean.fu_mu_wo_shi_deng
@@ -289,7 +289,7 @@ views:
               left: 61%
               top: 40%
               rotate: 64deg
-              opacity: 0
+              opacity: 1
               '--mdc-icon-size': 9vw
           - type: state-icon
             entity: input_boolean.ke_ting_deng
@@ -300,7 +300,7 @@ views:
               left: 24%
               top: 58%
               rotate: 32deg
-              opacity: 0
+              opacity: 1
               '--mdc-icon-size': 11vw
           - type: state-icon
             entity: input_boolean.xi_yi_fang_deng
@@ -311,7 +311,7 @@ views:
               left: 47%
               top: 88%
               rotate: 64deg
-              opacity: 0
+              opacity: 1
               '--mdc-icon-size': 6vw
           - type: state-icon
             entity: input_boolean.xiao_hai_wo_shi_deng
@@ -322,7 +322,7 @@ views:
               left: 78%
               top: 50%
               rotate: 113deg
-              opacity: 0
+              opacity: 1
               '--mdc-icon-size': 10vw
           - type: state-icon
             entity: input_boolean.xuan_guan_deng
@@ -333,7 +333,7 @@ views:
               left: 28%
               top: 75%
               rotate: 64deg
-              opacity: 0
+              opacity: 1
               '--mdc-icon-size': 6vw
           - type: state-icon
             entity: input_boolean.yi_lou_wei_sheng_jian_deng
@@ -344,7 +344,7 @@ views:
               left: 73%
               top: 60%
               rotate: 109deg
-              opacity: 0
+              opacity: 1
               '--mdc-icon-size': 3vw
           - type: state-icon
             entity: input_boolean.yi_lou_xi_shou_pen_deng
@@ -355,7 +355,7 @@ views:
               left: 66%
               top: 55%
               rotate: 112deg
-              opacity: 0
+              opacity: 1
               '--mdc-icon-size': 3vw
           - type: state-icon
             entity: input_boolean.zhu_wo_shi_deng
@@ -366,7 +366,7 @@ views:
               left: 20%
               top: 31%
               rotate: 78deg
-              opacity: 0
+              opacity: 1
               '--mdc-icon-size': 10vw
           - type: state-icon
             entity: input_boolean.zou_lang_deng
@@ -377,7 +377,7 @@ views:
               left: 51%
               top: 46%
               rotate: 72deg
-              opacity: 0
+              opacity: 1
               '--mdc-icon-size': 10vw
           - type: state-icon
             entity: input_boolean.full_screen
@@ -387,7 +387,7 @@ views:
             style:
               left: 99%
               top: 2%
-              opacity: 0
+              opacity: 1
               '--mdc-icon-size': 3vw
           - type: state-icon
             entity: input_boolean.ke_ting_dian_shi_kai_guan
@@ -395,11 +395,11 @@ views:
               action: toggle
             hold_action: none
             style:
-              left: 29%
-              top: 50%
-              rotate: 126deg
-              opacity: 0
-              '--mdc-icon-size': 6vw
+              left: 35%
+              top: 68%
+              rotate: '-61deg'
+              opacity: 1
+              '--mdc-icon-size': 7vw
           - type: state-icon
             entity: input_boolean.kong_diao_kai_guan
             tap_action:
@@ -409,7 +409,7 @@ views:
               left: 38%
               top: 49%
               rotate: 76deg
-              opacity: 0
+              opacity: 1
               '--mdc-icon-size': 6vw
           - type: state-icon
             entity: input_boolean.ke_ting_bi_lu
@@ -420,7 +420,7 @@ views:
               left: 29%
               top: 58%
               rotate: 123deg
-              opacity: 0
+              opacity: 1
               '--mdc-icon-size': 2vw
           - type: state-badge
             entity: person.jinbanglin
