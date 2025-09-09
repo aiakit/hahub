@@ -33,6 +33,9 @@ func QueryScene(message, aiMessage, deviceId string) string {
 	}
 
 	for _, e := range entities {
+		if strings.Contains(e.OriginalName, "HomePanel") {
+			continue
+		}
 		//判断是否有指定的场景
 		if strings.Contains(message, e.OriginalName) ||
 			x.Similarity(message, e.OriginalName) > 0.8 ||

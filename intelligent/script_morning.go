@@ -182,17 +182,21 @@ func GoodMorningScript(c *ava.Context) {
 			Delay: &delay{
 				Hours:        0,
 				Minutes:      0,
-				Seconds:      30,
+				Seconds:      60,
 				Milliseconds: 0,
 			},
 		})
 
 		for _, e := range action {
-			e.Data.BrightnessStepPct = 25
-			actions = append(actions, e)
+			var e1 = *e
+			if e1.Data != nil {
+				e1.Data.BrightnessStepPct = 20
+			}
+			actions = append(actions, e1)
 		}
 
 		//如果有床，设置床角度
+		var exist bool
 		for _, e := range v {
 			if e.Category == data.CategoryBed && (strings.Contains(e.OriginalName, "腿部") || strings.Contains(e.OriginalName, "靠背")) && strings.HasPrefix(e.EntityID, "number.") {
 				script.Sequence = append(script.Sequence, ActionCommon{
@@ -202,17 +206,20 @@ func GoodMorningScript(c *ava.Context) {
 					Domain:   "number",
 					Value:    20,
 				})
+				exist = true
 			}
 		}
 
-		actions = append(actions, ActionTimerDelay{
-			Delay: &delay{
-				Hours:        0,
-				Minutes:      0,
-				Seconds:      30,
-				Milliseconds: 0,
-			},
-		})
+		if exist {
+			script.Sequence = append(script.Sequence, ActionTimerDelay{
+				Delay: &delay{
+					Hours:        0,
+					Minutes:      0,
+					Seconds:      30,
+					Milliseconds: 0,
+				},
+			})
+		}
 
 		for _, e := range v {
 			if e.Category == data.CategoryBed && (strings.Contains(e.OriginalName, "腿部") || strings.Contains(e.OriginalName, "靠背")) && strings.HasPrefix(e.EntityID, "number.") {

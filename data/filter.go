@@ -118,7 +118,6 @@ func FilterEntities(entities []*Entity) []*Entity {
 				if v := GetDevice(e.DeviceID); v != nil {
 					deviceData = v
 				}
-
 				if deviceData != nil {
 					e.DeviceName = deviceData.Name
 					e.AreaID = deviceData.AreaID

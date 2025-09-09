@@ -1,531 +1,546 @@
-type: picture-elements
-image: /local/sweet/138/全关灯.png
-theme: Google Dark Theme
-elements:
-  - type: image
-    entity: switch.sweeping_robot
-    tap_action: none
-    hold_action: none
-    style:
-      left: 50%
-      top: 50%
-      width: 100%
-    state_image:
-      "on": /local/sweet/138/扫地机器人工作.png
-      "off": /local/sweet/138/透明.png
-      unavailable: /local/sweet/138/透明.png
-  - type: image
-    entity: input_boolean.ke_ting_bi_lu
-    tap_action: none
-    hold_action: none
-    style:
-      left: 50%
-      top: 50%
-      width: 100%
-      pointer-events: none
-    state_image:
-      "on": /local/sweet/138/客厅壁炉.png
-      "off": /local/sweet/138/透明.png
-      unavailable: /local/sweet/138/透明.png
-  - type: image
-    entity: input_boolean.kong_diao_kai_guan
-    tap_action: none
-    hold_action: none
-    style:
-      left: 50%
-      top: 50%
-      width: 100%
-      pointer-events: none
-    state_image:
-      "on": /local/sweet/138/打开空调.png
-      "off": /local/sweet/138/透明.png
-      unavailable: /local/sweet/138/透明.png
-  - type: image
-    entity: input_boolean.ke_ting_dian_shi_kai_guan
-    tap_action: none
-    hold_action: none
-    style:
-      left: 50%
-      top: 50%
-      width: 100%
-      pointer-events: none
-    state_image:
-      "on": /local/sweet/138/打开电视.png
-      "off": /local/sweet/138/透明.png
-      unavailable: /local/sweet/138/透明.png
-  - type: image
-    entity: input_boolean.can_ting_deng
-    tap_action: none
-    hold_action: none
-    style:
-      left: 50%
-      top: 50%
-      width: 100%
-      pointer-events: none
-    state_image:
-      "on": /local/sweet/138/餐厅.png
-      "off": /local/sweet/138/透明.png
-      unavailable: /local/sweet/138/透明.png
-  - type: image
-    entity: input_boolean.chu_fang_deng
-    tap_action: none
-    hold_action: none
-    style:
-      left: 50%
-      top: 50%
-      width: 100%
-      pointer-events: none
-    state_image:
-      "on": /local/sweet/138/厨房.png
-      "off": /local/sweet/138/透明.png
-      unavailable: /local/sweet/138/透明.png
-  - type: image
-    entity: input_boolean.dian_jing_fang_deng
-    tap_action: none
-    hold_action: none
-    style:
-      left: 50%
-      top: 50%
-      width: 100%
-      pointer-events: none
-    state_image:
-      "on": /local/sweet/138/电竞房.png
-      "off": /local/sweet/138/透明.png
-      unavailable: /local/sweet/138/透明.png
-  - type: image
-    entity: input_boolean.er_lou_wei_sheng_jian_deng
-    tap_action: none
-    hold_action: none
-    style:
-      left: 50%
-      top: 50%
-      width: 100%
-      pointer-events: none
-    state_image:
-      "on": /local/sweet/138/二楼卫生间.png
-      "off": /local/sweet/138/透明.png
-      unavailable: /local/sweet/138/透明.png
-  - type: image
-    entity: input_boolean.fu_mu_wo_shi_deng
-    tap_action: none
-    hold_action: none
-    style:
-      left: 50%
-      top: 50%
-      width: 100%
-      pointer-events: none
-    state_image:
-      "on": /local/sweet/138/父母卧室.png
-      "off": /local/sweet/138/透明.png
-      unavailable: /local/sweet/138/透明.png
-  - type: image
-    entity: input_boolean.ke_ting_deng
-    tap_action: none
-    hold_action: none
-    style:
-      left: 50%
-      top: 50%
-      width: 100%
-      pointer-events: none
-    state_image:
-      "on": /local/sweet/138/客厅.png
-      "off": /local/sweet/138/透明.png
-      unavailable: /local/sweet/138/透明.png
-  - type: image
-    entity: input_boolean.xi_yi_fang_deng
-    tap_action: none
-    hold_action: none
-    style:
-      left: 50%
-      top: 50%
-      width: 100%
-      pointer-events: none
-    state_image:
-      "on": /local/sweet/138/洗衣房.png
-      "off": /local/sweet/138/透明.png
-      unavailable: /local/sweet/138/透明.png
-  - type: image
-    entity: input_boolean.xiao_hai_wo_shi_deng
-    tap_action: none
-    hold_action: none
-    style:
-      left: 50%
-      top: 50%
-      width: 100%
-      pointer-events: none
-    state_image:
-      "on": /local/sweet/138/小孩卧室.png
-      "off": /local/sweet/138/透明.png
-      unavailable: /local/sweet/138/透明.png
-  - type: image
-    entity: input_boolean.xuan_guan_deng
-    tap_action: none
-    hold_action: none
-    style:
-      left: 50%
-      top: 50%
-      width: 100%
-      pointer-events: none
-    state_image:
-      "on": /local/sweet/138/玄关.png
-      "off": /local/sweet/138/透明.png
-      unavailable: /local/sweet/138/透明.png
-  - type: image
-    entity: input_boolean.yi_lou_wei_sheng_jian_deng
-    tap_action: none
-    hold_action: none
-    style:
-      left: 50%
-      top: 50%
-      width: 100%
-      pointer-events: none
-    state_image:
-      "on": /local/sweet/138/一楼卫生间.png
-      "off": /local/sweet/138/透明.png
-      unavailable: /local/sweet/138/透明.png
-  - type: image
-    entity: input_boolean.yi_lou_xi_shou_pen_deng
-    tap_action: none
-    hold_action: none
-    style:
-      left: 50%
-      top: 50%
-      width: 100%
-      pointer-events: none
-    state_image:
-      "on": /local/sweet/138/一楼洗手盆.png
-      "off": /local/sweet/138/透明.png
-      unavailable: /local/sweet/138/透明.png
-  - type: image
-    entity: input_boolean.zhu_wo_shi_deng
-    tap_action: none
-    hold_action: none
-    style:
-      left: 50%
-      top: 50%
-      width: 100%
-      pointer-events: none
-    state_image:
-      "on": /local/sweet/138/主卧室.png
-      "off": /local/sweet/138/透明.png
-      unavailable: /local/sweet/138/透明.png
-  - type: image
-    entity: input_boolean.zou_lang_deng
-    tap_action: none
-    hold_action: none
-    style:
-      left: 50%
-      top: 50%
-      width: 100%
-      pointer-events: none
-    state_image:
-      "on": /local/sweet/138/走廊.png
-      "off": /local/sweet/138/透明.png
-      unavailable: /local/sweet/138/透明.png
-  - type: state-icon
-    entity: input_boolean.can_ting_deng
-    tap_action:
-      action: toggle
-    hold_action: none
-    style:
-      left: 42%
-      top: 69%
-      rotate: 64deg
-      opacity: 0
-      "--mdc-icon-size": 4vw
-  - type: state-icon
-    entity: input_boolean.chu_fang_deng
-    tap_action:
-      action: toggle
-    hold_action: none
-    style:
-      left: 56%
-      top: 67%
-      rotate: 117deg
-      opacity: 0
-      "--mdc-icon-size": 5vw
-  - type: state-icon
-    entity: input_boolean.dian_jing_fang_deng
-    tap_action:
-      action: toggle
-    hold_action: none
-    style:
-      left: 60%
-      top: 61%
-      rotate: 96deg
-      opacity: 0
-      "--mdc-icon-size": 5vw
-  - type: state-icon
-    entity: input_boolean.er_lou_wei_sheng_jian_deng
-    tap_action:
-      action: toggle
-    hold_action: none
-    style:
-      left: 3%
-      top: 40%
-      rotate: 64deg
-      opacity: 0
-      "--mdc-icon-size": 6vw
-  - type: state-icon
-    entity: input_boolean.fu_mu_wo_shi_deng
-    tap_action:
-      action: toggle
-    hold_action: none
-    style:
-      left: 61%
-      top: 40%
-      rotate: 64deg
-      opacity: 0
-      "--mdc-icon-size": 9vw
-  - type: state-icon
-    entity: input_boolean.ke_ting_deng
-    tap_action:
-      action: toggle
-    hold_action: none
-    style:
-      left: 24%
-      top: 58%
-      rotate: 32deg
-      opacity: 0
-      "--mdc-icon-size": 11vw
-  - type: state-icon
-    entity: input_boolean.xi_yi_fang_deng
-    tap_action:
-      action: toggle
-    hold_action: none
-    style:
-      left: 47%
-      top: 88%
-      rotate: 64deg
-      opacity: 0
-      "--mdc-icon-size": 6vw
-  - type: state-icon
-    entity: input_boolean.xiao_hai_wo_shi_deng
-    tap_action:
-      action: toggle
-    hold_action: none
-    style:
-      left: 78%
-      top: 50%
-      rotate: 113deg
-      opacity: 0
-      "--mdc-icon-size": 10vw
-  - type: state-icon
-    entity: input_boolean.xuan_guan_deng
-    tap_action:
-      action: toggle
-    hold_action: none
-    style:
-      left: 28%
-      top: 75%
-      rotate: 64deg
-      opacity: 0
-      "--mdc-icon-size": 6vw
-  - type: state-icon
-    entity: input_boolean.yi_lou_wei_sheng_jian_deng
-    tap_action:
-      action: toggle
-    hold_action: none
-    style:
-      left: 73%
-      top: 60%
-      rotate: 109deg
-      opacity: 0
-      "--mdc-icon-size": 3vw
-  - type: state-icon
-    entity: input_boolean.yi_lou_xi_shou_pen_deng
-    tap_action:
-      action: toggle
-    hold_action: none
-    style:
-      left: 66%
-      top: 55%
-      rotate: 112deg
-      opacity: 0
-      "--mdc-icon-size": 3vw
-  - type: state-icon
-    entity: input_boolean.zhu_wo_shi_deng
-    tap_action:
-      action: toggle
-    hold_action: none
-    style:
-      left: 20%
-      top: 31%
-      rotate: 78deg
-      opacity: 0
-      "--mdc-icon-size": 10vw
-  - type: state-icon
-    entity: input_boolean.zou_lang_deng
-    tap_action:
-      action: toggle
-    hold_action: none
-    style:
-      left: 51%
-      top: 46%
-      rotate: 72deg
-      opacity: 0
-      "--mdc-icon-size": 10vw
-  - type: state-icon
-    entity: input_boolean.full_screen
-    tap_action:
-      action: toggle
-    hold_action: none
-    style:
-      left: 99%
-      top: 2%
-      opacity: 0
-      "--mdc-icon-size": 3vw
-  - type: state-icon
-    entity: input_boolean.ke_ting_dian_shi_kai_guan
-    tap_action:
-      action: toggle
-    hold_action: none
-    style:
-      left: 29%
-      top: 50%
-      rotate: 126deg
-      opacity: 0
-      "--mdc-icon-size": 6vw
-  - type: state-icon
-    entity: input_boolean.kong_diao_kai_guan
-    tap_action:
-      action: toggle
-    hold_action: none
-    style:
-      left: 38%
-      top: 49%
-      rotate: 76deg
-      opacity: 0
-      "--mdc-icon-size": 6vw
-  - type: state-icon
-    entity: input_boolean.ke_ting_bi_lu
-    tap_action:
-      action: toggle
-    hold_action: none
-    style:
-      left: 29%
-      top: 58%
-      rotate: 123deg
-      opacity: 0
-      "--mdc-icon-size": 2vw
-  - type: state-badge
-    entity: person.jinbanglin
-    style:
-      left: 10%
-      top: 10%
-  - type: state-badge
-    entity: person.huahua
-    style:
-      left: 16%
-      top: 10%
-  - type: state-label
-    entity: sensor.090615_cn_887875069_x1air_temperature_p_6_1
-    style:
-      left: 45%
-      top: 41%
-      rotate: "-16deg"
-      color: LightCoral
-  - type: state-label
-    entity: sensor.090615_cn_887875069_x1air_relative_humidity_p_6_2
-    style:
-      left: 41%
-      top: 43%
-      rotate: "-16deg"
-      color: CornflowerBlue
-  - type: state-label
-    entity: input_text.my_input_text
-    style:
-      left: 50%
-      top: 5%
-      font-size: 1.5em
-      font-weight: bold
-      color: LightSkyBlue
-      width: 10%
-      height: 10%
-  - type: state-label
-    entity: input_text.my_input_text_1
-    style:
-      left: 74%
-      top: 78%
-      font-size: 1em
-      color: Lime
-      width: 10%
-      height: 10%
-  - type: state-label
-    entity: input_text.my_input_text_2
-    style:
-      left: 74%
-      top: 85%
-      font-size: 1em
-      color: Maroon
-      width: 10%
-      height: 10%
-  - type: state-label
-    entity: input_text.my_input_text_3
-    style:
-      left: 74%
-      top: 92%
-      font-size: 1em
-      color: Blue
-      width: 10%
-      height: 10%
-  - type: action-button
-    target:
-      entity_id: script.hui_jia_chang_jing
-    title: 回家
-    action: script.turn_on
-    style:
-      left: 1020px
-      top: 60px
-      background-color: DarkSlateBlue
-      border-radius: 1px
-      width: 80px
-      height: 67px
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2)
-      text-align: center
-      line-height: 67px
-  - type: action-button
-    target:
-      entity_id: script.li_jia_chang_jing
-    title: 离家
-    action: script.turn_on
-    style:
-      left: 1102px
-      top: 60px
-      background-color: DarkGoldenRod
-      border-radius: 1px
-      width: 80px
-      height: 67px
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2)
-      text-align: center
-      line-height: 67px
-  - type: action-button
-    target:
-      entity_id: script.ke_ting_hui_ke_chang_jing
-    title: 会客
-    action: script.turn_on
-    style:
-      left: 1020px
-      top: 129px
-      background-color: MediumSeaGreen
-      border-radius: 1px
-      width: 80px
-      height: 67px
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2)
-      text-align: center
-      line-height: 67px
-  - type: action-button
-    title: 关灯
-    target:
-      entity_id: script.guan_bi_suo_you_deng
-    action: script.turn_on
-    style:
-      left: 1102px
-      top: 129px
-      background-color: DarkRed
-      border-radius: 1px  /* 圆角 */
-      width: 80px
-      height: 67px
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2)
-      text-align: center
-      line-height: 67px
+kiosk_mode:
+  entity_settings:
+    - entity:
+        input_boolean.full_screen: 'on'
+      hide_header: true
+      hide_sidebar: true
+    - entity:
+        input_boolean.full_screen: 'off'
+      hide_header: false
+      hide_sidebar: false
+views:
+  - type: panel
+    title: ipad
+    path: home
+    cards:
+      - type: picture-elements
+        image: /local/sweet/138/全关灯.png
+        theme: Google Dark Theme
+        elements:
+          - type: image
+            entity: input_boolean.sao_di_ji_qi_ren
+            style:
+              left: 50%
+              top: 50%
+              width: 100%
+              pointer-events: none
+            state_image:
+              'on': /local/sweet/138/扫地机器人工作.png
+              'off': /local/sweet/138/透明.png
+              unavailable: /local/sweet/138/透明.png
+          - type: image
+            entity: input_boolean.ke_ting_bi_lu
+            tap_action: none
+            hold_action: none
+            style:
+              left: 50%
+              top: 50%
+              width: 100%
+              pointer-events: none
+            state_image:
+              'on': /local/sweet/138/客厅壁炉.png
+              'off': /local/sweet/138/透明.png
+              unavailable: /local/sweet/138/透明.png
+          - type: image
+            entity: input_boolean.kong_diao_kai_guan
+            tap_action: none
+            hold_action: none
+            style:
+              left: 50%
+              top: 50%
+              width: 100%
+              pointer-events: none
+            state_image:
+              'on': /local/sweet/138/打开空调.png
+              'off': /local/sweet/138/透明.png
+              unavailable: /local/sweet/138/透明.png
+          - type: image
+            entity: input_boolean.ke_ting_dian_shi_kai_guan
+            tap_action: none
+            hold_action: none
+            style:
+              left: 50%
+              top: 50%
+              width: 100%
+              pointer-events: none
+            state_image:
+              'on': /local/sweet/138/打开电视.png
+              'off': /local/sweet/138/透明.png
+              unavailable: /local/sweet/138/透明.png
+          - type: image
+            entity: input_boolean.can_ting_deng
+            tap_action: none
+            hold_action: none
+            style:
+              left: 50%
+              top: 50%
+              width: 100%
+              pointer-events: none
+            state_image:
+              'on': /local/sweet/138/餐厅.png
+              'off': /local/sweet/138/透明.png
+              unavailable: /local/sweet/138/透明.png
+          - type: image
+            entity: input_boolean.chu_fang_deng
+            tap_action: none
+            hold_action: none
+            style:
+              left: 50%
+              top: 50%
+              width: 100%
+              pointer-events: none
+            state_image:
+              'on': /local/sweet/138/厨房.png
+              'off': /local/sweet/138/透明.png
+              unavailable: /local/sweet/138/透明.png
+          - type: image
+            entity: input_boolean.dian_jing_fang_deng
+            tap_action: none
+            hold_action: none
+            style:
+              left: 50%
+              top: 50%
+              width: 100%
+              pointer-events: none
+            state_image:
+              'on': /local/sweet/138/电竞房.png
+              'off': /local/sweet/138/透明.png
+              unavailable: /local/sweet/138/透明.png
+          - type: image
+            entity: input_boolean.er_lou_wei_sheng_jian_deng
+            tap_action: none
+            hold_action: none
+            style:
+              left: 50%
+              top: 50%
+              width: 100%
+              pointer-events: none
+            state_image:
+              'on': /local/sweet/138/二楼卫生间.png
+              'off': /local/sweet/138/透明.png
+              unavailable: /local/sweet/138/透明.png
+          - type: image
+            entity: input_boolean.fu_mu_wo_shi_deng
+            tap_action: none
+            hold_action: none
+            style:
+              left: 50%
+              top: 50%
+              width: 100%
+              pointer-events: none
+            state_image:
+              'on': /local/sweet/138/父母卧室.png
+              'off': /local/sweet/138/透明.png
+              unavailable: /local/sweet/138/透明.png
+          - type: image
+            entity: input_boolean.ke_ting_deng
+            tap_action: none
+            hold_action: none
+            style:
+              left: 50%
+              top: 50%
+              width: 100%
+              pointer-events: none
+            state_image:
+              'on': /local/sweet/138/客厅.png
+              'off': /local/sweet/138/透明.png
+              unavailable: /local/sweet/138/透明.png
+          - type: image
+            entity: input_boolean.xi_yi_fang_deng
+            tap_action: none
+            hold_action: none
+            style:
+              left: 50%
+              top: 50%
+              width: 100%
+              pointer-events: none
+            state_image:
+              'on': /local/sweet/138/洗衣房.png
+              'off': /local/sweet/138/透明.png
+              unavailable: /local/sweet/138/透明.png
+          - type: image
+            entity: input_boolean.xiao_hai_wo_shi_deng
+            tap_action: none
+            hold_action: none
+            style:
+              left: 50%
+              top: 50%
+              width: 100%
+              pointer-events: none
+            state_image:
+              'on': /local/sweet/138/小孩卧室.png
+              'off': /local/sweet/138/透明.png
+              unavailable: /local/sweet/138/透明.png
+          - type: image
+            entity: input_boolean.xuan_guan_deng
+            tap_action: none
+            hold_action: none
+            style:
+              left: 50%
+              top: 50%
+              width: 100%
+              pointer-events: none
+            state_image:
+              'on': /local/sweet/138/玄关.png
+              'off': /local/sweet/138/透明.png
+              unavailable: /local/sweet/138/透明.png
+          - type: image
+            entity: input_boolean.yi_lou_wei_sheng_jian_deng
+            tap_action: none
+            hold_action: none
+            style:
+              left: 50%
+              top: 50%
+              width: 100%
+              pointer-events: none
+            state_image:
+              'on': /local/sweet/138/一楼卫生间.png
+              'off': /local/sweet/138/透明.png
+              unavailable: /local/sweet/138/透明.png
+          - type: image
+            entity: input_boolean.yi_lou_xi_shou_pen_deng
+            tap_action: none
+            hold_action: none
+            style:
+              left: 50%
+              top: 50%
+              width: 100%
+              pointer-events: none
+            state_image:
+              'on': /local/sweet/138/一楼洗手盆.png
+              'off': /local/sweet/138/透明.png
+              unavailable: /local/sweet/138/透明.png
+          - type: image
+            entity: input_boolean.zhu_wo_shi_deng
+            tap_action: none
+            hold_action: none
+            style:
+              left: 50%
+              top: 50%
+              width: 100%
+              pointer-events: none
+            state_image:
+              'on': /local/sweet/138/主卧室.png
+              'off': /local/sweet/138/透明.png
+              unavailable: /local/sweet/138/透明.png
+          - type: image
+            entity: input_boolean.zou_lang_deng
+            tap_action: none
+            hold_action: none
+            style:
+              left: 50%
+              top: 50%
+              width: 100%
+              pointer-events: none
+            state_image:
+              'on': /local/sweet/138/走廊.png
+              'off': /local/sweet/138/透明.png
+              unavailable: /local/sweet/138/透明.png
+          - type: state-icon
+            entity: input_boolean.can_ting_deng
+            tap_action:
+              action: toggle
+            hold_action: none
+            style:
+              left: 42%
+              top: 69%
+              rotate: 64deg
+              opacity: 0
+              '--mdc-icon-size': 4vw
+          - type: state-icon
+            entity: input_boolean.chu_fang_deng
+            tap_action:
+              action: toggle
+            hold_action: none
+            style:
+              left: 56%
+              top: 67%
+              rotate: 117deg
+              opacity: 0
+              '--mdc-icon-size': 5vw
+          - type: state-icon
+            entity: input_boolean.dian_jing_fang_deng
+            tap_action:
+              action: toggle
+            hold_action: none
+            style:
+              left: 60%
+              top: 61%
+              rotate: 96deg
+              opacity: 0
+              '--mdc-icon-size': 5vw
+          - type: state-icon
+            entity: input_boolean.er_lou_wei_sheng_jian_deng
+            tap_action:
+              action: toggle
+            hold_action: none
+            style:
+              left: 3%
+              top: 40%
+              rotate: 64deg
+              opacity: 0
+              '--mdc-icon-size': 6vw
+          - type: state-icon
+            entity: input_boolean.fu_mu_wo_shi_deng
+            tap_action:
+              action: toggle
+            hold_action: none
+            style:
+              left: 61%
+              top: 40%
+              rotate: 64deg
+              opacity: 0
+              '--mdc-icon-size': 9vw
+          - type: state-icon
+            entity: input_boolean.ke_ting_deng
+            tap_action:
+              action: toggle
+            hold_action: none
+            style:
+              left: 24%
+              top: 58%
+              rotate: 32deg
+              opacity: 0
+              '--mdc-icon-size': 11vw
+          - type: state-icon
+            entity: input_boolean.xi_yi_fang_deng
+            tap_action:
+              action: toggle
+            hold_action: none
+            style:
+              left: 47%
+              top: 88%
+              rotate: 64deg
+              opacity: 0
+              '--mdc-icon-size': 6vw
+          - type: state-icon
+            entity: input_boolean.xiao_hai_wo_shi_deng
+            tap_action:
+              action: toggle
+            hold_action: none
+            style:
+              left: 78%
+              top: 50%
+              rotate: 113deg
+              opacity: 0
+              '--mdc-icon-size': 10vw
+          - type: state-icon
+            entity: input_boolean.xuan_guan_deng
+            tap_action:
+              action: toggle
+            hold_action: none
+            style:
+              left: 28%
+              top: 75%
+              rotate: 64deg
+              opacity: 0
+              '--mdc-icon-size': 6vw
+          - type: state-icon
+            entity: input_boolean.yi_lou_wei_sheng_jian_deng
+            tap_action:
+              action: toggle
+            hold_action: none
+            style:
+              left: 73%
+              top: 60%
+              rotate: 109deg
+              opacity: 0
+              '--mdc-icon-size': 3vw
+          - type: state-icon
+            entity: input_boolean.yi_lou_xi_shou_pen_deng
+            tap_action:
+              action: toggle
+            hold_action: none
+            style:
+              left: 66%
+              top: 55%
+              rotate: 112deg
+              opacity: 0
+              '--mdc-icon-size': 3vw
+          - type: state-icon
+            entity: input_boolean.zhu_wo_shi_deng
+            tap_action:
+              action: toggle
+            hold_action: none
+            style:
+              left: 20%
+              top: 31%
+              rotate: 78deg
+              opacity: 0
+              '--mdc-icon-size': 10vw
+          - type: state-icon
+            entity: input_boolean.zou_lang_deng
+            tap_action:
+              action: toggle
+            hold_action: none
+            style:
+              left: 51%
+              top: 46%
+              rotate: 72deg
+              opacity: 0
+              '--mdc-icon-size': 10vw
+          - type: state-icon
+            entity: input_boolean.full_screen
+            tap_action:
+              action: toggle
+            hold_action: none
+            style:
+              left: 99%
+              top: 2%
+              opacity: 0
+              '--mdc-icon-size': 3vw
+          - type: state-icon
+            entity: input_boolean.ke_ting_dian_shi_kai_guan
+            tap_action:
+              action: toggle
+            hold_action: none
+            style:
+              left: 29%
+              top: 50%
+              rotate: 126deg
+              opacity: 0
+              '--mdc-icon-size': 6vw
+          - type: state-icon
+            entity: input_boolean.kong_diao_kai_guan
+            tap_action:
+              action: toggle
+            hold_action: none
+            style:
+              left: 38%
+              top: 49%
+              rotate: 76deg
+              opacity: 0
+              '--mdc-icon-size': 6vw
+          - type: state-icon
+            entity: input_boolean.ke_ting_bi_lu
+            tap_action:
+              action: toggle
+            hold_action: none
+            style:
+              left: 29%
+              top: 58%
+              rotate: 123deg
+              opacity: 0
+              '--mdc-icon-size': 2vw
+          - type: state-badge
+            entity: person.jinbanglin
+            style:
+              left: 10%
+              top: 10%
+          - type: state-badge
+            entity: person.huahua
+            style:
+              left: 16%
+              top: 10%
+          - type: state-label
+            entity: sensor.090615_cn_887875069_x1air_temperature_p_6_1
+            style:
+              left: 45%
+              top: 41%
+              rotate: '-16deg'
+              color: LightCoral
+          - type: state-label
+            entity: sensor.090615_cn_887875069_x1air_relative_humidity_p_6_2
+            style:
+              left: 41%
+              top: 43%
+              rotate: '-16deg'
+              color: CornflowerBlue
+          - type: state-label
+            entity: input_text.my_input_text
+            style:
+              left: 50%
+              top: 5%
+              font-size: 1.5em
+              font-weight: bold
+              color: LightSkyBlue
+              width: 10%
+              height: 10%
+          - type: state-label
+            entity: input_text.my_input_text_1
+            style:
+              left: 74%
+              top: 78%
+              font-size: 1em
+              color: Lime
+              width: 10%
+              height: 10%
+          - type: state-label
+            entity: input_text.my_input_text_2
+            style:
+              left: 74%
+              top: 85%
+              font-size: 1em
+              color: Maroon
+              width: 10%
+              height: 10%
+          - type: state-label
+            entity: input_text.my_input_text_3
+            style:
+              left: 74%
+              top: 92%
+              font-size: 1em
+              color: Blue
+              width: 10%
+              height: 10%
+          - type: action-button
+            target:
+              entity_id: script.hui_jia_chang_jing
+            title: 回家
+            action: script.turn_on
+            style:
+              left: 1020px
+              top: 60px
+              background-color: DarkSlateBlue
+              border-radius: 1px
+              width: 80px
+              height: 67px
+              box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2)
+              text-align: center
+              line-height: 67px
+          - type: action-button
+            target:
+              entity_id: script.li_jia_chang_jing
+            title: 离家
+            action: script.turn_on
+            style:
+              left: 1102px
+              top: 60px
+              background-color: DarkGoldenRod
+              border-radius: 1px
+              width: 80px
+              height: 67px
+              box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2)
+              text-align: center
+              line-height: 67px
+          - type: action-button
+            target:
+              entity_id: script.ke_ting_hui_ke_chang_jing
+            title: 会客
+            action: script.turn_on
+            style:
+              left: 1020px
+              top: 129px
+              background-color: MediumSeaGreen
+              border-radius: 1px
+              width: 80px
+              height: 67px
+              box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2)
+              text-align: center
+              line-height: 67px
+          - type: action-button
+            title: 关灯
+            target:
+              entity_id: script.guan_bi_suo_you_deng
+            action: script.turn_on
+            style:
+              left: 1102px
+              top: 129px
+              background-color: DarkRed
+              border-radius: 1px  /* 圆角 */
+              width: 80px
+              height: 67px
+              box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2)
+              text-align: center
+              line-height: 67px
+    icon: mdi:home

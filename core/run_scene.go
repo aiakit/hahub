@@ -27,6 +27,10 @@ func RunScene(message, aiMessage, deviceId string) string {
 		}
 
 		for _, e := range entities {
+			if strings.Contains(e.OriginalName, "HomePanel") {
+				continue
+			}
+		
 			if strings.Contains(message, e.OriginalName) ||
 				x.Similarity(message, e.OriginalName) > 0.8 ||
 				x.ContainsAllChars(message, e.OriginalName) {

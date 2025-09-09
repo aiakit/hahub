@@ -149,14 +149,13 @@ func registerLightGradientTime(entity *data.Entity) {
 	}
 }
 
-var gradientTimeDeviceIdEntity = map[string]string{}
-
 // 处理默认状态渐变时间设置的独立函数
 // 调光1秒渐变在旋钮中比较跟手
 // 100ms,100ms,1 展示场景用
 // 3,3,1 日常使用，最好用的方式
 // 30,30,10 睡觉起床用
 func handleDefaultGradientTimeSettings(entity *data.Entity, option int) *ActionLight {
+
 	if strings.Contains(entity.OriginalName, "默认状态 渐变时间设置，字节[0]开灯渐变时间，字节[1]关灯渐变时间，字节[2]模式渐变时间") && !strings.Contains(entity.OriginalName, "字节3（配置渐变、默认灯光、配置灯光、灯光变化、配置变化）") {
 		var value = "4277059"
 		switch option {

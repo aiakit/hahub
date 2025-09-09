@@ -67,9 +67,9 @@ func bodySensorOn(entity *data.Entity) (*Automation, error) {
 		return nil, fmt.Errorf("%s区域没有发现灯", areaName)
 	}
 
-	// 30秒后关灯
+	// 60秒后关灯
 	actions = append(actions, &ActionLight{Delay: &delay{
-		Seconds: 30,
+		Seconds: 120,
 	}})
 
 	actions = append(actions, turnOffLights(entitiesFilter)...)
