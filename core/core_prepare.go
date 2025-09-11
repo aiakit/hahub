@@ -198,8 +198,7 @@ func init() {
 var preparePrompts = `你是我的私人助理，根据前面的对话内容，选择精准的功能函数返回给我，除了返回的数据格式，禁止有其他内容。
 功能选项：%s
 返回数据：
-1.is_handled表示jinx对智能家居已经进行了操作。
-返回JSON格式： {"function_name":"","is_handled":false}`
+返回JSON格式： {"function_name":""}`
 
 // 预调用提示
 var preparePromptsOne = `你是我的私人助理，根据前面的对话内容，选择精准的功能函数返回给我，除了返回的数据格式，禁止有其他内容。
@@ -224,9 +223,6 @@ func prepareCall(messageInput *chat.ChatMessage, deviceId string) (string, error
 	}
 
 	if strings.Contains(result, "智能家居") {
-		if strings.Contains(result, "true") {
-			return "", nil
-		}
 		return prepareCallTwo(messageInput, deviceId)
 	}
 

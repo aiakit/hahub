@@ -76,9 +76,6 @@ func findFunction(message string) string {
 	return "开发中"
 }
 
-var systemPrompts = `你是一个幽默的智能家居主管。你的中文名:小爱同学,英文名:jax，我给你配了一个助理，英文名字叫：jinx,中文名字：金克丝。你需要准分析并判断jinx是否解决了宿主的问题，如果没有需要你亲自处理。以下是我们最近的对话记录%s。`
-var systemPromptsNone = `你是一个幽默的智能家居主管。你的中文名:小爱同学,英文名:jax，我给你配了一个助理英文名字叫：jinx,中文名字：金克丝。你需要准确分析并判断jinx是否解决了宿主的问题，如果没有需要你亲自处理。`
-
 func chatCompletionInternal(msgInput []*chat.ChatMessage) (string, error) {
 	var message = make([]*chat.ChatMessage, 0, 5)
 
@@ -91,15 +88,12 @@ func chatCompletionHistory(msgInput []*chat.ChatMessage, deviceId string) (strin
 	history := GetHistory(deviceId)
 	var message = make([]*chat.ChatMessage, 0, 5)
 
-	var content = systemPromptsNone
 	if len(history) > 0 {
-		content = fmt.Sprintf(systemPrompts, x.MustMarshal2String(history))
+		message = append(message, &chat.ChatMessage{
+			Role:    "system",
+			Content: fmt.Sprintf(`历史对话记录: %s`, x.MustMarshal2String(history)),
+		})
 	}
-
-	message = append(message, &chat.ChatMessage{
-		Role:    "system",
-		Content: content,
-	})
 
 	message = append(message, msgInput...)
 

@@ -26,14 +26,7 @@ func RunDevice(message, aiMessage, deviceId string) string {
 			deviceMap[v.ID] = v
 		}
 
-		var areaName string
-		if deviceId != "" {
-			dd := data.GetDevice(deviceId)
-			if dd != nil {
-				areaName = data.SpiltAreaName(dd.AreaName)
-			}
-		}
-
+		var areaName = getAreaName(deviceId)
 		var deviceNames = make([]string, 0, 10)
 		var devicesName = make([]string, 0, 10)
 		//过滤区域
@@ -198,25 +191,31 @@ func RunDevice(message, aiMessage, deviceId string) string {
 			ava.Debug("没有设备")
 			return "没有找到设备"
 		}
+		var result string
+		var err error
 
-		var content string
-		if areaName != "" {
-			content = fmt.Sprintf(`这是我的全部设备名称信息%v，我所在的位置%s，根据我的意图严格返回完整的设备名称。
+		if len(deviceNames) > 1 {
+			var content string
+			if areaName != "" {
+				content = fmt.Sprintf(`这是我的全部设备名称信息%v，我所在的位置%s，根据我的意图严格返回完整的设备名称。
 1.如果我在卧室，只能控制当前卧室位置的设备。
 2.如果我不在卧室，只能控制非卧室区域的设备。
 返回格式: ["设备名称1","设备名称2"]`, deviceNames, areaName)
-		} else {
-			content = fmt.Sprintf(`这是我的全部设备信息%v，根据我的意图严格返回完整的设备名称。
+			} else {
+				content = fmt.Sprintf(`这是我的全部设备信息%v，根据我的意图严格返回完整的设备名称。
 返回格式: ["名称1","名称2"]`, x.MustMarshal2String(deviceNames))
-		}
+			}
 
-		result, err := chatCompletionInternal([]*chat.ChatMessage{
-			{Role: "user", Content: content},
-			{Role: "user", Content: message},
-		})
-		if err != nil {
-			ava.Error(err)
-			return "没有找到对应的设备信息"
+			result, err = chatCompletionInternal([]*chat.ChatMessage{
+				{Role: "user", Content: content},
+				{Role: "user", Content: message},
+			})
+			if err != nil {
+				ava.Error(err)
+				return "没有找到对应的设备信息"
+			}
+		} else {
+			result = x.MustMarshal2String(deviceNames)
 		}
 
 		var resultEntities = make(map[string]*data.Entity, 10)
@@ -266,7 +265,7 @@ func RunDevice(message, aiMessage, deviceId string) string {
 
 		//根据实体前缀找到设备指令
 		result2, err := chatCompletionInternal([]*chat.ChatMessage{
-			{Role: "user", Content: fmt.Sprintf(`这是我的设备信息%s，设备对应的指令信息%s，domain表示对应指令类型，action是domain和具体指令的结合，根据我的意图按照格式进行返回。
+			{Role: "user", Content: fmt.Sprintf(`这是我的设备对应的功能信息%s，设备对应的指令信息%s，domain表示对应指令类型，action是domain和具体指令的结合，根据我的意图按照格式进行返回。
 1.sub_domain,message是必要字段不能遗漏。
 2.fields是具体的要发送控制指令的内容，根据指令信息数据判断是否为空。
 3.target是指令信息数据fields中是否包含target。
@@ -306,7 +305,7 @@ func RunDevice(message, aiMessage, deviceId string) string {
 					continue
 				}
 				if strings.Contains(strings.ToLower(r.State), "on") {
-					if len(resultData) == 1 {
+					if len(deviceNames) == 1 {
 						return data.GetEntityByEntityId()[v.EntityID].DeviceName + "是开着的"
 					}
 					continue
@@ -320,7 +319,7 @@ func RunDevice(message, aiMessage, deviceId string) string {
 					continue
 				}
 				if strings.Contains(strings.ToLower(r.State), "off") {
-					if len(resultData) == 1 {
+					if len(deviceNames) == 1 {
 						return data.GetEntityByEntityId()[v.EntityID].DeviceName + "是关着的"
 					}
 					continue

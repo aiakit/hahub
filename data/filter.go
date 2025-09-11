@@ -252,7 +252,7 @@ func FilterEntities(entities []*Entity) []*Entity {
 				}
 
 				////5.1 灯组
-				if strings.HasPrefix(e.EntityID, "light.") && strings.Contains(e.EntityID, "_group_") {
+				if strings.HasPrefix(e.EntityID, "light.") && strings.Contains(e.EntityID, "group") {
 					category = CategoryLightGroup
 					if deviceData != nil {
 						state, _ := GetState(e.EntityID)

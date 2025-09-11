@@ -33,17 +33,18 @@ func QueryDevice(message, aiMessage, deviceId string) string {
 
 	//状态
 	//所有设备
-	var entities = make(map[string][]shortDevice, 20) //device_name:实体
+	var entities = make(map[string][]shortDevice, 20) //device_id:实体
 	//离线设备
-	var offlineDevices = make(map[string]bool, 5)
+	var offlineDevices = make(map[string]string, 5)
 	//在线设备
-	var onlineDevices = make(map[string]bool, 5)
+	var onlineDevices = make(map[string]string, 5)
 
 	var deviceNameMap = make(map[string]bool)
 
 	var entitiesMap = make(map[string]data.StateAll, 20)
 
 	for _, state := range states {
+
 		en, ok := resultEntities[state.EntityID]
 		if !ok {
 			continue
@@ -63,22 +64,19 @@ func QueryDevice(message, aiMessage, deviceId string) string {
 			continue
 		}
 
-		// 修改name的构建方式，加入EntityID以避免重复
-		//name = areaName + "_" + name + "_" + en.DeviceID
-
-		if len(entities[name]) > 3 {
+		if len(entities[en.DeviceID]) > 3 {
 			continue
 		}
 
 		if !deviceNameMap[name] {
 			if state.State == "unavailable" {
-				offlineDevices[name] = true
+				offlineDevices[en.DeviceID] = en.DeviceName
 			} else {
-				onlineDevices[name] = true
+				onlineDevices[en.DeviceID] = en.DeviceName
 			}
 		}
 
-		entities[name] = append(entities[name], shortDevice{
+		entities[en.DeviceID] = append(entities[en.DeviceID], shortDevice{
 			id:       en.EntityID,
 			Name:     name,
 			AreaName: data.SpiltAreaName(en.AreaName),
@@ -98,11 +96,8 @@ func QueryDevice(message, aiMessage, deviceId string) string {
 	//直接找设备
 	for _, d := range devicess {
 		if strings.Contains(message, d.Name) {
-			name := d.Name
-			//areaName := data.SpiltAreaName(d.AreaName)
-			//name = areaName + "_" + name + "_" + d.ID
-			if v, ok := entities[name]; ok {
-				entitiesMapTwo[name] = v
+			if v, ok := entities[d.ID]; ok {
+				entitiesMapTwo[d.ID] = v
 			}
 		}
 	}
@@ -114,12 +109,10 @@ func QueryDevice(message, aiMessage, deviceId string) string {
 				continue
 			}
 
-			// 同样修改这里name的构建方式
-			//name := areaName + "_" + d.OriginalName + "_" + d.ID
-			name := d.Name
+			deviceID := d.ID
 
-			if _, ok := entities[name]; !ok && !strings.Contains(d.Model, "ir") {
-				ava.Debugf("漏掉计算的设备 |name=%s |mode=%s", name, d.Model)
+			if _, ok := entities[deviceID]; !ok && !strings.Contains(d.Model, "ir") {
+				ava.Debugf("漏掉计算的设备 |name=%s |mode=%s |id=%s", d.Name, d.Model, d.ID)
 			}
 
 			area := data.GetAreas()
@@ -131,12 +124,12 @@ func QueryDevice(message, aiMessage, deviceId string) string {
 				}
 			}
 
-			if v, ok := entities[name]; ok {
+			if v, ok := entities[deviceID]; ok {
 				for _, v1 := range v {
 					if len(areaNames) > 0 {
 						for _, aa := range areaNames {
 							if !strings.Contains(v1.AreaName, aa) {
-								delete(entities, name)
+								delete(entities, deviceID)
 								continue
 							}
 						}
@@ -144,37 +137,37 @@ func QueryDevice(message, aiMessage, deviceId string) string {
 
 					if !strings.Contains(message, "灯") {
 						if v1.category == data.CategoryLight {
-							delete(entities, name)
+							delete(entities, deviceID)
 							continue
 						}
 
 						if v1.category == data.CategoryLightGroup {
-							delete(entities, name)
+							delete(entities, deviceID)
 							continue
 						}
 					}
 
 					if !strings.Contains(message, "开关") {
 						if v1.category == data.CategorySwitch {
-							delete(entities, name)
+							delete(entities, deviceID)
 							continue
 						}
 					}
 
 					if !strings.Contains(message, "空调") {
 						if v1.category == data.CategoryAirConditioner {
-							delete(entities, name)
+							delete(entities, deviceID)
 							continue
 						}
 					}
 
 					//if v1.category == data.CateOther {
-					//	delete(entities, name)
+					//	delete(entities, deviceID)
 					//	continue
 					//}
 
 					if v1.category == data.CategoryVirtualEvent {
-						delete(entities, name)
+						delete(entities, deviceID)
 						continue
 					}
 				}
@@ -202,41 +195,48 @@ func QueryDevice(message, aiMessage, deviceId string) string {
 
 	if strings.Contains(aiMessage, "query_offline_state") {
 		for k := range entities {
-			if _, ok := offlineDevices[k]; ok {
-				sendData = append(sendData, k)
+			if v, ok := offlineDevices[k]; ok {
+				sendData = append(sendData, v)
 			}
 		}
 	} else if strings.Contains(aiMessage, "query_online_state") {
 		for k := range entities {
-			if _, ok := onlineDevices[k]; ok {
-				sendData = append(sendData, k)
+			if v, ok := onlineDevices[k]; ok {
+				sendData = append(sendData, v)
 			}
 		}
 	} else {
-		for k := range entities {
-			sendData = append(sendData, k)
+		for _, v := range entities {
+			if len(v) > 0 {
+				sendData = append(sendData, v[0].Name)
+			}
 		}
 	}
 
 	if len(sendData) == 0 {
 		return "没有对应状态的设备"
 	}
+	var result string
 
-	result, err := chatCompletionInternal([]*chat.ChatMessage{
-		{Role: "user", Content: fmt.Sprintf(`这是我的全部设备%s，根据我的意图找出对应的设备名称给我。
+	if len(sendData) == 1 {
+		result = sendData[0]
+	} else {
+		result, err = chatCompletionInternal([]*chat.ChatMessage{
+			{Role: "user", Content: fmt.Sprintf(`这是我的全部设备%s，根据我的意图找出对应的设备名称给我。
 返回格式: ["设备名称1","设备名称2"]`, x.MustMarshal2String(sendData))},
-		{Role: "user", Content: message},
-	})
-	if err != nil {
-		ava.Error(err)
-		return "没有找到对应的设备信息"
+			{Role: "user", Content: message},
+		})
+		if err != nil {
+			ava.Error(err)
+			return "没有找到对应的设备信息"
+		}
 	}
 
 	var entity = make([]data.StateAll, 0, 2)
 
-	for k, v := range entities {
+	for _, v := range entities {
 		for _, v1 := range v {
-			if strings.Contains(result, k) {
+			if strings.Contains(result, v1.Name) {
 				dd := entitiesMap[v1.id]
 				dd.EntityID = ""
 				entity = append(entity, entitiesMap[v1.id])
@@ -245,9 +245,9 @@ func QueryDevice(message, aiMessage, deviceId string) string {
 	}
 
 	//查询所有或者30个设备以上比较难搞，未来优化为内存缓存设备状态，直接计算数据状态返回不经过ai
-	if len(entity) > 30 {
-		return "你要查寻的设备过多，请到app中查看设备状态"
-	}
+	//if len(entity) > 30 {
+	//	return "你要查寻的设备过多，请到app中查看设备状态"
+	//}
 
 	result2, err := chatCompletionInternal([]*chat.ChatMessage{
 		{Role: "user", Content: fmt.Sprintf(`这是我的设备状态信息%s，根据我的意图用20字以内人性化的语言回答我设备状态是怎么样的。`, x.MustMarshal2String(entity))},
@@ -280,6 +280,7 @@ func getFilterEntities(message string, entities map[string]*data.Entity) (map[st
 		if strings.Contains(e.DeviceMode, ".light.") && !strings.HasPrefix(e.EntityID, "light") {
 			continue
 		}
+
 		if e.Category == data.CategoryXiaomiHomeSpeaker && !strings.HasPrefix(e.EntityID, "media_player") {
 			continue
 		}
@@ -365,9 +366,6 @@ func getFilterEntities(message string, entities map[string]*data.Entity) (map[st
 			continue
 		}
 
-		if e.Category == data.CategoryHaTV {
-			continue
-		}
 		result[e.EntityID] = e
 
 		//if e.Category == data.CategoryLightGroup {

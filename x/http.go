@@ -133,7 +133,7 @@ func Del(c *ava.Context, uri, token string, v interface{}) error {
 }
 
 func Get(c *ava.Context, uri, token string, v interface{}) error {
-	//var now = time.Now()
+	var now = time.Now()
 	var header = map[string]string{
 		"Authorization": "Bearer " + token,
 		"Content-Type":  "application/json; charset=utf-8",
@@ -158,11 +158,11 @@ func Get(c *ava.Context, uri, token string, v interface{}) error {
 		return err
 	}
 
-	//if len(string(b)) < 500 {
-	//	c.Debugf("latency=%v秒 |uri=%v |FROM=%v", time.Now().Sub(now).Seconds(), uri, string(b))
-	//} else {
-	//	c.Debugf("latency=%v秒 |uri=%s |FROM_LEN=%v", time.Now().Sub(now).Seconds(), uri, len(string(b)))
-	//}
+	if len(string(b)) < 500 {
+		c.Debugf("latency=%v秒 |uri=%v |FROM=%v", time.Now().Sub(now).Seconds(), uri, string(b))
+	} else {
+		c.Debugf("latency=%v秒 |uri=%s |FROM_LEN=%v", time.Now().Sub(now).Seconds(), uri, len(string(b)))
+	}
 
 	return Unmarshal(b, v)
 }

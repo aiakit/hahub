@@ -2,7 +2,6 @@ package core
 
 import (
 	"context"
-	"fmt"
 	"hahub/data"
 	"hahub/intelligent"
 	"hahub/internal/chat"
@@ -212,6 +211,14 @@ func chaosSpeaker() {
 	go gSpeakerProcess.runSpeakerPlayText()
 }
 
+func getAreaName(deviceId string) string {
+	if v, ok := gSpeakerProcess.speakerEntityPlayTextEntity[deviceId]; ok && v.AreaName != "" {
+		return data.SpiltAreaName(v.AreaName)
+	}
+
+	return ""
+}
+
 func SpeakerProcessSend(message *Conversationor) {
 	var msg = message.Conversation.Content
 
@@ -257,7 +264,7 @@ func (s *speakerProcess) getDeviceLock(deviceId string) *sync.Mutex {
 
 // 过滤小爱已经成功处理的关键词
 var filterMessage = []string{
-	"好的", "发送指令", "已", "收到", "正在为", "搞定了",
+	"好的", "发送指令", "已", "收到", "正在为", "搞定了", "没问题", "正在", "你有好几个设备",
 }
 
 func (s *speakerProcess) runSpeakerPlayText() {
@@ -281,13 +288,9 @@ func (s *speakerProcess) sendToRemote(conversations *Conversationor) {
 
 	switch conversations.Conversation.Role {
 	case "user":
-		AddUserMessage(conversations.deviceId, conversations.Conversation.Content)
-		sendMessage2Panel("input_text.my_input_text_1", fmt.Sprintf("宿主: %s", conversations.Conversation.Content))
+		sendMessage2Panel("input_text.my_input_text_1", conversations.Conversation.Content)
 	case "assistant":
-		AddAIMessage(conversations.deviceId, conversations.Conversation.Content)
-		sendMessage2Panel("input_text.my_input_text_2", fmt.Sprintf("AI  :%s"+conversations.Conversation.Content))
-	case "system":
-		AddSystemMessage(conversations.deviceId, conversations.Conversation.Content)
+		sendMessage2Panel("input_text.my_input_text_2", conversations.Conversation.Content)
 	}
 
 	//1.获取函数调用
@@ -306,7 +309,7 @@ func (s *speakerProcess) sendToRemote(conversations *Conversationor) {
 
 		if message != "" {
 			AddAIMessage(conversations.deviceId, message)
-			sendMessage2Panel("input_text.my_input_text_2", fmt.Sprintf("AI  :%s", message))
+			sendMessage2Panel("input_text.my_input_text_2", message)
 			// 暂停轮询
 			if cancel, exists := gSpeakerProcess.pollCancelFuncs[conversations.deviceId]; exists && cancel != nil {
 				cancel()
@@ -501,9 +504,7 @@ func SpeakerAsk2ConversationHandler(event *data.StateChangedSimple, body []byte)
 			content = v[0].Llm.Text
 		}
 
-		if len([]rune(content)) > 10 {
-			return
-		}
+		ava.Debugf("SpeakerAsk2ConversationHandler |content=%s", content)
 
 		for _, f := range filterMessage {
 			if strings.Contains(content, f) {
