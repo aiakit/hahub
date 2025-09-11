@@ -264,8 +264,8 @@ func (s *speakerProcess) getDeviceLock(deviceId string) *sync.Mutex {
 
 // 过滤小爱已经成功处理的关键词
 var filterMessage = []string{
-	"好的", "发送指令", "已", "收到", "正在为", "搞定", "没问题", "正在", "你有好几个设备",
-	"关咯", "空气质量",
+	"好的", "发送指令", "已打开", "已关闭", "已开启", "收到", "正在为", "搞定", "没问题", "正在", "你有好几个设备",
+	"关咯", "空气质量", "已执行",
 }
 
 func (s *speakerProcess) runSpeakerPlayText() {

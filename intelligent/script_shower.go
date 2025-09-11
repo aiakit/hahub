@@ -1,7 +1,6 @@
 package intelligent
 
 import (
-	"fmt"
 	"hahub/data"
 	"strings"
 
@@ -61,7 +60,6 @@ func TakeAShower(c *ava.Context) {
 				if ok1 {
 					for _, e1 := range vv {
 						if strings.HasPrefix(e1.EntityID, "sensor.") && strings.Contains(e1.OriginalName, "温度") {
-							fmt.Println("------9")
 							isExsitTemperature = true
 							var act IfThenELSEAction
 							act.If = append(act.If, ifCondition{
