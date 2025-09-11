@@ -272,7 +272,9 @@ func (s *speakerProcess) runSpeakerPlayText() {
 	for {
 		select {
 		case message := <-s.playTextMessage:
-			go s.sendToRemote(message)
+			if message.Conversation.Role == "user" {
+				go s.sendToRemote(message)
+			}
 		}
 	}
 }
@@ -476,7 +478,14 @@ func SpeakerAsk2PlayTextHandler(event *data.StateChangedSimple, body []byte) {
 			Conversation: &chat.ChatMessage{Role: "assistant", Content: state.Event.Data.NewState.State},
 			deviceId:     deviceId,
 		}
+
 		ava.Debugf("speaker ask2 text: %s |data=%s", x.MustMarshal2String(cs), string(body))
+
+		if state.Event.Data.NewState.State == "" {
+			return
+		}
+
+		AddAIMessage(deviceId, state.Event.Data.NewState.State)
 
 		SpeakerProcessSend(cs)
 	}

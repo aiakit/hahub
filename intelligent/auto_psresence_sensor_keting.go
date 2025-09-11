@@ -105,7 +105,19 @@ func presenceSensorOnKeting(entity *data.Entity) (*Automation, *Automation, erro
 			atmosphereLight,
 			entity,
 			100, 5200, 100, 5200,
-			"19:00:00", "23:59:59")
+			"19:00:00", "20:59:59")
+		if len(s.Then) > 0 {
+			acts = append(acts, s)
+		}
+	}()
+
+	func() {
+		s := setLightSettings(
+			nil,
+			atmosphereLight,
+			entity,
+			0, 0, 80, 3000,
+			"21:00:00", "23:59:59")
 		if len(s.Then) > 0 {
 			acts = append(acts, s)
 		}
@@ -221,8 +233,17 @@ func setLightSettings(
 		}
 	}
 
-	// 设置 atmosphereLight 的属性
+	// 设置 atmosphereLight 的属性,只取氛围灯
 	for i, e := range atmosphereLight {
+		e1, ok := data.GetEntityByEntityId()[e.EntityID]
+		if !ok {
+			continue
+		}
+
+		if !strings.Contains(e1.DeviceName, "氛围") && !strings.Contains(e1.DeviceName, "夜") {
+			continue
+		}
+
 		if e.subCategory == data.CategoryLightTemp {
 			atmosphereLight[i].Data.ColorTempKelvin = atmosphereKelvin
 			atmosphereLight[i].Data.BrightnessStepPct = atmosphereBrightness

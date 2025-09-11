@@ -99,22 +99,22 @@ func levingHomeScript() (*Script, *Automation) {
 		}
 	}()
 
-	// 关闭热水器
-	func() {
-		entities, ok := data.GetEntityCategoryMap()[data.CategoryWaterHeater]
-		if ok {
-			for _, e := range entities {
-				if strings.Contains(e.OriginalName, "开关") {
-					action = append(action, ActionService{
-						Action: "water_heater.turn_off",
-						Target: &struct {
-							EntityId string `json:"entity_id"`
-						}{EntityId: e.EntityID},
-					})
-				}
-			}
-		}
-	}()
+	// 关闭热水器,不能关
+	//func() {
+	//	entities, ok := data.GetEntityCategoryMap()[data.CategoryWaterHeater]
+	//	if ok {
+	//		for _, e := range entities {
+	//			if strings.Contains(e.OriginalName, "开关") {
+	//				action = append(action, ActionService{
+	//					Action: "water_heater.turn_off",
+	//					Target: &struct {
+	//						EntityId string `json:"entity_id"`
+	//					}{EntityId: e.EntityID},
+	//				})
+	//			}
+	//		}
+	//	}
+	//}()
 
 	//// 播放离家提醒（通过音箱）
 	//func() {
