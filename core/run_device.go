@@ -271,7 +271,24 @@ func RunDevice(message, aiMessage, deviceId string) string {
 3.target是指令信息数据fields中是否包含target。
 4.sub_domain是指令信息domain更下一级的指令划分。
 5.必须严格根据设备信息中的domain去寻找指令信息。
-返回JSON格式：[{"entity_id":"实体id","target":true,"fields":{"rgb_color":[255, 100, 100]},"sub_domain":"turn_on"}]`, x.MustMarshal2String(sendDeviceEntity), x.MustMarshal2String(sendCommandData))},
+6.message是你对返回指令的人性化描述。
+返回JSON格式：{
+  "message": "",
+  "data":[
+    {
+      "entity_id": "实体id",
+      "target": true,
+      "fields": {
+        "rgb_color": [
+          255,
+          100,
+          100
+        ]
+      },
+      "sub_domain": "turn_on"
+    }
+  ] 
+}`, x.MustMarshal2String(sendDeviceEntity), x.MustMarshal2String(sendCommandData))},
 			{Role: "user", Content: message},
 		})
 		if err != nil {
@@ -284,7 +301,7 @@ func RunDevice(message, aiMessage, deviceId string) string {
 			return "没有发现任何设备"
 		}
 
-		var resultData []*runDeviceResultData
+		var resultData runDeviceResultData
 
 		err = x.Unmarshal([]byte(s), &resultData)
 		if err != nil {
@@ -292,8 +309,19 @@ func RunDevice(message, aiMessage, deviceId string) string {
 			return "没有发现任何设备"
 		}
 
+		var onlyOneDevice = make(map[string]bool)
+
+		for _, v := range resultData.Data {
+			var dd, ok = data.GetEntityByEntityId()[v.EntityID]
+			if ok {
+				if ok = onlyOneDevice[dd.DeviceID]; !ok {
+					onlyOneDevice[dd.DeviceID] = true
+				}
+			}
+		}
+
 		//执行设备操作
-		for _, v := range resultData {
+		for _, v := range resultData.Data {
 			if v.EntityID == "" {
 				continue
 			}
@@ -305,7 +333,7 @@ func RunDevice(message, aiMessage, deviceId string) string {
 					continue
 				}
 				if strings.Contains(strings.ToLower(r.State), "on") {
-					if len(deviceNames) == 1 {
+					if len(deviceNames) == 1 || len(resultData.Data) == 1 || len(onlyOneDevice) == 1 {
 						return data.GetEntityByEntityId()[v.EntityID].DeviceName + "是开着的"
 					}
 					continue
@@ -319,7 +347,7 @@ func RunDevice(message, aiMessage, deviceId string) string {
 					continue
 				}
 				if strings.Contains(strings.ToLower(r.State), "off") {
-					if len(deviceNames) == 1 {
+					if len(deviceNames) == 1 || len(resultData.Data) == 1 || len(onlyOneDevice) == 1 {
 						return data.GetEntityByEntityId()[v.EntityID].DeviceName + "是关着的"
 					}
 					continue
@@ -364,11 +392,11 @@ func RunDevice(message, aiMessage, deviceId string) string {
 					ava.Error(err)
 					continue
 				}
-				return "已发送指令"
+				return resultData.Message
 			}
 		}
 
-		return "没有找到操作的指令"
+		return resultData.Message
 	}
 
 	return CoreDelay(message, aiMessage, deviceId, f)
@@ -386,10 +414,13 @@ type runDeviceCommand struct {
 }
 
 type runDeviceResultData struct {
-	EntityID  string                 `json:"entity_id"`
-	Target    bool                   `json:"target"`
-	Fields    map[string]interface{} `json:"fields"`
-	SubDomain string                 `json:"sub_domain"`
+	Message string `json:"message"`
+	Data    []struct {
+		EntityID  string                 `json:"entity_id"`
+		Target    bool                   `json:"target"`
+		Fields    map[string]interface{} `json:"fields"`
+		SubDomain string                 `json:"sub_domain"`
+	} `json:"data"`
 }
 
 // 打开电视的逻辑,解决ha中一些电视无法打开，只可以关闭的问题
