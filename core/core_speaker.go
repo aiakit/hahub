@@ -265,6 +265,7 @@ func (s *speakerProcess) getDeviceLock(deviceId string) *sync.Mutex {
 // 过滤小爱已经成功处理的关键词
 var filterMessage = []string{
 	"好的", "发送指令", "已", "收到", "正在为", "搞定了", "没问题", "正在", "你有好几个设备",
+	"关咯",
 }
 
 func (s *speakerProcess) runSpeakerPlayText() {
@@ -308,7 +309,6 @@ func (s *speakerProcess) sendToRemote(conversations *Conversationor) {
 		}
 
 		if message != "" {
-			AddAIMessage(conversations.deviceId, message)
 			sendMessage2Panel("input_text.my_input_text_2", message)
 			// 暂停轮询
 			if cancel, exists := gSpeakerProcess.pollCancelFuncs[conversations.deviceId]; exists && cancel != nil {

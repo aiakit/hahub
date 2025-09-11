@@ -102,6 +102,12 @@ func chatCompletionHistory(msgInput []*chat.ChatMessage, deviceId string) (strin
 		return "发生未知错误，请重试", err
 	}
 
+	for _, v := range msgInput {
+		if v.Role == "user" {
+			AddUserMessage(deviceId, v.Content)
+		}
+	}
+
 	AddAIMessage(deviceId, result)
 
 	return result, nil
