@@ -41,8 +41,8 @@ func Panel(c *ava.Context) {
 				turnOnScriptId := AddScript2Queue(c, s)
 
 				var a = &Automation{
-					Alias:       "HomePanel" + areaName + "打开电视",
-					Description: "3D面板上按下按键打开电视",
+					Alias:       "面板功能" + areaName + "打开电视",
+					Description: "视图中按下按键打开电视",
 					Mode:        "single",
 					Triggers: []*Triggers{{
 						EntityID: entityId,
@@ -71,8 +71,8 @@ func Panel(c *ava.Context) {
 				turnOffScriptId := AddScript2Queue(c, s)
 
 				var a = &Automation{
-					Alias:       "HomePanel" + areaName + "关闭电视",
-					Description: "3D面板上按下按键关闭电视",
+					Alias:       "面板功能" + areaName + "关闭电视",
+					Description: "视图中按下按键关闭电视",
 					Mode:        "single",
 					Triggers: []*Triggers{{
 						EntityID: entityId,
@@ -157,8 +157,8 @@ func Panel(c *ava.Context) {
 			var autoIsOff string
 			func() {
 				var a = &Automation{
-					Alias:       "HomePanel" + areaName + "3d面板按键为开",
-					Description: areaName + "灯开修改3d面板按键为开",
+					Alias:       "面板功能" + areaName + "视图中按键为开",
+					Description: areaName + "灯开修改视图中按键为开",
 					Mode:        "single",
 				}
 				var triggers []*Triggers
@@ -202,8 +202,8 @@ func Panel(c *ava.Context) {
 
 			func() {
 				var a = &Automation{
-					Alias:       "HomePanel" + areaName + "3d面板按键为关",
-					Description: areaName + "灯开修改3d面板按键为关",
+					Alias:       "面板功能" + areaName + "视图中按键为关",
+					Description: areaName + "灯开修改视图中按键为关",
 					Mode:        "single",
 				}
 				var triggers []*Triggers
@@ -252,8 +252,8 @@ func Panel(c *ava.Context) {
 
 				if turnOnScriptId != "" {
 					var a = &Automation{
-						Alias:       "HomePanel" + areaName + "开灯",
-						Description: "3D面板上按下按键开灯",
+						Alias:       "面板功能" + areaName + "开灯",
+						Description: "视图中按下按键开灯",
 						Mode:        "single",
 						Triggers: []*Triggers{{
 							EntityID: entityId,
@@ -264,12 +264,16 @@ func Panel(c *ava.Context) {
 					}
 
 					if autoIsOn != "" {
-						a.Conditions = append(a.Conditions, &Conditions{
+						var con = Conditions{}
+						con.Condition = "not"
+						con.ConditionChild = append(con.ConditionChild, &Conditions{
 							Condition: "state",
 							EntityID:  autoIsOn,
 							Attribute: "last_triggered",
-							State:     "off",
+							State:     "on",
 						})
+
+						a.Conditions = append(a.Conditions, &con)
 					}
 
 					a.Actions = append(a.Actions, &ActionService{
@@ -283,8 +287,8 @@ func Panel(c *ava.Context) {
 
 				if turnOffScriptId != "" {
 					var a = &Automation{
-						Alias:       "HomePanel" + areaName + "关灯",
-						Description: "3D面板上按下按键关灯",
+						Alias:       "面板功能" + areaName + "关灯",
+						Description: "视图中按下按键关灯",
 						Mode:        "single",
 						Triggers: []*Triggers{{
 							EntityID: entityId,
@@ -295,12 +299,16 @@ func Panel(c *ava.Context) {
 					}
 
 					if autoIsOff != "" {
-						a.Conditions = append(a.Conditions, &Conditions{
+						var con = Conditions{}
+						con.Condition = "not"
+						con.ConditionChild = append(con.ConditionChild, &Conditions{
 							Condition: "state",
 							EntityID:  autoIsOff,
 							Attribute: "last_triggered",
-							State:     "off",
+							State:     "on",
 						})
+
+						a.Conditions = append(a.Conditions, &con)
 					}
 
 					a.Actions = append(a.Actions, &ActionService{
@@ -327,8 +335,8 @@ func Panel(c *ava.Context) {
 		if len(s1.Sequence) > 0 {
 			AddScript2Queue(c, s1)
 			//var a = &Automation{
-			//	Alias:       "HomePanel" + "全屋关灯",
-			//	Description: "3D面板上按下按键全屋关灯",
+			//	Alias:       "面板功能" + "全屋关灯",
+			//	Description: "视图中按下按键全屋关灯",
 			//	Mode:        "single",
 			//	Triggers: []*Triggers{{
 			//		EntityID: "input_boolean.quan_wu_guan_deng",
@@ -360,8 +368,8 @@ func Panel(c *ava.Context) {
 			AddScript2Queue(c, s1)
 			//id := AddScript2Queue(c, s1)
 			//var a = &Automation{
-			//	Alias:       "HomePanel" + "全屋开灯",
-			//	Description: "3D面板上按下按键全屋开灯",
+			//	Alias:       "面板功能" + "全屋开灯",
+			//	Description: "视图中按下按键全屋开灯",
 			//	Mode:        "single",
 			//	Triggers: []*Triggers{{
 			//		EntityID: "input_boolean.quan_wu_kai_deng",
