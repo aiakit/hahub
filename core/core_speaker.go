@@ -259,6 +259,11 @@ func (s *speakerProcess) getDeviceLock(deviceId string) *sync.Mutex {
 	return mutex
 }
 
+// 过滤小爱已经成功处理的关键词
+var filterMessage = map[string]bool{
+	"好的": true,
+}
+
 func (s *speakerProcess) runSpeakerPlayText() {
 	for {
 		select {

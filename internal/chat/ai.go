@@ -64,8 +64,10 @@ func (o *OpenAIProvider) ChatCompletion(messages []*ChatMessage) (string, error)
 	resp, err := o.client.CreateChatCompletion(
 		context.Background(),
 		openai.ChatCompletionRequest{
-			Model:    o.m,
-			Messages: openaiMessages,
+			Model:       o.m,
+			Messages:    openaiMessages,
+			Temperature: 0.3,
+			TopP:        0.4,
 		},
 	)
 

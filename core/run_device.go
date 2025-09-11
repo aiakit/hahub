@@ -51,6 +51,12 @@ func RunDevice(message, aiMessage, deviceId string) string {
 
 		//先找到设备名称
 		for _, v := range device {
+			//直接过滤
+			//网关不需要控制
+			if strings.Contains(v.Model, "gateway") {
+				continue
+			}
+
 			//区域过滤
 			if len(areaNames) > 0 {
 				var isExist bool
@@ -263,11 +269,10 @@ func RunDevice(message, aiMessage, deviceId string) string {
 			{Role: "user", Content: fmt.Sprintf(`这是我的设备信息%s，设备对应的指令信息%s，domain表示对应指令类型，action是domain和具体指令的结合，根据我的意图按照格式进行返回。
 1.sub_domain,message是必要字段不能遗漏。
 2.fields是具体的要发送控制指令的内容，根据指令信息数据判断是否为空。
-3.message是你作为智能家居助理用人性化的语言反馈的内容。
-4.target是指令信息数据fields中是否包含target。
-5.sub_domain是指令信息domain更下一级的指令划分。
-6.必须严格根据设备信息中的domain去寻找指令信息。
-返回JSON格式：[{"entity_id":"实体id","target":true,"fields":{"rgb_color":[255, 100, 100]},"sub_domain":"turn_on","message":"xx灯已打开，颜色调整为xx"}]`, x.MustMarshal2String(sendDeviceEntity), x.MustMarshal2String(sendCommandData))},
+3.target是指令信息数据fields中是否包含target。
+4.sub_domain是指令信息domain更下一级的指令划分。
+5.必须严格根据设备信息中的domain去寻找指令信息。
+返回JSON格式：[{"entity_id":"实体id","target":true,"fields":{"rgb_color":[255, 100, 100]},"sub_domain":"turn_on"}]`, x.MustMarshal2String(sendDeviceEntity), x.MustMarshal2String(sendCommandData))},
 			{Role: "user", Content: message},
 		})
 		if err != nil {
@@ -288,7 +293,6 @@ func RunDevice(message, aiMessage, deviceId string) string {
 			return "没有发现任何设备"
 		}
 
-		var resultMessage string
 		//执行设备操作
 		for _, v := range resultData {
 			if v.EntityID == "" {
@@ -302,7 +306,9 @@ func RunDevice(message, aiMessage, deviceId string) string {
 					continue
 				}
 				if strings.Contains(strings.ToLower(r.State), "on") {
-					resultMessage += data.GetEntityByEntityId()[v.EntityID].DeviceName + "是开着的，"
+					if len(resultData) == 1 {
+						return data.GetEntityByEntityId()[v.EntityID].DeviceName + "是开着的"
+					}
 					continue
 				}
 			}
@@ -314,7 +320,9 @@ func RunDevice(message, aiMessage, deviceId string) string {
 					continue
 				}
 				if strings.Contains(strings.ToLower(r.State), "off") {
-					resultMessage += data.GetEntityByEntityId()[v.EntityID].DeviceName + "是关着的，"
+					if len(resultData) == 1 {
+						return data.GetEntityByEntityId()[v.EntityID].DeviceName + "是关着的"
+					}
 					continue
 				}
 			}
@@ -357,25 +365,11 @@ func RunDevice(message, aiMessage, deviceId string) string {
 					ava.Error(err)
 					continue
 				}
+				return "已发送指令"
 			}
-
-			if resultMessage != "" {
-				if x.Similarity(resultMessage, v.Message) < 0.5 {
-					resultMessage += v.Message
-					continue
-				} else {
-					continue
-				}
-			}
-
-			resultMessage += v.Message + "，"
 		}
 
-		if resultMessage == "" {
-			return "没有任何操作指令"
-		}
-
-		return resultMessage
+		return "没有找到操作的指令"
 	}
 
 	return CoreDelay(message, aiMessage, deviceId, f)
@@ -397,7 +391,6 @@ type runDeviceResultData struct {
 	Target    bool                   `json:"target"`
 	Fields    map[string]interface{} `json:"fields"`
 	SubDomain string                 `json:"sub_domain"`
-	Message   string                 `json:"message"`
 }
 
 // 打开电视的逻辑,解决ha中一些电视无法打开，只可以关闭的问题

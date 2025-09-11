@@ -17,7 +17,12 @@ var gFunctionRouter *FunctionRouter
 func CoreChaos() {
 	gFunctionRouter = NewFunctionRouter()
 
-	for _, v := range logicData {
+	for _, v := range logicDataTwo {
+		logicDataALL = append(logicDataALL, v)
+		gFunctionRouter.Register(v.FunctionName, v.f)
+	}
+	for _, v := range logicDataOne {
+		logicDataALL = append(logicDataALL, v)
 		gFunctionRouter.Register(v.FunctionName, v.f)
 	}
 
@@ -27,10 +32,6 @@ func CoreChaos() {
 	//data.RegisterDataHandler(registerToggleLight)
 
 	chaosSpeaker()
-}
-
-func IsDone(message, aiMessage, deviceId string) string {
-	return ""
 }
 
 // 定义函数处理类型
@@ -69,7 +70,7 @@ func Call(functionName, deviceId, message, aiMessage string) string {
 }
 
 func findFunction(message string) string {
-	for _, v := range logicData {
+	for _, v := range logicDataALL {
 		if strings.Contains(message, v.FunctionName) {
 			return v.FunctionName
 		}

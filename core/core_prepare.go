@@ -1,9 +1,13 @@
 package core
 
 import (
+	"errors"
 	"fmt"
 	"hahub/internal/chat"
 	"hahub/x"
+	"strings"
+
+	"github.com/aiakit/ava"
 )
 
 // 功能预处理,AI对json的组装效果不好，用文字返回代替处理,无论AI返回什么样的格式，用字符串去进行一起匹配
@@ -25,11 +29,14 @@ const (
 // display             = "display"
 )
 
+var logicDataTwo = make([]*ObjectLogic, 0)
+var logicDataOne = make([]*ObjectLogic, 0)
+var logicDataALL = make([]*ObjectLogic, 0)
 var logicData = make([]*ObjectLogic, 0)
 
 func init() {
 
-	logicData = append(logicData, &ObjectLogic{
+	logicDataTwo = append(logicDataTwo, &ObjectLogic{
 		Description:  "通过用户口令或者手动指令触发查询智能场景信息",
 		FunctionName: "查询智能家居场景",
 		SubFunction: []subFunction{
@@ -39,7 +46,7 @@ func init() {
 		f: QueryScene,
 	})
 
-	logicData = append(logicData, &ObjectLogic{
+	logicDataTwo = append(logicDataTwo, &ObjectLogic{
 		Description:  "查询智能家居自动化，通过触发条件自动控制某些设备的流程",
 		FunctionName: "查询智能家居自动化",
 		SubFunction: []subFunction{
@@ -49,19 +56,19 @@ func init() {
 		f: QueryAutomation,
 	})
 
-	logicData = append(logicData, &ObjectLogic{
+	logicDataTwo = append(logicDataTwo, &ObjectLogic{
 		Description:  "对当前智能家居系统完善情况进行等级评估",
 		FunctionName: "评估智能系统",
 		f:            Evaluate,
 	})
 
-	logicData = append(logicData, &ObjectLogic{
+	logicDataTwo = append(logicDataTwo, &ObjectLogic{
 		Description:  "对我家的智能家居演示和讲解、介绍，用户可以通过输入'演示模式'来启动演示，支持输入暂停、继续、停止等指令。",
 		FunctionName: "演示我家的智能家居系统",
 		f:            Display,
 	})
 
-	logicData = append(logicData, &ObjectLogic{
+	logicDataTwo = append(logicDataTwo, &ObjectLogic{
 		Description:  "通过用户口令或者手动指令触发运行智能场景",
 		FunctionName: "执行场景",
 		SubFunction: []subFunction{
@@ -73,7 +80,7 @@ func init() {
 		f: RunScene,
 	})
 
-	logicData = append(logicData, &ObjectLogic{
+	logicDataTwo = append(logicDataTwo, &ObjectLogic{
 		Description:  "智能家居自动化，通过触发条件自动控制某些设备的流程",
 		FunctionName: "执行自动化",
 		SubFunction: []subFunction{
@@ -88,7 +95,7 @@ func init() {
 	})
 
 	//platform不等于xiaomi_home的设备需要AI操作,例如热水器等
-	logicData = append(logicData, &ObjectLogic{
+	logicDataTwo = append(logicDataTwo, &ObjectLogic{
 		Description:  "对智能家居设备进行控制，直接控制设备，不含任何其他定时、延时等条件。支持延时控制或者其他条件出发控制。",
 		FunctionName: "控制设备",
 		SubFunction: []subFunction{
@@ -100,7 +107,7 @@ func init() {
 		f: RunDevice,
 	})
 
-	logicData = append(logicData, &ObjectLogic{
+	logicDataTwo = append(logicDataTwo, &ObjectLogic{
 		Description:  "查询智能家居设备的相关信息,包括设备离线，在线，状态，数量",
 		FunctionName: "查询设备相关信息",
 		SubFunction: []subFunction{
@@ -113,25 +120,13 @@ func init() {
 		f: QueryDevice,
 	})
 
-	logicData = append(logicData, &ObjectLogic{
-		Description:  "学习、技术、情感、心理、生活等领域。",
-		FunctionName: "咨询",
-		f:            Conversation,
-	})
-
-	logicData = append(logicData, &ObjectLogic{
+	logicDataTwo = append(logicDataTwo, &ObjectLogic{
 		Description:  "执行系统初始化",
 		FunctionName: "系统初始化",
 		f:            InitALL,
 	})
 
-	logicData = append(logicData, &ObjectLogic{
-		Description:  "在最近一次对话中，判断jinx的回答是否已经处理好了问题，返回这个对象，你不用去重复处理我的请求",
-		FunctionName: "已经处理",
-		f:            IsDone,
-	})
-
-	logicData = append(logicData, &ObjectLogic{
+	logicDataTwo = append(logicDataTwo, &ObjectLogic{
 		Description:  "家庭对讲功能，允许用户在家中进行语音通话和传话。例如，用户可以通过此功能通知家人晚餐准备好了。带有‘喊’、‘叫’、‘通知’等字眼都属于对讲功能。",
 		FunctionName: "对讲功能",
 		SubFunction: []subFunction{
@@ -141,13 +136,13 @@ func init() {
 		f: SendMessagePlay,
 	})
 
-	logicData = append(logicData, &ObjectLogic{
+	logicDataTwo = append(logicDataTwo, &ObjectLogic{
 		Description:  "判断某个区域是否有人",
 		FunctionName: "区域是否有人",
 		f:            isAnyoneHere,
 	})
 
-	//logicData = append(logicData, &ObjectLogic{
+	//logicDataTwo = append(logicDataTwo, &ObjectLogic{
 	//	Description:  "用于记录和管理个人日程和重要事情备忘内容的功能",
 	//	FunctionName: "日程安排",
 	//	f:            RunNote,
@@ -156,13 +151,13 @@ func init() {
 	//		{Name: "query_note", Description: "查询记事内容"},
 	//	},
 	//})
-	logicData = append(logicData, &ObjectLogic{
+	logicDataTwo = append(logicDataTwo, &ObjectLogic{
 		Description:  "sos紧急请求功能",
 		FunctionName: "sos紧急求助",
 		f:            RunSOS,
 	})
 
-	//logicData = append(logicData, &ObjectLogic{
+	//logicDataTwo = append(logicDataTwo, &ObjectLogic{
 	//	Description:  "用于记录和管理家庭留言内容的功能",
 	//	FunctionName: "家庭留言功能添加和查询",
 	//	f:            RunMessage,
@@ -171,17 +166,91 @@ func init() {
 	//		{Name: "query_message", Description: "查询留言内容"},
 	//	},
 	//})
+
+	logicDataOne = append(logicDataOne, &ObjectLogic{
+		Description:  "精准选择目标函数",
+		FunctionName: "功能选择",
+	})
+
+	logicDataTwo = append(logicDataTwo, &ObjectLogic{
+		Description:  "学习、技术、情感、心理、生活等领域。",
+		FunctionName: "咨询",
+		f:            Conversation,
+	})
+
+	var ojb = &ObjectLogic{
+		Description:  "我家里的智能家居功能。包括：",
+		FunctionName: "智能家居",
+	}
+
+	for _, v := range logicDataTwo {
+		ojb.Description += v.FunctionName + "、"
+	}
+
+	logicData = append(logicData, ojb)
+
+	logicData = append(logicData, &ObjectLogic{
+		Description:  "专业知识领域",
+		FunctionName: "专业知识咨询",
+	})
 }
 
-// 预调用提示
-var preparePrompts = `根据对话内容，以及我提供的一些功能选项，判断我的意图选择需要执行什么功能，并按照规定的格式返回数据，除了返回的数据格式，禁止有其他内容。如果我没有告诉你楼层信息，默认是一楼。
+var preparePrompts = `你是我的私人助理jax，根据前面的对话内容，选择精准的功能函数返回给我，除了返回的数据格式，禁止有其他内容。
 功能选项：%s
-返回数据格式：{"function_name":"查询设备","sub_function":{"query_offline_number"}}`
+返回数据：
+1.is_handled表示助理jinx已经处理好了之前我的请求。
+返回JSON格式： {"function_name":"","sub_function":"","is_handled":false}`
 
-// todo: 加入当前对话位置名称，方便操作对应位置的设备
+// 预调用提示
+var preparePromptsOne = `你是我的私人助理jax，根据前面的对话内容，选择精准的功能函数返回给我，除了返回的数据格式，禁止有其他内容。
+功能选项：%s
+返回数据：
+返回JSON格式： {"function_name":"","sub_function":""}`
+
+var preparePromptsTwo = `你是一个智能家居管家，根据前面的对话内容，选择精准的功能函数返回给我。除了返回的数据格式，禁止有其他内容。
+功能选项：%s
+返回数据格式：{"function_name":"","sub_function":"query_offline_number"}`
+
 func prepareCall(messageInput []*chat.ChatMessage, deviceId string) (string, error) {
 	var messageList = make([]*chat.ChatMessage, 0, 6)
 	messageList = append(messageList, &chat.ChatMessage{Role: "system", Content: fmt.Sprintf(preparePrompts, x.MustMarshal2String(logicData))})
+
+	if len(messageInput) > 0 {
+		messageList = append(messageList, messageInput...)
+	}
+	result, err := chatCompletionInternal(messageList)
+	if err != nil {
+		ava.Error(err)
+		return "智能体选择失败", err
+	}
+
+	if strings.Contains(result, "智能家居") {
+		if strings.Contains(result, "true") {
+			return "", nil
+		}
+		return prepareCallTwo(messageInput, deviceId)
+	}
+
+	if strings.Contains(result, "专业知识") {
+		return prepareCallOne(messageInput, deviceId)
+	}
+
+	return "没有找到智能体", errors.New("no agent")
+}
+
+func prepareCallOne(messageInput []*chat.ChatMessage, deviceId string) (string, error) {
+	var messageList = make([]*chat.ChatMessage, 0, 6)
+	messageList = append(messageList, &chat.ChatMessage{Role: "system", Content: fmt.Sprintf(preparePromptsOne, x.MustMarshal2String(logicDataOne))})
+
+	if len(messageInput) > 0 {
+		messageList = append(messageList, messageInput...)
+	}
+
+	return chatCompletionHistory(messageList, deviceId)
+}
+func prepareCallTwo(messageInput []*chat.ChatMessage, deviceId string) (string, error) {
+	var messageList = make([]*chat.ChatMessage, 0, 6)
+	messageList = append(messageList, &chat.ChatMessage{Role: "system", Content: fmt.Sprintf(preparePromptsTwo, x.MustMarshal2String(logicDataTwo))})
 
 	if len(messageInput) > 0 {
 		messageList = append(messageList, messageInput...)
