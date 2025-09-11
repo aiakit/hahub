@@ -59,9 +59,6 @@ func Call(functionName, deviceId, message, aiMessage string) string {
 	if handler, exists := gFunctionRouter.handlers[functionName]; exists {
 		var now = time.Now()
 		result := handler(message, aiMessage, deviceId)
-		if result == "" && functionName == "is_handled" {
-			return ""
-		}
 		ava.Debugf("latency=%.2f |funcion_name=%s |message=%s |ai_message=%s |FROM=%s", time.Since(now).Seconds(), functionName, message, aiMessage, result)
 		return result
 	}

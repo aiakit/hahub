@@ -101,8 +101,7 @@ func isChineseChar(char rune) bool {
 }
 
 type Conversationor struct {
-	Conversation []*chat.ChatMessage `json:"conversation"`
-	entityId     string
+	Conversation *chat.ChatMessage `json:"conversation"`
 	deviceId     string
 }
 
@@ -214,17 +213,14 @@ func chaosSpeaker() {
 }
 
 func SpeakerProcessSend(message *Conversationor) {
-	var all string
-	for _, v := range message.Conversation {
-		all += v.Content
-	}
+	var msg = message.Conversation.Content
 
-	if strings.Contains(all, "救") {
+	if strings.Contains(msg, "救") {
 		intelligent.RunSript("script.sos")
 	}
 
 	if aiIsLock(message.deviceId) {
-		if strings.Contains(all, "开启智能管家") {
+		if strings.Contains(msg, "开启智能管家") {
 			aiUnlock(message.deviceId)
 		}
 		isRunningLock.Lock()
@@ -237,7 +233,7 @@ func SpeakerProcessSend(message *Conversationor) {
 
 	if !aiIsLock(message.deviceId) {
 		gSpeakerProcess.playTextMessage <- message
-		if strings.Contains(all, "关闭智能管家") {
+		if strings.Contains(msg, "关闭智能管家") {
 			aiLock(message.deviceId)
 		}
 	}
@@ -260,47 +256,22 @@ func (s *speakerProcess) getDeviceLock(deviceId string) *sync.Mutex {
 }
 
 // 过滤小爱已经成功处理的关键词
-var filterMessage = map[string]bool{
-	"好的": true,
+var filterMessage = []string{
+	"好的", "发送指令", "已", "收到", "正在为", "搞定了",
 }
 
 func (s *speakerProcess) runSpeakerPlayText() {
 	for {
 		select {
 		case message := <-s.playTextMessage:
-			//todo: 增加基础指令拦截
-			//查找设备id
-			if v, ok := data.GetEntityByEntityId()[message.entityId]; ok {
-				message.deviceId = v.DeviceID
-			} else {
-				continue
-			}
-
-			var isHaveHuman bool
-			// 添加消息到历史记录 (使用memory.go中的函数)
-			for _, msg := range message.Conversation {
-				if msg.Content == "" {
-					continue
-				}
-				if msg.Role == "user" {
-					isHaveHuman = true
-				}
-			}
-
-			if !isHaveHuman {
-				continue
-			}
-
 			go s.sendToRemote(message)
-
-			//todo: 增加交互优化，如果5秒内没有收到消息，可以主动询问是否需要其他帮助，或者直接终止对话
 		}
 	}
 }
 
 // 拦截器，避免向ai发送的数据过多，影响响应时间
 var interceptorLock sync.RWMutex
-var interceptorCall = make(map[string]func(messageInput []*chat.ChatMessage, deviceId string) string, 2)
+var interceptorCall = make(map[string]func(messageInput *chat.ChatMessage, deviceId string) string, 2)
 
 // 修改:sendToRemote现在发送整个历史记录
 func (s *speakerProcess) sendToRemote(conversations *Conversationor) {
@@ -308,26 +279,15 @@ func (s *speakerProcess) sendToRemote(conversations *Conversationor) {
 	deviceLock.Lock()
 	defer deviceLock.Unlock()
 
-	for _, msg := range conversations.Conversation {
-		if msg.Content == "" {
-			continue
-		}
-
-		switch msg.Role {
-		case "user":
-			AddUserMessage(conversations.deviceId, msg.Content)
-			sendMessage2Panel("input_text.my_input_text_1", fmt.Sprintf("宿主: %s", msg.Content))
-		case "assistant":
-			if msg.Name == "jinx" {
-				AddXiaoaiMessage(conversations.deviceId, msg.Content)
-				sendMessage2Panel("input_text.my_input_text_2", fmt.Sprintf("小爱: %s", msg.Content))
-			} else {
-				AddAIMessage(conversations.deviceId, msg.Content)
-				sendMessage2Panel("input_text.my_input_text_3", fmt.Sprintf("AI  :%s"+msg.Content))
-			}
-		case "system":
-			AddSystemMessage(conversations.deviceId, msg.Content)
-		}
+	switch conversations.Conversation.Role {
+	case "user":
+		AddUserMessage(conversations.deviceId, conversations.Conversation.Content)
+		sendMessage2Panel("input_text.my_input_text_1", fmt.Sprintf("宿主: %s", conversations.Conversation.Content))
+	case "assistant":
+		AddAIMessage(conversations.deviceId, conversations.Conversation.Content)
+		sendMessage2Panel("input_text.my_input_text_2", fmt.Sprintf("AI  :%s"+conversations.Conversation.Content))
+	case "system":
+		AddSystemMessage(conversations.deviceId, conversations.Conversation.Content)
 	}
 
 	//1.获取函数调用
@@ -346,7 +306,7 @@ func (s *speakerProcess) sendToRemote(conversations *Conversationor) {
 
 		if message != "" {
 			AddAIMessage(conversations.deviceId, message)
-			sendMessage2Panel("input_text.my_input_text_3", fmt.Sprintf("AI  :%s", message))
+			sendMessage2Panel("input_text.my_input_text_2", fmt.Sprintf("AI  :%s", message))
 			// 暂停轮询
 			if cancel, exists := gSpeakerProcess.pollCancelFuncs[conversations.deviceId]; exists && cancel != nil {
 				cancel()
@@ -383,11 +343,16 @@ func (s *speakerProcess) sendToRemote(conversations *Conversationor) {
 	//todo 拦截器,走拦截器逻辑
 	prepare, err := prepareCall(conversations.Conversation, conversations.deviceId)
 	if err != nil {
+		ava.Error(err)
 		message = "宿主，请稍等，网络开小差了，请重试一次..."
 		return
 	}
 
-	message = Call(findFunction(prepare), conversations.deviceId, conversations.Conversation[0].Content, prepare)
+	if prepare == "" {
+		return
+	}
+
+	message = Call(findFunction(prepare), conversations.deviceId, conversations.Conversation.Content, prepare)
 
 	interceptorLock.RLock()
 	if interceptorCall[conversations.deviceId] != nil {
@@ -456,7 +421,6 @@ func wakeup(deviceId string) {
 	if err != nil {
 		ava.Error(err)
 	}
-	sendMessage2Panel("input_text.my_input_text_2", "小爱 :唤醒中...")
 }
 
 var askMessage = []string{
@@ -492,9 +456,18 @@ func SpeakerAsk2PlayTextHandler(event *data.StateChangedSimple, body []byte) {
 			return
 		}
 
+		var deviceId string
+
+		//查找设备id
+		if v, ok := data.GetEntityByEntityId()[en.EntityID]; ok {
+			deviceId = v.DeviceID
+		} else {
+			return
+		}
+
 		cs := &Conversationor{
-			Conversation: []*chat.ChatMessage{{Role: "assistant", Content: state.Event.Data.NewState.State}},
-			entityId:     en.EntityID,
+			Conversation: &chat.ChatMessage{Role: "assistant", Content: state.Event.Data.NewState.State},
+			deviceId:     deviceId,
 		}
 		ava.Debugf("speaker ask2 text: %s |data=%s", x.MustMarshal2String(cs), string(body))
 
@@ -528,16 +501,14 @@ func SpeakerAsk2ConversationHandler(event *data.StateChangedSimple, body []byte)
 			content = v[0].Llm.Text
 		}
 
-		var cs = &Conversationor{
-			Conversation: []*chat.ChatMessage{{
-				Role:    "user",
-				Content: state.Event.Data.NewState.State,
-			}, {
-				Role:    "assistant",
-				Content: content,
-				Name:    "jinx",
-			}},
-			entityId: en.EntityID,
+		if len([]rune(content)) > 10 {
+			return
+		}
+
+		for _, f := range filterMessage {
+			if strings.Contains(content, f) {
+				return
+			}
 		}
 
 		if strings.Contains(state.Event.Data.NewState.State, "扫地机器人") &&
@@ -568,9 +539,22 @@ func SpeakerAsk2ConversationHandler(event *data.StateChangedSimple, body []byte)
 			}
 		}
 
-		ava.Debugf("speaker ask2 conversation: %s |data=%s", x.MustMarshal2String(cs), string(body))
+		var deviceId string
 
-		SpeakerProcessSend(cs)
+		//查找设备id
+		if v, ok := data.GetEntityByEntityId()[en.EntityID]; ok {
+			deviceId = v.DeviceID
+		} else {
+			return
+		}
+
+		SpeakerProcessSend(&Conversationor{
+			Conversation: &chat.ChatMessage{
+				Role:    "user",
+				Content: state.Event.Data.NewState.State,
+			},
+			deviceId: deviceId,
+		})
 	}
 }
 
@@ -672,7 +656,6 @@ func (s *speakerProcess) startPolling(deviceId string) {
 		defer func() {
 			sendMessage2Panel("input_text.my_input_text_1", " ")
 			sendMessage2Panel("input_text.my_input_text_2", " ")
-			sendMessage2Panel("input_text.my_input_text_3", " ")
 		}()
 
 		for {

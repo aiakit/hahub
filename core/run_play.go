@@ -92,21 +92,9 @@ func SendMessagePlay(message, aiMessage, deviceId string) string {
 		//生成拦截器
 		interceptorLock.Lock()
 		// 使用deviceId变量创建闭包，确保获取到正确的deviceId值
-		interceptorCall[deviceId] = func(messageInput []*chat.ChatMessage, deviceID string) string {
-			messageInput = append(messageInput, &chat.ChatMessage{
-				Role:    "user",
-				Content: content,
-			})
+		interceptorCall[deviceId] = func(messageInput *chat.ChatMessage, deviceID string) string {
 
-			var sendMessageInput = make([]*chat.ChatMessage, 0)
-			for _, v := range messageInput {
-				if v.Role == "assistant" && v.Name == "jinx" {
-					continue
-				}
-				sendMessageInput = append(sendMessageInput, v)
-			}
-
-			result, err := chatCompletionHistory(sendMessageInput, deviceID)
+			result, err := chatCompletionHistory([]*chat.ChatMessage{messageInput}, deviceID)
 			if err != nil {
 				// 即使出错也需要清理拦截器
 				interceptorLock.Lock()

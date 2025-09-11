@@ -195,14 +195,14 @@ func init() {
 	})
 }
 
-var preparePrompts = `你是我的私人助理jax，根据前面的对话内容，选择精准的功能函数返回给我，除了返回的数据格式，禁止有其他内容。
+var preparePrompts = `你是我的私人助理，根据前面的对话内容，选择精准的功能函数返回给我，除了返回的数据格式，禁止有其他内容。
 功能选项：%s
 返回数据：
-1.is_handled表示助理jinx已经处理好了之前我的请求。
-返回JSON格式： {"function_name":"","sub_function":"","is_handled":false}`
+1.is_handled表示jinx对智能家居已经进行了操作。
+返回JSON格式： {"function_name":"","is_handled":false}`
 
 // 预调用提示
-var preparePromptsOne = `你是我的私人助理jax，根据前面的对话内容，选择精准的功能函数返回给我，除了返回的数据格式，禁止有其他内容。
+var preparePromptsOne = `你是我的私人助理，根据前面的对话内容，选择精准的功能函数返回给我，除了返回的数据格式，禁止有其他内容。
 功能选项：%s
 返回数据：
 返回JSON格式： {"function_name":"","sub_function":""}`
@@ -211,13 +211,12 @@ var preparePromptsTwo = `你是一个智能家居管家，根据前面的对话�
 功能选项：%s
 返回数据格式：{"function_name":"","sub_function":"query_offline_number"}`
 
-func prepareCall(messageInput []*chat.ChatMessage, deviceId string) (string, error) {
+func prepareCall(messageInput *chat.ChatMessage, deviceId string) (string, error) {
 	var messageList = make([]*chat.ChatMessage, 0, 6)
 	messageList = append(messageList, &chat.ChatMessage{Role: "system", Content: fmt.Sprintf(preparePrompts, x.MustMarshal2String(logicData))})
 
-	if len(messageInput) > 0 {
-		messageList = append(messageList, messageInput...)
-	}
+	messageList = append(messageList, messageInput)
+
 	result, err := chatCompletionInternal(messageList)
 	if err != nil {
 		ava.Error(err)
@@ -238,23 +237,19 @@ func prepareCall(messageInput []*chat.ChatMessage, deviceId string) (string, err
 	return "没有找到智能体", errors.New("no agent")
 }
 
-func prepareCallOne(messageInput []*chat.ChatMessage, deviceId string) (string, error) {
+func prepareCallOne(messageInput *chat.ChatMessage, deviceId string) (string, error) {
 	var messageList = make([]*chat.ChatMessage, 0, 6)
 	messageList = append(messageList, &chat.ChatMessage{Role: "system", Content: fmt.Sprintf(preparePromptsOne, x.MustMarshal2String(logicDataOne))})
 
-	if len(messageInput) > 0 {
-		messageList = append(messageList, messageInput...)
-	}
+	messageList = append(messageList, messageInput)
 
 	return chatCompletionHistory(messageList, deviceId)
 }
-func prepareCallTwo(messageInput []*chat.ChatMessage, deviceId string) (string, error) {
+func prepareCallTwo(messageInput *chat.ChatMessage, deviceId string) (string, error) {
 	var messageList = make([]*chat.ChatMessage, 0, 6)
 	messageList = append(messageList, &chat.ChatMessage{Role: "system", Content: fmt.Sprintf(preparePromptsTwo, x.MustMarshal2String(logicDataTwo))})
 
-	if len(messageInput) > 0 {
-		messageList = append(messageList, messageInput...)
-	}
+	messageList = append(messageList, messageInput)
 
 	return chatCompletionHistory(messageList, deviceId)
 }

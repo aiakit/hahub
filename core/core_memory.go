@@ -52,14 +52,6 @@ func AddAIMessage(deviceId, content string) {
 	})
 }
 
-func AddXiaoaiMessage(deviceId, content string) {
-	addMessage(deviceId, &chat.ChatMessage{
-		Role:    "assistant",
-		Content: content,
-		Name:    "jinx",
-	})
-}
-
 // AddSystemMessage 添加系统消息到历史记录
 func AddSystemMessage(deviceId, content string) {
 	addMessage(deviceId, &chat.ChatMessage{
