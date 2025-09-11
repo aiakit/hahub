@@ -153,6 +153,99 @@ func Panel(c *ava.Context) {
 				turnOffScriptId = AddScript2Queue(c, s1)
 			}
 
+			var autoIsOn string
+			var autoIsOff string
+			func() {
+				var a = &Automation{
+					Alias:       "HomePanel" + areaName + "3d面板按键为开",
+					Description: areaName + "灯开修改3d面板按键为开",
+					Mode:        "single",
+				}
+				var triggers []*Triggers
+				for _, act := range actions {
+					if !strings.Contains(act.Action, "light") && !strings.Contains(act.Action, "switch") {
+						continue
+					}
+					if act.Target == nil {
+						continue
+					}
+
+					if act.Target.DeviceId == "" && act.Target.EntityId == "" {
+						continue
+					}
+
+					triggers = append(triggers, &Triggers{
+						Type:     "turned_on",
+						DeviceID: act.Target.DeviceId,
+						EntityID: act.Target.EntityId,
+						Domain:   "light",
+						Trigger:  "device",
+					})
+				}
+				a.Conditions = append(a.Conditions, &Conditions{
+					Condition: "state",
+					EntityID:  entityId,
+					State:     "off",
+				})
+
+				a.Triggers = triggers
+				if len(a.Triggers) > 0 {
+					a.Actions = append(a.Actions, &ActionLight{
+						Action: "input_boolean.turn_on",
+						Target: &targetLightData{
+							EntityId: entityId,
+						},
+					})
+					autoIsOn = AddAutomation2Queue(c, a)
+				}
+			}()
+
+			func() {
+				var a = &Automation{
+					Alias:       "HomePanel" + areaName + "3d面板按键为关",
+					Description: areaName + "灯开修改3d面板按键为关",
+					Mode:        "single",
+				}
+				var triggers []*Triggers
+				for _, act := range actionsOff {
+					if !strings.Contains(act.Action, "light") && !strings.Contains(act.Action, "switch") {
+						continue
+					}
+					if act.Target == nil {
+						continue
+					}
+
+					if act.Target.DeviceId == "" && act.Target.EntityId == "" {
+						continue
+					}
+
+					triggers = append(triggers, &Triggers{
+						Type:     "turned_off",
+						DeviceID: act.Target.DeviceId,
+						EntityID: act.Target.EntityId,
+						Domain:   "light",
+						Trigger:  "device",
+					})
+				}
+
+				a.Conditions = append(a.Conditions, &Conditions{
+					Condition: "state",
+					EntityID:  entityId,
+					State:     "on",
+				})
+
+				a.Triggers = triggers
+				if len(a.Triggers) > 0 {
+					a.Actions = append(a.Actions, &ActionLight{
+						Action: "input_boolean.turn_off",
+						Target: &targetLightData{
+							EntityId: entityId,
+						},
+					})
+					autoIsOff = AddAutomation2Queue(c, a)
+				}
+			}()
+
 			if entityId != "" {
 				//两个自动化
 				//1.按下开关执行脚本
@@ -169,6 +262,16 @@ func Panel(c *ava.Context) {
 							From:     "off",
 						}},
 					}
+
+					if autoIsOn != "" {
+						a.Conditions = append(a.Conditions, &Conditions{
+							Condition: "state",
+							EntityID:  autoIsOn,
+							Attribute: "last_triggered",
+							State:     "off",
+						})
+					}
+
 					a.Actions = append(a.Actions, &ActionService{
 						Action: "script.turn_on",
 						Target: &struct {
@@ -190,6 +293,16 @@ func Panel(c *ava.Context) {
 							From:     "on",
 						}},
 					}
+
+					if autoIsOff != "" {
+						a.Conditions = append(a.Conditions, &Conditions{
+							Condition: "state",
+							EntityID:  autoIsOff,
+							Attribute: "last_triggered",
+							State:     "off",
+						})
+					}
+
 					a.Actions = append(a.Actions, &ActionService{
 						Action: "script.turn_on",
 						Target: &struct {
@@ -198,98 +311,6 @@ func Panel(c *ava.Context) {
 					})
 					AddAutomation2Queue(c, a)
 				}
-
-				//1.区域任意一个灯开或者灯关，打开/关闭开关
-				func() {
-					var a = &Automation{
-						Alias:       "HomePanel" + areaName + "3d面板按键为开",
-						Description: areaName + "灯开修改3d面板按键为开",
-						Mode:        "single",
-					}
-					var triggers []*Triggers
-					for _, act := range actions {
-						if !strings.Contains(act.Action, "light") && !strings.Contains(act.Action, "switch") {
-							continue
-						}
-						if act.Target == nil {
-							continue
-						}
-
-						if act.Target.DeviceId == "" && act.Target.EntityId == "" {
-							continue
-						}
-
-						triggers = append(triggers, &Triggers{
-							Type:     "turned_on",
-							DeviceID: act.Target.DeviceId,
-							EntityID: act.Target.EntityId,
-							Domain:   "light",
-							Trigger:  "device",
-						})
-					}
-					a.Conditions = append(a.Conditions, &Conditions{
-						Condition: "state",
-						EntityID:  entityId,
-						State:     "off",
-					})
-
-					a.Triggers = triggers
-					if len(a.Triggers) > 0 {
-						a.Actions = append(a.Actions, &ActionLight{
-							Action: "input_boolean.turn_on",
-							Target: &targetLightData{
-								EntityId: entityId,
-							},
-						})
-						AddAutomation2Queue(c, a)
-					}
-				}()
-
-				func() {
-					var a = &Automation{
-						Alias:       "HomePanel" + areaName + "3d面板按键为关",
-						Description: areaName + "灯开修改3d面板按键为关",
-						Mode:        "single",
-					}
-					var triggers []*Triggers
-					for _, act := range actionsOff {
-						if !strings.Contains(act.Action, "light") && !strings.Contains(act.Action, "switch") {
-							continue
-						}
-						if act.Target == nil {
-							continue
-						}
-
-						if act.Target.DeviceId == "" && act.Target.EntityId == "" {
-							continue
-						}
-
-						triggers = append(triggers, &Triggers{
-							Type:     "turned_off",
-							DeviceID: act.Target.DeviceId,
-							EntityID: act.Target.EntityId,
-							Domain:   "light",
-							Trigger:  "device",
-						})
-					}
-
-					a.Conditions = append(a.Conditions, &Conditions{
-						Condition: "state",
-						EntityID:  entityId,
-						State:     "on",
-					})
-
-					a.Triggers = triggers
-					if len(a.Triggers) > 0 {
-						a.Actions = append(a.Actions, &ActionLight{
-							Action: "input_boolean.turn_off",
-							Target: &targetLightData{
-								EntityId: entityId,
-							},
-						})
-						AddAutomation2Queue(c, a)
-					}
-				}()
 			}
 		}
 	}

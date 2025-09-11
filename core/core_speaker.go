@@ -264,8 +264,8 @@ func (s *speakerProcess) getDeviceLock(deviceId string) *sync.Mutex {
 
 // 过滤小爱已经成功处理的关键词
 var filterMessage = []string{
-	"好的", "发送指令", "已", "收到", "正在为", "搞定了", "没问题", "正在", "你有好几个设备",
-	"关咯",
+	"好的", "发送指令", "已", "收到", "正在为", "搞定", "没问题", "正在", "你有好几个设备",
+	"关咯", "空气质量",
 }
 
 func (s *speakerProcess) runSpeakerPlayText() {
@@ -468,6 +468,10 @@ func SpeakerAsk2PlayTextHandler(event *data.StateChangedSimple, body []byte) {
 			return
 		}
 
+		if state.Event.Data.NewState.State == "" {
+			return
+		}
+
 		cs := &Conversationor{
 			Conversation: &chat.ChatMessage{Role: "assistant", Content: state.Event.Data.NewState.State},
 			deviceId:     deviceId,
@@ -504,6 +508,9 @@ func SpeakerAsk2ConversationHandler(event *data.StateChangedSimple, body []byte)
 			content = v[0].Llm.Text
 		}
 		userMsg := state.Event.Data.NewState.State
+		if userMsg == "" {
+			return
+		}
 
 		ava.Debugf("SpeakerAsk2ConversationHandler |小爱=%s |用户=%s", content, userMsg)
 
