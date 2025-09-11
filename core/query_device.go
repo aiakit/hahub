@@ -244,10 +244,21 @@ func QueryDevice(message, aiMessage, deviceId string) string {
 		}
 	}
 
+	var onlyOneDevice = make(map[string]bool)
+
+	for _, v := range entity {
+		var dd, ok = data.GetEntityByEntityId()[v.EntityID]
+		if ok {
+			if ok = onlyOneDevice[dd.DeviceID]; !ok {
+				onlyOneDevice[dd.DeviceID] = true
+			}
+		}
+	}
+
 	//查询所有或者30个设备以上比较难搞，未来优化为内存缓存设备状态，直接计算数据状态返回不经过ai
-	//if len(entity) > 30 {
-	//	return "你要查寻的设备过多，请到app中查看设备状态"
-	//}
+	if len(onlyOneDevice) > 15 {
+		return "你要查寻的设备过多，请到app中查看设备状态"
+	}
 
 	result2, err := chatCompletionInternal([]*chat.ChatMessage{
 		{Role: "user", Content: fmt.Sprintf(`这是我的设备状态信息%s，根据我的意图用20字以内人性化的语言回答我设备状态是怎么样的。`, x.MustMarshal2String(entity))},

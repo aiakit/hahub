@@ -73,9 +73,9 @@ func init() {
 		FunctionName: "执行场景",
 		SubFunction: []subFunction{
 			{Name: "trigger_time", Description: "触发条件是时间点"},
-			{Name: "trigger_scene", Description: "触发条件是场景"},
-			{Name: "trigger_automation", Description: "触发条件是自动化"},
-			{Name: "run", Description: "我的意图中没有触发条件，直接运行"},
+			//{Name: "trigger_scene", Description: "触发条件是场景"},
+			//{Name: "trigger_automation", Description: "触发条件是自动化"},
+			{Name: "run", Description: "直接运行场景，不需要触发条件"},
 		},
 		f: RunScene,
 	})
@@ -85,11 +85,11 @@ func init() {
 		FunctionName: "执行自动化",
 		SubFunction: []subFunction{
 			{Name: "trigger_time", Description: "触发条件是时间点"},
-			{Name: "trigger_scene", Description: "触发条件是场景"},
-			{Name: "trigger_automation", Description: "触发条件是自动化"},
+			//{Name: "trigger_scene", Description: "触发条件是场景"},
+			//{Name: "trigger_automation", Description: "触发条件是自动化"},
 			{Name: "run", Description: "我的意图中没有触发条件，直接运行"},
-			{Name: "turn_on_automation", Description: "开启某个自动化"},
-			{Name: "turn_off_automation", Description: "开启某个自动化"},
+			{Name: "turn_on_automation", Description: "某个自动化由禁用变为启用"},
+			{Name: "turn_off_automation", Description: "某个自动化由启用变为禁用"},
 		},
 		f: RunAutomation,
 	})

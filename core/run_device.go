@@ -6,6 +6,7 @@ import (
 	"hahub/internal/chat"
 	"hahub/x"
 	"strings"
+	"time"
 
 	"github.com/aiakit/ava"
 )
@@ -383,7 +384,18 @@ func RunDevice(message, aiMessage, deviceId string) string {
 
 			var isOpenTv bool
 			if strings.Contains(result2, "on") && strings.Contains(message, "电视") {
-				isOpenTv = turnOnTv(v.EntityID)
+				isOpenTv = true
+				go func() {
+					//电视机状态需要时间更新
+					time.Sleep(time.Second * 5)
+					//先判断状态，如果是已经打开的就不用管
+					tv, err := data.GetState(v.EntityID)
+					if err == nil {
+						if !strings.Contains(strings.ToLower(tv.State), "on") {
+							turnOnTv(v.EntityID)
+						}
+					}
+				}()
 			}
 
 			if !isOpenTv {

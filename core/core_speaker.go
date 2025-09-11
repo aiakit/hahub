@@ -503,11 +503,12 @@ func SpeakerAsk2ConversationHandler(event *data.StateChangedSimple, body []byte)
 		if content == "" {
 			content = v[0].Llm.Text
 		}
+		userMsg := state.Event.Data.NewState.State
 
-		ava.Debugf("SpeakerAsk2ConversationHandler |content=%s", content)
+		ava.Debugf("SpeakerAsk2ConversationHandler |小爱=%s |用户=%s", content, userMsg)
 
 		for _, f := range filterMessage {
-			if strings.Contains(content, f) {
+			if strings.Contains(content, f) && !strings.Contains(userMsg, "场景") && !strings.Contains(userMsg, "自动化") {
 				return
 			}
 		}
@@ -552,7 +553,7 @@ func SpeakerAsk2ConversationHandler(event *data.StateChangedSimple, body []byte)
 		SpeakerProcessSend(&Conversationor{
 			Conversation: &chat.ChatMessage{
 				Role:    "user",
-				Content: state.Event.Data.NewState.State,
+				Content: userMsg,
 			},
 			deviceId: deviceId,
 		})
