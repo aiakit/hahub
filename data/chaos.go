@@ -331,7 +331,7 @@ func callback() {
 		}
 
 		if tpe == "event" {
-			ava.Debugf("--------%s", string(msg))
+			//ava.Debugf("--------%s", string(msg))
 			var eventData StateChangedSimple
 			err := x.Unmarshal(msg, &eventData)
 			if err != nil {

@@ -18,8 +18,9 @@ func LightScriptSetting(c *ava.Context) {
 	lightScene(c, "月光", 20, 2700)
 	lightScene(c, "黄昏", 100, 2700)
 	lightScene(c, "温馨", 50, 3000)
-	lightScene(c, "冬天", 80, 5500)
+	lightScene(c, "冬天", 80, 5000)
 	lightScene(c, "夏天", 80, 3500)
+	lightScene(c, "节能", 80, 3800)
 }
 
 func lightScene(c *ava.Context, simpleName string, brightness float64, kelvin int) {
@@ -33,20 +34,31 @@ func lightScene(c *ava.Context, simpleName string, brightness float64, kelvin in
 	for areaId, v := range entities {
 
 		areaName := data.SpiltAreaName(data.GetAreaName(areaId))
-
-		// 检查当前区域是否有灯组，如果没有则不创建场景
-		hasLightGroup := false
-		for _, e := range v {
-			if e.Category == data.CategoryLightGroup {
-				hasLightGroup = true
-				break
-			}
-		}
-
-		// 如果没有灯组，则不创建任何场景
-		if !hasLightGroup {
+		if strings.Contains(simpleName, "就餐") && (!strings.Contains(areaName, "厨房") && !strings.Contains(areaName, "餐厅")) {
 			continue
 		}
+
+		if (strings.Contains(simpleName, "会客") || strings.Contains(simpleName, "娱乐")) && strings.Contains(areaName, "卧室") {
+			continue
+		}
+
+		if (strings.Contains(simpleName, "观影") || strings.Contains(simpleName, "阅读")) && (!strings.Contains(areaName, "客厅") && !strings.Contains(areaName, "卧室")) {
+			continue
+		}
+
+		//// 检查当前区域是否有灯组，如果没有则不创建场景
+		//hasLightGroup := false
+		//for _, e := range v {
+		//	if e.Category == data.CategoryLightGroup {
+		//		hasLightGroup = true
+		//		break
+		//	}
+		//}
+		//
+		//// 如果没有灯组，则不创建任何场景
+		//if !hasLightGroup {
+		//	continue
+		//}
 
 		// 为每个区域创建独立的en和meta map
 		var script = &Script{}
@@ -110,6 +122,22 @@ func lightScene(c *ava.Context, simpleName string, brightness float64, kelvin in
 		}
 
 		for _, e := range action {
+			if strings.Contains(simpleName, "节能") {
+				if e.Target == nil {
+					continue
+				}
+				e1, ok := data.GetEntityByEntityId()[e.Target.EntityId]
+				if !ok {
+					continue
+				}
+				if e1.Category != data.CategoryLightGroup && e1.Category != data.CategoryLight {
+					continue
+				}
+
+				if !strings.Contains(e1.DeviceName, "氛围") && !strings.Contains(e1.DeviceName, "夜") {
+					continue
+				}
+			}
 			actions = append(actions, e)
 		}
 

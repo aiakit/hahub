@@ -15,7 +15,6 @@ import (
 var prefixUrlCreateAutomation = "%s/api/config/automation/config/%s"
 var prefixUrlTurnOnAutomation = "%s/api/services/automation/turn_on"
 var prefixUrlTurnOffAutomation = "%s/api/services/automation/turn_off"
-var JieNengKaiGuanEntity = "input_boolean.jie_neng_kai_guan"
 
 type lxConfig struct {
 	name string
