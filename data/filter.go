@@ -53,6 +53,7 @@ const (
 	CategoryIPhone              = "iphone"                //苹果手机
 	CategoryInputBoolean        = "input_boolean"         //针对自己创建的按钮
 	CategoryPerson              = "person"
+	CategoryColorful            = "colorful"
 )
 
 //过滤实体,并在实体中增加字段标注设备类型，设备数据中也加上，在实体数据中加上设备id,区域id，区域名称
@@ -131,6 +132,12 @@ func FilterEntities(entities []*Entity) []*Entity {
 				if e.Name != "" {
 					e.OriginalName = e.Name
 				}
+
+				//彩灯有问题，即使修改了模式，必须点击app上的灯才能生效
+				//if deviceData != nil && strings.Contains(deviceData.Model, "light") && strings.Contains(e.OriginalName, "幻彩灯功能 模式") {
+				//	category = CategoryColorful
+				//	return
+				//}
 
 				if strings.Contains(e.OriginalName, "iphone") {
 					category = CategoryIPhone

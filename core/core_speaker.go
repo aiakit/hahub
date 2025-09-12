@@ -6,40 +6,43 @@ import (
 	"hahub/intelligent"
 	"hahub/internal/chat"
 	"hahub/x"
-	"regexp"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
+	"unicode"
 
 	"github.com/aiakit/ava"
 )
 
-// Value:    "[" + message + ",false]", //这是发起指令的穿参数
 func PlayTextAction(deviceID, message string) {
 	entityId, ok := gSpeakerProcess.speakerEntityPlayText[deviceID]
 	if !ok {
 		return
 	}
 
-	// 如果消息长度超过200字符，则拆分为多个片段
-	if len(message) > 800 {
-		// 按200字符拆分消息
-		for i := 0; i < len(message); i += 800 {
+	// 使用 []rune 计算字符长度
+	runes := []rune(message)
+	if len(runes) > 800 {
+		// 按800个字符拆分消息
+		for i := 0; i < len(runes); i += 800 {
 			end := i + 800
-			if end > len(message) {
-				end = len(message)
+			if end > len(runes) {
+				end = len(runes)
 			}
 
+			// 将切片转换回字符串
+			chunk := string(runes[i:end])
 			err := x.Post(ava.Background(), data.GetHassUrl()+"/api/services/notify/send_message", data.GetToken(), &data.HttpServiceData{
 				EntityId: entityId,
-				Message:  message[i:end],
+				Message:  chunk,
 			}, nil)
 			if err != nil {
 				ava.Error(err)
+				continue
 			}
 			// 暂停，等待播放完成
-			time.Sleep(GetPlaybackDuration(message[i:end]))
+			time.Sleep(GetPlaybackDuration(chunk))
 		}
 	} else {
 		err := x.Post(ava.Background(), data.GetHassUrl()+"/api/services/notify/send_message", data.GetToken(), &data.HttpServiceData{
@@ -48,10 +51,15 @@ func PlayTextAction(deviceID, message string) {
 		}, nil)
 		if err != nil {
 			ava.Error(err)
+			return
 		}
 		// 暂停，等待播放完成
 		time.Sleep(GetPlaybackDuration(message))
+		ava.Debugf("PlayTextAction |text=%s |latency=%v", message, GetPlaybackDuration(message))
 	}
+
+	//使用1秒补正
+	time.Sleep(time.Second)
 }
 
 func GetPlaybackDuration(message string) time.Duration {
@@ -67,24 +75,23 @@ func GetPlaybackDuration(message string) time.Duration {
 	var isDot bool
 
 	for _, char := range message {
-		if !isChineseChar(char) {
+		if !isPunctuation(char) {
 			isDot = true
 			break
 		}
 	}
 	if !isDot {
-		chineseCharDuration = 180
+		chineseCharDuration = 180 * time.Millisecond
 	}
 
 	for _, char := range message {
-		if isChineseChar(char) {
+		if isPunctuation(char) {
 			totalDuration += chineseCharDuration
 		} else {
 			totalDuration += nonChineseCharDuration
 		}
 	}
 
-	// 确保最短播报时间为1秒
 	if totalDuration < minPlaybackDuration {
 		totalDuration = minPlaybackDuration
 	}
@@ -93,10 +100,22 @@ func GetPlaybackDuration(message string) time.Duration {
 }
 
 // 判断字符是否为中文字符
-func isChineseChar(char rune) bool {
-	// 使用正则表达式检测中文字符范围
-	matched, _ := regexp.MatchString(`[\u4e00-\u9fa5]`, string(char))
-	return matched
+func isPunctuation(char rune) bool {
+	if IsChinesePunctuation(char) || IsEnglishPunctuation(char) {
+		return true
+	}
+
+	return false
+}
+
+// IsChinesePunctuation 判断字符是否为中文标点符号
+func IsChinesePunctuation(r rune) bool {
+	return r >= 0x3000 && r <= 0x303F || r >= 0xFF00 && r <= 0xFFEF
+}
+
+// IsEnglishPunctuation 判断字符是否为英文标点符号
+func IsEnglishPunctuation(r rune) bool {
+	return unicode.IsPunct(r) && !unicode.IsSpace(r)
 }
 
 type Conversationor struct {
@@ -457,7 +476,19 @@ func SpeakerAsk2PlayTextHandler(event *data.StateChangedSimple, body []byte) {
 
 	if strings.Contains(state.Event.Data.EntityID, "_play_text") && strings.HasPrefix(state.Event.Data.EntityID, "text.") {
 
-		t := state.Event.Data.NewState.LastChanged
+		t := state.Event.Data.NewState.LastReported
+
+		if t.Location() == time.UTC {
+			now := time.Now()
+			if now.Location() != time.UTC {
+				now = now.UTC()
+				//now改为utc时间进行计算
+				if now.Sub(t) > time.Minute*20 {
+					return
+				}
+			}
+		}
+
 		if time.Since(t) > time.Minute*20 {
 			return
 		}
@@ -527,12 +558,24 @@ func SpeakerAsk2ConversationHandler(event *data.StateChangedSimple, body []byte)
 			return
 		}
 
-		t := state.Event.Data.NewState.LastChanged
+		t := state.Event.Data.NewState.LastReported
+
+		if t.Location() == time.UTC {
+			now := time.Now()
+			if now.Location() != time.UTC {
+				now = now.UTC()
+				//now改为utc时间进行计算
+				if now.Sub(t) > time.Minute*20 {
+					return
+				}
+			}
+		}
+
 		if time.Since(t) > time.Minute*20 {
 			return
 		}
 
-		ava.Debugf("SpeakerAsk2ConversationHandler |小爱=%s |用户=%s |time=%v", content, userMsg, state.Event.Data.NewState.LastChanged)
+		ava.Debugf("SpeakerAsk2ConversationHandler |小爱=%s |用户=%s |time=%v", content, userMsg, state.Event.Data.NewState.LastReported)
 
 		for _, f := range filterMessage {
 			if strings.Contains(content, f) && !strings.Contains(userMsg, "场景") && !strings.Contains(userMsg, "自动化") {

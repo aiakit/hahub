@@ -289,8 +289,13 @@ func getFilterEntities(message string, entities map[string]*data.Entity) (map[st
 		}
 
 		if strings.Contains(e.DeviceMode, ".light.") && !strings.HasPrefix(e.EntityID, "light") {
+			//if strings.Contains(e.DeviceMode, ".light.") && (!strings.HasPrefix(e.EntityID, "light") && e.Category != data.CategoryColorful) {
 			continue
 		}
+
+		//if (strings.Contains(message, "静态") || strings.Contains(message, "动态") || strings.Contains(message, "律动")) && strings.HasPrefix(e.EntityID, "light.") {
+		//	continue
+		//}
 
 		if e.Category == data.CategoryXiaomiHomeSpeaker && !strings.HasPrefix(e.EntityID, "media_player") {
 			continue

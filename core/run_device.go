@@ -264,6 +264,10 @@ func RunDevice(message, aiMessage, deviceId string) string {
 			})
 		}
 
+		if len(sendDeviceEntity) == 0 || len(sendCommandData) == 0 {
+			return "没有设备和指令"
+		}
+
 		//根据实体前缀找到设备指令
 		result2, err := chatCompletionInternal([]*chat.ChatMessage{
 			{Role: "user", Content: fmt.Sprintf(`这是我的设备对应的功能信息%s，设备对应的指令信息%s，domain表示对应指令类型，action是domain和具体指令的结合，根据我的意图按照格式进行返回。
@@ -327,7 +331,7 @@ func RunDevice(message, aiMessage, deviceId string) string {
 				continue
 			}
 
-			if strings.Contains(result2, "on") {
+			if strings.Contains(result2, "on") && !strings.Contains(result2, "turn_on") {
 				r, err := data.GetState(v.EntityID)
 				if err != nil {
 					ava.Error(err)
@@ -341,7 +345,7 @@ func RunDevice(message, aiMessage, deviceId string) string {
 				}
 			}
 
-			if strings.Contains(result2, "off") {
+			if strings.Contains(result2, "off") && !strings.Contains(result2, "turn_off") {
 				r, err := data.GetState(v.EntityID)
 				if err != nil {
 					ava.Error(err)
@@ -397,14 +401,12 @@ func RunDevice(message, aiMessage, deviceId string) string {
 					}
 				}()
 			}
-
 			if !isOpenTv {
 				err = x.Post(ava.Background(), fmt.Sprintf("%s/api/services/%s", data.GetHassUrl(), do+"/"+v.SubDomain), data.GetToken(), v.Fields, nil)
 				if err != nil {
 					ava.Error(err)
 					continue
 				}
-				return resultData.Message
 			}
 		}
 
