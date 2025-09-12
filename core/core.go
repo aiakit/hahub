@@ -142,7 +142,7 @@ func registerHomingWelcome(simple *data.StateChangedSimple, body []byte) {
 
 		var id string
 		for _, e := range entities {
-			if strings.Contains(e.EntityID, "media_player.") && strings.Contains(e.AreaName, "客厅") {
+			if strings.HasPrefix(e.EntityID, "text.") && strings.Contains(e.EntityID, "play_text_") && strings.Contains(e.AreaName, "客厅") {
 				id = e.EntityID
 				break
 			}

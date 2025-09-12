@@ -575,7 +575,7 @@ func SpeakerAsk2ConversationHandler(event *data.StateChangedSimple, body []byte)
 			return
 		}
 
-		ava.Debugf("SpeakerAsk2ConversationHandler |小爱=%s |用户=%s |time=%v", content, userMsg, state.Event.Data.NewState.LastReported)
+		ava.Debugf("SpeakerAsk2ConversationHandler |小爱=%s |用户=%s |time=%v", content, userMsg, state.Event.Data.NewState.LastReported.Location().String())
 
 		if strings.Contains(state.Event.Data.NewState.State, "扫地机器人") &&
 			(strings.Contains(state.Event.Data.NewState.State, "开始") || strings.Contains(state.Event.Data.NewState.State, "启动")) {

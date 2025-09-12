@@ -229,7 +229,7 @@ func prepareCall(messageInput *chat.ChatMessage, deviceId string) (string, error
 		return prepareCallOne(messageInput, deviceId)
 	}
 
-	return "", nil
+	return "没有发现智能体", nil
 }
 
 func prepareCallOne(messageInput *chat.ChatMessage, deviceId string) (string, error) {
