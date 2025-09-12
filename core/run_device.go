@@ -103,13 +103,6 @@ func RunDevice(message, aiMessage, deviceId string) string {
 				}
 			}
 
-			if !strings.Contains(message, "插座") {
-				if strings.Contains(v.Model, "plug") {
-					delete(deviceMap, v.ID)
-					continue
-				}
-			}
-
 			if !strings.Contains(message, "帘") {
 				if strings.Contains(v.Model, "curtain") {
 					delete(deviceMap, v.ID)
@@ -331,7 +324,8 @@ func RunDevice(message, aiMessage, deviceId string) string {
 				continue
 			}
 
-			if strings.Contains(result2, "on") && !strings.Contains(result2, "turn_on") {
+			//灯光色温之类的需要用到turn_on
+			if strings.Contains(v.SubDomain, "on") && (strings.Contains(v.SubDomain, "turn_on") && !strings.HasPrefix(v.EntityID, "light")) {
 				r, err := data.GetState(v.EntityID)
 				if err != nil {
 					ava.Error(err)
@@ -345,7 +339,7 @@ func RunDevice(message, aiMessage, deviceId string) string {
 				}
 			}
 
-			if strings.Contains(result2, "off") && !strings.Contains(result2, "turn_off") {
+			if strings.Contains(v.SubDomain, "off") {
 				r, err := data.GetState(v.EntityID)
 				if err != nil {
 					ava.Error(err)

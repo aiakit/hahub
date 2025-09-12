@@ -153,8 +153,57 @@ func Panel(c *ava.Context) {
 				turnOffScriptId = AddScript2Queue(c, s1)
 			}
 
-			var autoIsOn string
-			var autoIsOff string
+			var turnOnAutoId string
+			var turnOffAutoId string
+			if entityId != "" {
+				//两个自动化
+				//1.按下开关执行脚本
+
+				if turnOnScriptId != "" {
+					var a = &Automation{
+						Alias:       "视图" + areaName + "开灯",
+						Description: "视图中按下按键开灯",
+						Mode:        "single",
+						Triggers: []*Triggers{{
+							EntityID: entityId,
+							Trigger:  "state",
+							To:       "on",
+							From:     "off",
+						}},
+					}
+
+					a.Actions = append(a.Actions, &ActionService{
+						Action: "script.turn_on",
+						Target: &struct {
+							EntityId string `json:"entity_id"`
+						}{EntityId: turnOnScriptId},
+					})
+					turnOnAutoId = AddAutomation2Queue(c, a)
+				}
+
+				if turnOffScriptId != "" {
+					var a = &Automation{
+						Alias:       "视图" + areaName + "关灯",
+						Description: "视图中按下按键关灯",
+						Mode:        "single",
+						Triggers: []*Triggers{{
+							EntityID: entityId,
+							Trigger:  "state",
+							To:       "off",
+							From:     "on",
+						}},
+					}
+
+					a.Actions = append(a.Actions, &ActionService{
+						Action: "script.turn_on",
+						Target: &struct {
+							EntityId string `json:"entity_id"`
+						}{EntityId: turnOffScriptId},
+					})
+					turnOffAutoId = AddAutomation2Queue(c, a)
+				}
+			}
+
 			if entityId != "" {
 				func() {
 					var a = &Automation{
@@ -190,19 +239,37 @@ func Panel(c *ava.Context) {
 						For: &For{
 							Hours:   0,
 							Minutes: 0,
-							Seconds: 5,
+							Seconds: 1,
 						},
 					})
 
 					a.Triggers = triggers
 					if len(a.Triggers) > 0 {
+						a.Actions = append(a.Actions, &ActionService{
+							Action: "automation.turn_off",
+							Target: &struct {
+								EntityId string `json:"entity_id"`
+							}{EntityId: turnOnAutoId},
+						})
 						a.Actions = append(a.Actions, &ActionLight{
 							Action: "input_boolean.turn_on",
 							Target: &targetLightData{
 								EntityId: entityId,
 							},
 						})
-						autoIsOn = AddAutomation2Queue(c, a)
+						a.Actions = append(a.Actions, &ActionTimerDelay{Delay: &delay{
+							Hours:        0,
+							Minutes:      0,
+							Seconds:      1,
+							Milliseconds: 0,
+						}})
+						a.Actions = append(a.Actions, &ActionService{
+							Action: "automation.turn_on",
+							Target: &struct {
+								EntityId string `json:"entity_id"`
+							}{EntityId: turnOnAutoId},
+						})
+						AddAutomation2Queue(c, a)
 					}
 				}()
 
@@ -241,88 +308,40 @@ func Panel(c *ava.Context) {
 						For: &For{
 							Hours:   0,
 							Minutes: 0,
-							Seconds: 5,
+							Seconds: 1,
 						},
 					})
 
 					a.Triggers = triggers
 					if len(a.Triggers) > 0 {
+						a.Actions = append(a.Actions, &ActionService{
+							Action: "automation.turn_off",
+							Target: &struct {
+								EntityId string `json:"entity_id"`
+							}{EntityId: turnOffAutoId},
+						})
 						a.Actions = append(a.Actions, &ActionLight{
 							Action: "input_boolean.turn_off",
 							Target: &targetLightData{
 								EntityId: entityId,
 							},
 						})
-						autoIsOff = AddAutomation2Queue(c, a)
+						a.Actions = append(a.Actions, &ActionTimerDelay{Delay: &delay{
+							Hours:        0,
+							Minutes:      0,
+							Seconds:      1,
+							Milliseconds: 0,
+						}})
+						a.Actions = append(a.Actions, &ActionService{
+							Action: "automation.turn_on",
+							Target: &struct {
+								EntityId string `json:"entity_id"`
+							}{EntityId: turnOffAutoId},
+						})
+
+						AddAutomation2Queue(c, a)
 					}
 				}()
-			}
-
-			if entityId != "" {
-				//两个自动化
-				//1.按下开关执行脚本
-
-				if turnOnScriptId != "" {
-					var a = &Automation{
-						Alias:       "视图" + areaName + "开灯",
-						Description: "视图中按下按键开灯",
-						Mode:        "single",
-						Triggers: []*Triggers{{
-							EntityID: entityId,
-							Trigger:  "state",
-							To:       "on",
-							From:     "off",
-						}},
-					}
-
-					if autoIsOn != "" {
-						a.Conditions = append(a.Conditions, &Conditions{
-							Condition: "state",
-							EntityID:  autoIsOn,
-							Attribute: "current",
-							State:     0,
-						})
-					}
-
-					a.Actions = append(a.Actions, &ActionService{
-						Action: "script.turn_on",
-						Target: &struct {
-							EntityId string `json:"entity_id"`
-						}{EntityId: turnOnScriptId},
-					})
-					AddAutomation2Queue(c, a)
-				}
-
-				if turnOffScriptId != "" {
-					var a = &Automation{
-						Alias:       "视图" + areaName + "关灯",
-						Description: "视图中按下按键关灯",
-						Mode:        "single",
-						Triggers: []*Triggers{{
-							EntityID: entityId,
-							Trigger:  "state",
-							To:       "off",
-							From:     "on",
-						}},
-					}
-
-					if autoIsOff != "" {
-						a.Conditions = append(a.Conditions, &Conditions{
-							Condition: "state",
-							EntityID:  autoIsOff,
-							Attribute: "current",
-							State:     0,
-						})
-					}
-
-					a.Actions = append(a.Actions, &ActionService{
-						Action: "script.turn_on",
-						Target: &struct {
-							EntityId string `json:"entity_id"`
-						}{EntityId: turnOffScriptId},
-					})
-					AddAutomation2Queue(c, a)
-				}
 			}
 		}
 	}
@@ -391,6 +410,4 @@ func Panel(c *ava.Context) {
 			//AddAutomation2Queue(c, a)
 		}
 	}
-
-	CreateAutomation(c)
 }

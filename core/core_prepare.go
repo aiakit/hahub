@@ -1,7 +1,6 @@
 package core
 
 import (
-	"errors"
 	"fmt"
 	"hahub/internal/chat"
 	"hahub/x"
@@ -230,7 +229,7 @@ func prepareCall(messageInput *chat.ChatMessage, deviceId string) (string, error
 		return prepareCallOne(messageInput, deviceId)
 	}
 
-	return "没有找到智能体", errors.New("no agent")
+	return "", nil
 }
 
 func prepareCallOne(messageInput *chat.ChatMessage, deviceId string) (string, error) {

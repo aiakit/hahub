@@ -381,17 +381,17 @@ elements:
     hold_action: none
     style:
       left: 35%
-      top: 68%
+      top: 49%
       rotate: "-61deg"
       opacity: 0
-      "--mdc-icon-size": 7vw
+      "--mdc-icon-size": 6vw
   - type: state-icon
     entity: input_boolean.kong_diao_kai_guan
     tap_action:
       action: toggle
     hold_action: none
     style:
-      left: 38%
+      left: 40%
       top: 49%
       rotate: 76deg
       opacity: 0
@@ -461,6 +461,15 @@ elements:
       width: 10%
       height: 10%
       font-weight: bold
+  - type: state-label
+    entity: input_text.my_input_text_3
+    style:
+      left: 74%
+      top: 92%
+      font-size: 1em
+      color: Blue
+      width: 10%
+      height: 10%
   - type: action-button
     target:
       entity_id: script.hui_jia_chang_jing

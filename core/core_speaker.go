@@ -284,7 +284,7 @@ func (s *speakerProcess) getDeviceLock(deviceId string) *sync.Mutex {
 // 过滤小爱已经成功处理的关键词
 var filterMessage = []string{
 	"好的", "发送指令", "已打开", "已关闭", "已开启", "收到", "正在为", "搞定", "没问题", "正在", "你有好几个设备",
-	"关咯", "空气质量", "已执行",
+	"关咯", "空气质量", "已执行", "开着", "好啊", "小爱同学",
 }
 
 func (s *speakerProcess) runSpeakerPlayText() {
@@ -524,7 +524,7 @@ func SpeakerAsk2PlayTextHandler(event *data.StateChangedSimple, body []byte) {
 
 		AddAIMessage(deviceId, state.Event.Data.NewState.State)
 
-		SpeakerProcessSend(cs)
+		//SpeakerProcessSend(cs)
 	}
 }
 
@@ -577,12 +577,6 @@ func SpeakerAsk2ConversationHandler(event *data.StateChangedSimple, body []byte)
 
 		ava.Debugf("SpeakerAsk2ConversationHandler |小爱=%s |用户=%s |time=%v", content, userMsg, state.Event.Data.NewState.LastReported)
 
-		for _, f := range filterMessage {
-			if strings.Contains(content, f) && !strings.Contains(userMsg, "场景") && !strings.Contains(userMsg, "自动化") {
-				return
-			}
-		}
-
 		if strings.Contains(state.Event.Data.NewState.State, "扫地机器人") &&
 			(strings.Contains(state.Event.Data.NewState.State, "开始") || strings.Contains(state.Event.Data.NewState.State, "启动")) {
 			s := data.GetEntityCategoryMap()[data.CategoryInputBoolean]
@@ -608,6 +602,16 @@ func SpeakerAsk2ConversationHandler(event *data.StateChangedSimple, body []byte)
 						}, nil)
 					}
 				}
+			}
+		}
+
+		if (strings.Contains(userMsg, "音乐") || strings.Contains(userMsg, "歌")) && (strings.Contains(userMsg, "放") || strings.Contains(userMsg, "听")) {
+			return
+		}
+
+		for _, f := range filterMessage {
+			if strings.Contains(content, f) && !strings.Contains(userMsg, "场景") && !strings.Contains(userMsg, "自动化") {
+				return
 			}
 		}
 

@@ -24,9 +24,9 @@ type lxConfig struct {
 
 // 区域流明配置
 var lxAreaConfig = []lxConfig{
-	{"卫生间", 60, nil},
+	{"卫生间", 80, nil},
 	{"浴室", 61, nil},
-	{"洗手盆", 49, nil},
+	{"洗手盆", 50, nil},
 	{"厨房", 99, nil},
 	{"餐厅", 98, nil},
 	{"书房", 97, nil},
@@ -38,7 +38,7 @@ var lxAreaConfig = []lxConfig{
 	{"招待", 101, nil},
 	{"会客", 102, nil},
 	{"阳台", 91, nil},
-	{"客厅", 93, nil},
+	{"客厅", 150, nil},
 	{"卧室", 50, nil},
 }
 

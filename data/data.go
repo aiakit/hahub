@@ -468,6 +468,7 @@ type StateChangedSimple struct {
 			NewState struct {
 				Attributes struct {
 					FriendlyName string `json:"friendly_name"`
+					Current      int    `json:"current"`
 				} `json:"attributes"`
 				EntityID    string    `json:"entity_id"`
 				State       string    `json:"state"`

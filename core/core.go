@@ -121,6 +121,10 @@ func registerHomingWelcome(simple *data.StateChangedSimple, body []byte) {
 
 	if (strings.HasPrefix(simple.Event.Data.NewState.EntityID, "automation.") || strings.HasPrefix(simple.Event.Data.NewState.EntityID, "script.")) &&
 		strings.Contains(simple.Event.Data.NewState.Attributes.FriendlyName, "回家") {
+		fmt.Println("------1--", string(body))
+		if simple.Event.Data.NewState.Attributes.Current == 0 {
+			return
+		}
 		result, err := chat.ChatCompletionMessage([]*chat.ChatMessage{{
 			Role:    "user",
 			Content: "你是一个智能家居系统，我是你的宿主，我现在回家了，你得想一句俏皮话欢迎我。",
