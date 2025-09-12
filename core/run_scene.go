@@ -27,7 +27,7 @@ func RunScene(message, aiMessage, deviceId string) string {
 		}
 
 		for _, e := range entities {
-			if strings.Contains(e.OriginalName, "HomePanel") {
+			if strings.Contains(e.OriginalName, "视图") {
 				continue
 			}
 

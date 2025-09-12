@@ -217,3 +217,18 @@ func GetPlaybackDuration(message string) time.Duration {
 
 	return totalDuration
 }
+
+func ConvertUTCToCST(utcTime time.Time) time.Time {
+
+	// 判断是否为东八区时间
+	isCST := utcTime.Location() == time.FixedZone("CST", 8*3600)
+	if !isCST {
+		// 转换为东八区时间
+		eightZone := time.FixedZone("CST", 8*3600)
+		eightZoneTime := utcTime.In(eightZone)
+		return eightZoneTime
+	}
+
+	// 返回东八区时间字符串及判断结果
+	return utcTime
+}

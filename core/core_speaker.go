@@ -456,6 +456,12 @@ func SpeakerAsk2PlayTextHandler(event *data.StateChangedSimple, body []byte) {
 	}
 
 	if strings.Contains(state.Event.Data.EntityID, "_play_text") && strings.HasPrefix(state.Event.Data.EntityID, "text.") {
+
+		t := state.Event.Data.NewState.LastChanged
+		if time.Since(t) > time.Minute*20 {
+			return
+		}
+
 		en, ok := data.GetEntityByEntityId()[state.Event.Data.EntityID]
 		if !ok {
 			return
@@ -521,7 +527,12 @@ func SpeakerAsk2ConversationHandler(event *data.StateChangedSimple, body []byte)
 			return
 		}
 
-		ava.Debugf("SpeakerAsk2ConversationHandler |小爱=%s |用户=%s", content, userMsg)
+		t := state.Event.Data.NewState.LastChanged
+		if time.Since(t) > time.Minute*20 {
+			return
+		}
+
+		ava.Debugf("SpeakerAsk2ConversationHandler |小爱=%s |用户=%s |time=%v", content, userMsg, state.Event.Data.NewState.LastChanged)
 
 		for _, f := range filterMessage {
 			if strings.Contains(content, f) && !strings.Contains(userMsg, "场景") && !strings.Contains(userMsg, "自动化") {
