@@ -482,18 +482,27 @@ func SpeakerAsk2PlayTextHandler(event *data.StateChangedSimple, body []byte) {
 
 		t := state.Event.Data.NewState.LastReported
 
-		if t.Location() == time.UTC {
-			now := time.Now()
-			if now.Location() != time.UTC {
-				now = now.UTC()
-				//now改为utc时间进行计算
-				if now.Sub(t) > time.Minute*20 {
-					return
+		var t1 = time.Now()
+		var t2, err = time.Parse(time.RFC3339, t)
+		if err != nil {
+			ava.Error(err)
+		}
+		if err == nil {
+			if strings.Contains(t, "+00:00") {
+				if strings.Contains(t1.String(), "+08:00") {
+					t1 = t1.Add(time.Hour * 8)
+				}
+			}
+
+			if strings.Contains(t, "+08:00") {
+				if strings.Contains(t1.String(), "+00:00") {
+					t1 = t1.Add(time.Hour * -8)
 				}
 			}
 		}
 
-		if time.Since(t) > time.Minute*20 {
+		if t1.Sub(t2) > 5*time.Minute {
+			ava.Errorf("时间太久远了 |data=%s", string(body))
 			return
 		}
 
@@ -532,8 +541,23 @@ func SpeakerAsk2PlayTextHandler(event *data.StateChangedSimple, body []byte) {
 	}
 }
 
-var latestMessage string
+var latestMessage = make(map[string]string) //key:device_id value:message
 var latestMessageLock sync.RWMutex
+
+// CheckAndUpdateMessage 检查并更新 latestMessage 中的值
+func CheckAndUpdateMessage(deviceId, message string) bool {
+	latestMessageLock.Lock()         // 获取写锁
+	defer latestMessageLock.Unlock() // 确保在函数退出时释放锁
+
+	if msg, exists := latestMessage[deviceId]; exists {
+		if msg == message {
+			return true // 如果相同，返回 true
+		}
+	}
+
+	latestMessage[deviceId] = message // 更新值
+	return false                      // 返回 false，因为值不同
+}
 
 // 获取对话记录,entity_id相同
 func SpeakerAsk2ConversationHandler(event *data.StateChangedSimple, body []byte) {
@@ -567,22 +591,31 @@ func SpeakerAsk2ConversationHandler(event *data.StateChangedSimple, body []byte)
 
 		t := state.Event.Data.NewState.LastReported
 
-		if t.Location() == time.UTC {
-			now := time.Now()
-			if now.Location() != time.UTC {
-				now = now.UTC()
-				//now改为utc时间进行计算
-				if now.Sub(t) > time.Minute*20 {
-					return
+		var t1 = time.Now()
+		var t2, err = time.Parse(time.RFC3339, t)
+		if err != nil {
+			ava.Error(err)
+		}
+		if err == nil {
+			if strings.Contains(t, "+00:00") {
+				if strings.Contains(t1.String(), "+08:00") {
+					t1 = t1.Add(time.Hour * 8)
+				}
+			}
+
+			if strings.Contains(t, "+08:00") {
+				if strings.Contains(t1.String(), "+00:00") {
+					t1 = t1.Add(time.Hour * -8)
 				}
 			}
 		}
 
-		if time.Since(t) > time.Minute*20 {
+		if t1.Sub(t2) > 5*time.Minute {
+			ava.Errorf("时间太久远了 |data=%s", string(body))
 			return
 		}
 
-		ava.Debugf("SpeakerAsk2ConversationHandler |小爱=%s |用户=%s |time=%v", content, userMsg, state.Event.Data.NewState.LastReported)
+		ava.Debugf("SpeakerAsk2ConversationHandler |小爱=%s |用户=%s |time=%v |now=%s", content, userMsg, state.Event.Data.NewState.LastReported, time.Now().String())
 
 		if strings.Contains(state.Event.Data.NewState.State, "扫地机器人") &&
 			(strings.Contains(state.Event.Data.NewState.State, "开始") || strings.Contains(state.Event.Data.NewState.State, "启动")) {
@@ -697,9 +730,9 @@ type chatMessage struct {
 					FriendlyName      string    `json:"friendly_name"`
 					SupportedFeatures int       `json:"supported_features"`
 				} `json:"attributes"`
-				LastChanged  time.Time `json:"last_changed"`
-				LastReported time.Time `json:"last_reported"`
-				LastUpdated  time.Time `json:"last_updated"`
+				LastChanged  string `json:"last_changed"`
+				LastReported string `json:"last_reported"`
+				LastUpdated  string `json:"last_updated"`
 				Context      struct {
 					ID       string `json:"id"`
 					ParentID any    `json:"parent_id"`
