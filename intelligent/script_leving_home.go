@@ -170,33 +170,40 @@ func levingHomeScript() (*Script, *Automation) {
 		}{EntityId: "automation.li_jia_bu_fang"},
 	})
 
-	var act IfThenELSEAction
+	//var act IfThenELSEAction
+	//
+	////检查存在传感器是否检测到有人
+	//func() {
+	//	entitiesSensor, ok := data.GetEntityCategoryMap()[data.CategoryHumanPresenceSensor]
+	//	if ok {
+	//		for _, e := range entitiesSensor {
+	//			act.If = append(act.If, ifCondition{
+	//				Type:      "is_not_occupied",
+	//				DeviceId:  e.DeviceID,
+	//				EntityId:  e.EntityID,
+	//				Condition: "device",
+	//				Domain:    "binary_sensor",
+	//				For: &For{
+	//					Hours:   0,
+	//					Minutes: 5,
+	//					Seconds: 0,
+	//				},
+	//			})
+	//		}
+	//	}
+	//}()
 
-	//检查存在传感器是否检测到有人
-	func() {
-		entitiesSensor, ok := data.GetEntityCategoryMap()[data.CategoryHumanPresenceSensor]
-		if ok {
-			for _, e := range entitiesSensor {
-				act.If = append(act.If, ifCondition{
-					Type:      "is_not_occupied",
-					DeviceId:  e.DeviceID,
-					EntityId:  e.EntityID,
-					Condition: "device",
-					Domain:    "binary_sensor",
-					For: &For{
-						Hours:   0,
-						Minutes: 5,
-						Seconds: 0,
-					},
-				})
-			}
-		}
-	}()
-
-	if len(act.If) > 0 && len(action) > 0 {
-		act.Then = append(act.Then, action...)
-		script.Sequence = append(script.Sequence, act)
-	} else if len(action) > 0 {
+	//if len(act.If) > 0 && len(action) > 0 {
+	//	act.Then = append(act.Then, action...)
+	//	script.Sequence = append(script.Sequence, act)
+	//}
+	if len(action) > 0 {
+		script.Sequence = append(script.Sequence, &ActionService{
+			Action: "automation.turn_on",
+			Target: &struct {
+				EntityId string `json:"entity_id"`
+			}{EntityId: "automation.hui_jia_zi_dong_hua"},
+		})
 		script.Sequence = append(script.Sequence, action...)
 	}
 
@@ -257,7 +264,12 @@ func levingHomeAutomation(action []interface{}) *Automation {
 		}
 	}()
 
-	if len(condition) > 0 {
+	trigger := virtualEventAction("离家自动化")
+	if trigger != nil {
+		automation.Triggers = append(automation.Triggers, trigger)
+	}
+
+	if len(automation.Triggers) > 0 {
 		automation.Actions = append(automation.Actions, action...)
 		var con = &Conditions{
 			Condition: "or",

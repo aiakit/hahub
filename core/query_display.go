@@ -171,6 +171,24 @@ func executeSteps(deviceId string) {
 
 	var simpleScript = make([]*simple, 0)
 	for _, v := range scenes {
+		if strings.Contains(v.OriginalName, "视图") {
+			continue
+		}
+
+		if strings.Contains(v.OriginalName, "初始化") {
+			continue
+		}
+
+		if strings.Contains(v.OriginalName, "卧室") {
+			continue
+		}
+
+		for k := range FilterLightSceneName {
+			if strings.Contains(v.OriginalName, k) {
+				continue
+			}
+		}
+
 		simpleScript = append(simpleScript, &simple{
 			Name: v.OriginalName,
 			Type: "场景",
@@ -181,6 +199,20 @@ func executeSteps(deviceId string) {
 
 	var simpleAutomation = make([]*simple, 0)
 	for _, v := range automations {
+		if strings.Contains(v.OriginalName, "视图") {
+			continue
+		}
+
+		if strings.Contains(v.OriginalName, "卧室") {
+			continue
+		}
+
+		for k := range FilterLightSceneName {
+			if strings.Contains(v.OriginalName, k) {
+				continue
+			}
+		}
+
 		simpleAutomation = append(simpleAutomation, &simple{
 			Name: v.OriginalName,
 			Type: "自动化",
@@ -287,4 +319,17 @@ func executeSteps(deviceId string) {
 			PlayTextAction(deviceId, autoResult)
 		}
 	}
+}
+
+var FilterLightSceneName = map[string]bool{
+	"娱乐": true,
+	"休息": true,
+	"阅读": true,
+	"就餐": true,
+	"日光": true,
+	"月光": true,
+	"黄昏": true,
+	"温馨": true,
+	"冬天": true,
+	"夏天": true,
 }

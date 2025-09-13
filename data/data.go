@@ -366,12 +366,15 @@ type State struct {
 	EntityID   string `json:"entity_id"`
 	State      string `json:"State"`
 	Attributes struct {
-		Mode                string   `json:"mode"`
-		Current             int      `json:"current"`
-		FriendlyName        string   `json:"friendly_name"`
-		SupportedColorModes []string `json:"supported_color_modes"`
-		ID                  string   `json:"id"`
-		LastTriggered       any      `json:"last_triggered"`
+		Mode                string      `json:"mode,omitempty"`
+		Current             int         `json:"current,omitempty"`
+		FriendlyName        string      `json:"friendly_name,omitempty"`
+		SupportedColorModes []string    `json:"supported_color_modes,omitempty"`
+		ID                  string      `json:"id"`
+		CurrentTemperature  interface{} `json:"current_temperature,omitempty"`
+		FanMode             interface{} `json:"fan_mode,omitempty"`
+		HvacAction          interface{} `json:"hvac_action,omitempty"`
+		LastTriggered       any         `json:"last_triggered,omitempty"`
 	} `json:"attributes"`
 	LastChanged  time.Time `json:"last_changed"`
 	LastReported time.Time `json:"last_reported"`

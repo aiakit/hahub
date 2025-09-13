@@ -179,7 +179,7 @@ func presenceSensorOnAir(entity *data.Entity) (*Automation, error) {
 
 func presenceSensorOnAirNotBedRoom(entity *data.Entity) (*Automation, error) {
 	if !strings.Contains(entity.AreaName, "客厅") {
-		return nil, errors.New("当前区域不是客厅")
+		return nil, errors.New("非客厅区域不创建")
 	}
 
 	auto := &Automation{

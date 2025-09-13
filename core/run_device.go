@@ -11,9 +11,75 @@ import (
 	"github.com/aiakit/ava"
 )
 
+// 暂时不用：因为小爱音箱自己设置了区域
+// localAreaName当前区域
+// 当前卧室可以控制除其他卧室的所有区域
+// 其他非卧室区域不能控制任何卧室
+func runFilterEntityByArea(localAreaName string, entity *data.Entity) bool {
+	areaName := data.SpiltAreaName(entity.AreaName)
+	if areaName == "" {
+		areaName = entity.OriginalName
+	}
+
+	if areaName == "" {
+		return false
+	}
+
+	if strings.Contains(localAreaName, "卧室") && strings.Contains(areaName, "卧室") {
+		//在卧室，且设备区域是卧室,过滤,当前卧室不能控制其他卧室
+		if !strings.Contains(areaName, localAreaName) {
+			return true
+		}
+	}
+
+	if !strings.Contains(localAreaName, "卧室") {
+		if strings.Contains(areaName, "卧室") { //不在卧室，不能控制卧室设备
+			return true
+		}
+	}
+
+	return false
+}
+
+func runFilterDeviceByArea(localAreaName, areaName string) bool {
+
+	if areaName == "" {
+		return true
+	}
+
+	if strings.Contains(localAreaName, "卧室") {
+		if strings.Contains(areaName, localAreaName) { //在卧室，且区域相同,不过滤
+			return false
+		}
+
+		//在卧室，且设备区域是卧室,过滤,当前卧室不能控制其他卧室
+		if strings.Contains(localAreaName, "卧室") && strings.Contains(areaName, "卧室") {
+			return true
+		}
+	}
+	if !strings.Contains(localAreaName, "卧室") {
+		if strings.Contains(areaName, "卧室") { //不在卧室，不能控制卧室设备
+			return true
+		}
+	}
+
+	return false
+}
+
 func RunDevice(message, aiMessage, deviceId string) string {
 
 	f := func(message, aiMessage, deviceId string) string {
+		//var localAreaName string
+		//d := data.GetDevice(deviceId)
+		//if d == nil || d.AreaName == "" {
+		//	return "您的音箱必须设置区域"
+		//}
+		//
+		//localAreaName = data.SpiltAreaName(d.AreaName)
+		//if localAreaName == "" {
+		//	return "您的音箱必须设置区域"
+		//}
+
 		//让ai把意图拆分
 		//根据拆分执行不同设备的不同动作
 
@@ -27,7 +93,6 @@ func RunDevice(message, aiMessage, deviceId string) string {
 			deviceMap[v.ID] = v
 		}
 
-		var areaName = getAreaName(deviceId)
 		var deviceNames = make([]string, 0, 10)
 		var devicesName = make([]string, 0, 10)
 		//过滤区域
@@ -55,6 +120,9 @@ func RunDevice(message, aiMessage, deviceId string) string {
 			if len(areaNames) > 0 {
 				var isExist bool
 				for k := range areaNames {
+					//if runFilterDeviceByArea(localAreaName, k) {
+					//	continue
+					//}
 					if strings.Contains(k, data.SpiltAreaName(v.AreaName)) {
 						isExist = true
 						break
@@ -189,16 +257,9 @@ func RunDevice(message, aiMessage, deviceId string) string {
 		var err error
 
 		if len(deviceNames) > 1 {
-			var content string
-			if areaName != "" {
-				content = fmt.Sprintf(`这是我的全部设备名称信息%v，我所在的位置%s，根据我的意图严格返回完整的设备名称。
-1.如果我在卧室，只能控制当前卧室位置的设备。
-2.如果我不在卧室，只能控制非卧室区域的设备。
-返回格式: ["设备名称1","设备名称2"]`, deviceNames, areaName)
-			} else {
-				content = fmt.Sprintf(`这是我的全部设备信息%v，根据我的意图严格返回完整的设备名称。
+
+			content := fmt.Sprintf(`这是我的全部设备信息%v，根据我的意图严格返回完整的设备名称。
 返回格式: ["名称1","名称2"]`, x.MustMarshal2String(deviceNames))
-			}
 
 			result, err = chatCompletionInternal([]*chat.ChatMessage{
 				{Role: "user", Content: content},
@@ -226,6 +287,22 @@ func RunDevice(message, aiMessage, deviceId string) string {
 		if len(resultEntities) == 0 {
 			return "没有找到对应的设备信息"
 		}
+
+		//for _, v := range resultEntities {
+		//	if runFilterEntityByArea(localAreaName, v) {
+		//		delete(resultEntities, v.EntityID)
+		//	}
+		//}
+		//
+		//if len(resultEntities) == 0 {
+		//	if strings.Contains(localAreaName, "卧室") {
+		//		return "你所在的位置是" + localAreaName + "，你不能控制其他卧室设备"
+		//	}
+		//
+		//	if !strings.Contains(localAreaName, "卧室") {
+		//		return "你所在的位置是" + localAreaName + "，为了安全起见，你不能直接控制卧室设备"
+		//	}
+		//}
 
 		//找到实体，过滤实体
 		resultFiter, _ := getFilterEntities(message, resultEntities)

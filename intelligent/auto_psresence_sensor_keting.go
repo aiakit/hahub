@@ -152,15 +152,16 @@ func presenceSensorOnKeting(entity *data.Entity) (*Automation, *Automation, erro
 		auto.Actions = append(auto.Actions, v)
 	}
 
-	// 增加光照条件
-	lxConfig := getLxConfig(areaID)
-	if lxConfig != nil {
-		auto.Conditions = append(auto.Conditions, &Conditions{
-			Condition: "numeric_state",
-			EntityID:  lxConfig.EntityId,
-			Below:     lxConfig.Lx, // 设置光照阈值
-		})
-	}
+	//todo 暂时不需要光照条件
+	//// 增加光照条件
+	//lxConfig := getLxConfig(areaID)
+	//if lxConfig != nil {
+	//	auto.Conditions = append(auto.Conditions, &Conditions{
+	//		Condition: "numeric_state",
+	//		EntityID:  lxConfig.EntityId,
+	//		Below:     lxConfig.Lx, // 设置光照阈值
+	//	})
+	//}
 
 	au, err := presenceSensorOffKeting(areaName, entity, entitiesFilter)
 	if err != nil {

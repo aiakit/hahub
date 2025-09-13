@@ -121,7 +121,7 @@ func Panel(c *ava.Context) {
 			}
 
 			var s = &Script{
-				Alias:       areaName + "开灯",
+				Alias:       "视图" + areaName + "开灯",
 				Description: areaName + "区域灯直接打开",
 			}
 			for _, a := range actions {
@@ -140,7 +140,7 @@ func Panel(c *ava.Context) {
 			}
 
 			var s1 = &Script{
-				Alias:       areaName + "关灯",
+				Alias:       "视图" + areaName + "关灯",
 				Description: areaName + "区域灯直接关灯",
 			}
 			for _, a := range actionsOff {

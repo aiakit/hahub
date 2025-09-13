@@ -12,9 +12,9 @@ import (
 )
 
 func RunScene(message, aiMessage, deviceId string) string {
-	deviceName := getAreaName(deviceId)
-	if deviceName == "" {
-		return "没有找到位置设备"
+	localAreaName := getAreaName(deviceId)
+	if localAreaName == "" {
+		return "你得给我分配一个区域，我才好判断你的位置"
 	}
 
 	f := func(message, aiMessage, deviceId string) string {
@@ -28,6 +28,10 @@ func RunScene(message, aiMessage, deviceId string) string {
 
 		for _, e := range entities {
 			if strings.Contains(e.OriginalName, "视图") {
+				continue
+			}
+
+			if runFilterEntityByArea(localAreaName, e) {
 				continue
 			}
 
@@ -57,10 +61,10 @@ func RunScene(message, aiMessage, deviceId string) string {
 		}
 
 		//发送所有场景简短数据给ai
-		result, err := chatCompletionHistory([]*chat.ChatMessage{{
+		result, err := chatCompletionInternal([]*chat.ChatMessage{{
 			Role:    "user",
-			Content: fmt.Sprintf(`这是我的全部场景信息%v。位置信息%s，根据我的意图严格地从场景信息中选择我要的场景名称返回给我。返回格式: ["名称1","名称2"]`, x.MustMarshal2String(sendData), deviceName),
-		}, {Role: "user", Content: message}}, deviceId)
+			Content: fmt.Sprintf(`场景数据%v，当前我的位置是%s。根据我的意图严格地从场景信息中选择我要的场景名称返回给我。返回格式: ["名称1","名称2"]`, x.MustMarshal2String(sendData), localAreaName),
+		}, {Role: "user", Content: message}})
 		if err != nil {
 			ava.Error(err)
 			return "服务器开小差了，请等一会儿再试试"

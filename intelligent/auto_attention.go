@@ -194,6 +194,23 @@ func virtualEventNotify(message string) []*ActionCommon {
 	return result
 }
 
+func virtualEventAction(message string) *Triggers {
+	entities, ok := data.GetEntityCategoryMap()[data.CategoryVirtualEvent]
+	if !ok {
+		return nil
+	}
+	var result *Triggers
+
+	for _, e := range entities {
+		if strings.Contains(e.OriginalName, "虚拟事件发生") && strings.HasPrefix(e.EntityID, "event.") {
+			result = &Triggers{Trigger: "state", EntityID: e.EntityID, Attribute: "事件名称", To: message}
+			break
+		}
+	}
+
+	return result
+}
+
 // persistentNotification 创建一个持久化通知动作
 func persistentNotification(title, message string) *ActionNotify {
 	return &ActionNotify{

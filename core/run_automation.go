@@ -12,9 +12,9 @@ import (
 )
 
 func RunAutomation(message, aiMessage, deviceId string) string {
-	deviceName := getAreaName(deviceId)
-	if deviceName == "" {
-		return "没有找到位置设备"
+	localAreaName := getAreaName(deviceId)
+	if localAreaName == "" {
+		return "你得给我分配一个区域，我才好判断你的位置"
 	}
 
 	f := func(message, aiMessage, deviceId string) string {
@@ -27,6 +27,14 @@ func RunAutomation(message, aiMessage, deviceId string) string {
 		}
 
 		for _, e := range entities {
+			if strings.Contains(e.OriginalName, "视图") {
+				continue
+			}
+
+			if runFilterEntityByArea(localAreaName, e) {
+				continue
+			}
+
 			if strings.Contains(message, e.OriginalName) ||
 				x.Similarity(message, e.OriginalName) > 0.8 ||
 				x.ContainsAllChars(message, e.OriginalName) {
@@ -56,8 +64,8 @@ func RunAutomation(message, aiMessage, deviceId string) string {
 		//发送所有自动化简短数据给ai
 		result, err := chatCompletionInternal([]*chat.ChatMessage{{
 			Role: "user",
-			Content: fmt.Sprintf(`这是我的全部自动化信息%v，我所在位置是：%s，根据我的意图严格从我的自动化信息数据中选择名称返回给我。
-返回格式：["名称1","名称2"]`, x.MustMarshal2String(sendData), deviceName),
+			Content: fmt.Sprintf(`自动化数据%v，我的位置%s。根据我的意图严格从我的自动化信息数据中选择名称返回给我。
+返回格式：["名称1","名称2"]`, x.MustMarshal2String(sendData), localAreaName),
 		}, {Role: "user", Content: message}})
 		if err != nil {
 			ava.Error(err)
