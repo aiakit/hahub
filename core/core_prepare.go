@@ -238,7 +238,7 @@ func prepareCallOne(messageInput *chat.ChatMessage, deviceId string) (string, er
 
 	messageList = append(messageList, messageInput)
 
-	return chatCompletionHistory(messageList, deviceId)
+	return chatCompletionHistoryWithout(messageList, deviceId)
 }
 func prepareCallTwo(messageInput *chat.ChatMessage, deviceId string) (string, error) {
 	var messageList = make([]*chat.ChatMessage, 0, 6)
@@ -246,5 +246,5 @@ func prepareCallTwo(messageInput *chat.ChatMessage, deviceId string) (string, er
 
 	messageList = append(messageList, messageInput)
 
-	return chatCompletionHistory(messageList, deviceId)
+	return chatCompletionHistoryWithout(messageList, deviceId)
 }

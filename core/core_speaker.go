@@ -286,7 +286,7 @@ func (s *speakerProcess) getDeviceLock(deviceId string) *sync.Mutex {
 // 过滤小爱已经成功处理的关键词
 var filterMessage = []string{
 	"好的", "发送指令", "已打开", "已关闭", "已开启", "收到", "正在为", "搞定", "没问题", "正在", "你有好几个设备",
-	"关咯", "空气质量", "已执行", "开着", "好啊", "小爱同学",
+	"关咯", "空气质量", "已执行", "开着", "好啊", "小爱同学", "已经关", "已经开",
 }
 
 func (s *speakerProcess) runSpeakerPlayText() {
@@ -333,6 +333,7 @@ func (s *speakerProcess) sendToRemote(conversations *Conversationor) {
 		}
 
 		if message != "" {
+			AddAIMessage(conversations.deviceId, message)
 			sendMessage2Panel("input_text.my_input_text_2", message)
 			// 暂停轮询
 			if cancel, exists := gSpeakerProcess.pollCancelFuncs[conversations.deviceId]; exists && cancel != nil {
@@ -530,6 +531,9 @@ func SpeakerAsk2PlayTextHandler(event *data.StateChangedSimple, body []byte) {
 		//SpeakerProcessSend(cs)
 	}
 }
+
+var latestMessage string
+var latestMessageLock sync.RWMutex
 
 // 获取对话记录,entity_id相同
 func SpeakerAsk2ConversationHandler(event *data.StateChangedSimple, body []byte) {

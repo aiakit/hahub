@@ -2,7 +2,6 @@ package main
 
 import (
 	"hahub/core"
-	"hahub/intelligent"
 	_ "hahub/intelligent"
 	"os"
 	"os/signal"
@@ -22,7 +21,7 @@ func main() {
 	//intelligent.InitHoming(ava.Background())
 	//intelligent.InitLevingHome(ava.Background())
 	//intelligent.CreateAutomation(ava.Background())
-	intelligent.Chaos()
+	//intelligent.Chaos()
 
 	//启动音箱ai驱动
 	core.CoreChaos()

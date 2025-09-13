@@ -113,6 +113,33 @@ func chatCompletionHistory(msgInput []*chat.ChatMessage, deviceId string) (strin
 	return result, nil
 }
 
+func chatCompletionHistoryWithout(msgInput []*chat.ChatMessage, deviceId string) (string, error) {
+	history := GetHistory(deviceId)
+	var message = make([]*chat.ChatMessage, 0, 5)
+
+	if len(history) > 0 {
+		message = append(message, &chat.ChatMessage{
+			Role:    "system",
+			Content: fmt.Sprintf(`历史对话记录: %s`, x.MustMarshal2String(history)),
+		})
+	}
+
+	message = append(message, msgInput...)
+
+	result, err := chat.ChatCompletionMessage(message)
+	if err != nil {
+		return "发生未知错误，请重试", err
+	}
+
+	for _, v := range msgInput {
+		if v.Role == "user" {
+			AddUserMessage(deviceId, v.Content)
+		}
+	}
+
+	return result, nil
+}
+
 // 等待3秒运行
 // 当前温度湿度
 // 当前家里有人，空调，热水器是否打开，生成欢迎词

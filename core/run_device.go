@@ -310,8 +310,7 @@ func RunDevice(message, aiMessage, deviceId string) string {
 			return "没有找到对应设备实体"
 		}
 
-		var sendDeviceEntity = make([]*runDeviceEntitity, 0, 10)
-		var sendCommandData = make([]*runDeviceCommand, 0, 10)
+		var sendCommandData = make(map[string]*runDeviceCommand, 0)
 		for _, v := range resultFiter {
 			prefix := strings.Split(v.EntityID, ".")
 			if len(prefix) == 0 {
@@ -322,25 +321,38 @@ func RunDevice(message, aiMessage, deviceId string) string {
 			if command == nil {
 				continue
 			}
-			sendDeviceEntity = append(sendDeviceEntity, &runDeviceEntitity{
-				Domain:     domain,
-				EntityId:   v.EntityID,
-				EntityName: v.DeviceName,
-			})
 
-			sendCommandData = append(sendCommandData, &runDeviceCommand{
-				Domain:  domain,
-				Command: command,
-			})
+			if v1, ok := sendCommandData[domain+"_"+v.SubCategory]; ok {
+				//指令过滤
+				v1.Entity = append(v1.Entity, &runDeviceEntitity{
+					EntityId:   v.EntityID,
+					EntityName: v.DeviceName,
+				})
+				sendCommandData[domain+"_"+v.SubCategory] = v1
+			} else {
+				sendCommandData[domain+"_"+v.SubCategory] = &runDeviceCommand{
+					Domain: domain,
+					Entity: []*runDeviceEntitity{{
+						EntityId:   v.EntityID,
+						EntityName: v.DeviceName,
+					}},
+					Command: command,
+				}
+			}
 		}
 
-		if len(sendDeviceEntity) == 0 || len(sendCommandData) == 0 {
+		if len(sendCommandData) == 0 {
 			return "没有设备和指令"
+		}
+
+		var sendData = make([]*runDeviceCommand, 0, 10)
+		for _, v := range sendCommandData {
+			sendData = append(sendData, v)
 		}
 
 		//根据实体前缀找到设备指令
 		result2, err := chatCompletionInternal([]*chat.ChatMessage{
-			{Role: "user", Content: fmt.Sprintf(`这是我的设备对应的功能信息%s，设备对应的指令信息%s，domain表示对应指令类型，action是domain和具体指令的结合，根据我的意图按照格式进行返回。
+			{Role: "user", Content: fmt.Sprintf(`这是我的设备和指令数据%s，domain表示对应指令类型，action是domain和具体指令的结合，根据我的意图按照格式进行返回。
 1.sub_domain,message是必要字段不能遗漏。
 2.fields是具体的要发送控制指令的内容，根据指令信息数据判断是否为空。
 3.target是指令信息数据fields中是否包含target。
@@ -363,7 +375,7 @@ func RunDevice(message, aiMessage, deviceId string) string {
       "sub_domain": "turn_on"
     }
   ] 
-}`, x.MustMarshal2String(sendDeviceEntity), x.MustMarshal2String(sendCommandData))},
+}`, x.MustMarshal2String(sendData))},
 			{Role: "user", Content: message},
 		})
 		if err != nil {
@@ -488,14 +500,14 @@ func RunDevice(message, aiMessage, deviceId string) string {
 }
 
 type runDeviceEntitity struct {
-	Domain     string `json:"domain"`
 	EntityId   string `json:"entity_id"`
 	EntityName string `json:"entity_name"`
 }
 
 type runDeviceCommand struct {
-	Domain  string      `json:"domain"`
-	Command interface{} `json:"command"`
+	Domain  string               `json:"domain,omitempty"`
+	Entity  []*runDeviceEntitity `json:"entity"`
+	Command interface{}          `json:"command"`
 }
 
 type runDeviceResultData struct {

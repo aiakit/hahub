@@ -578,3 +578,11 @@ func getPrefix(name string) string {
 	}
 	return name[:lastSpace]
 }
+
+func GetDomainByEntityId(entityId string) string {
+	parts := strings.Split(entityId, ".")
+	if len(parts) > 0 {
+		return parts[0]
+	}
+	return ""
+}
