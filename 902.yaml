@@ -472,9 +472,9 @@ elements:
       height: 10%
   - type: action-button
     target:
-      entity_id: script.hui_jia_chang_jing
+      entity_id: automation.hui_jia_zi_dong_hua
     title: 回家
-    action: script.turn_on
+    action: automation.trigger
     style:
       left: 1020px
       top: 60px
@@ -487,9 +487,9 @@ elements:
       line-height: 67px
   - type: action-button
     target:
-      entity_id: script.li_jia_chang_jing
+      entity_id: automation.li_jia_zi_dong_hua
     title: 离家
-    action: script.turn_on
+    action: automation.trigger
     style:
       left: 1102px
       top: 60px

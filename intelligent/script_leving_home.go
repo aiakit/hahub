@@ -9,10 +9,10 @@ import (
 
 func InitLevingHome(c *ava.Context) {
 	// 创建离家场景
-	script, auto := levingHomeScript()
-	if script != nil && len(script.Sequence) > 0 {
-		AddScript2Queue(c, script)
-	}
+	_, auto := levingHomeScript()
+	//if script != nil && len(script.Sequence) > 0 {
+	//	AddScript2Queue(c, script)
+	//}
 
 	if auto != nil && len(auto.Actions) > 0 && len(auto.Triggers) > 0 {
 		AddAutomation2Queue(c, auto)
@@ -198,7 +198,7 @@ func levingHomeScript() (*Script, *Automation) {
 	//	script.Sequence = append(script.Sequence, act)
 	//}
 	if len(action) > 0 {
-		script.Sequence = append(script.Sequence, &ActionService{
+		action = append(action, &ActionService{
 			Action: "automation.turn_on",
 			Target: &struct {
 				EntityId string `json:"entity_id"`
@@ -225,8 +225,6 @@ func levingHomeAutomation(action []interface{}) *Automation {
 		Description: "门锁关闭/或者开关按键触发用或条件，判断是否所有设备已关闭并启动安防",
 		Mode:        "single",
 	}
-
-	var condition = make([]*Conditions, 0)
 
 	// 条件：名字中带有"离家"的开关按键和场景按键
 	func() {
@@ -271,15 +269,6 @@ func levingHomeAutomation(action []interface{}) *Automation {
 
 	if len(automation.Triggers) > 0 {
 		automation.Actions = append(automation.Actions, action...)
-		var con = &Conditions{
-			Condition: "or",
-		}
-
-		for _, v := range condition {
-			con.ConditionChild = append(con.ConditionChild, v)
-		}
-
-		automation.Conditions = append(automation.Conditions, con)
 	}
 
 	return automation

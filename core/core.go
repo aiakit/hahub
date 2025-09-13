@@ -282,7 +282,7 @@ func registerHomingWelcome(simple *data.StateChangedSimple, body []byte) {
 
 			result, err := chat.ChatCompletionMessage([]*chat.ChatMessage{{
 				Role:    "user",
-				Content: fmt.Sprintf("你是一个智能家居系统，我是你的宿主，我现在回家了，根据环境和状态信息(%s)用人性化的语言给出建议。", msg),
+				Content: fmt.Sprintf("你是一个智能家居系统，我是你的宿主，我现在回家了，根据环境和状态信息(%s)用人性化的语言给出建议。例如：当前温度xxx，是否需要打开空调。", msg),
 			}})
 
 			if err != nil {
@@ -313,7 +313,7 @@ func registerHomingWelcome(simple *data.StateChangedSimple, body []byte) {
 			if err == nil {
 				result, err := chat.ChatCompletionMessage([]*chat.ChatMessage{{
 					Role:    "user",
-					Content: fmt.Sprintf("你是一个智能家居系统，用人性化的语言描述当前回家自动化信息%v，描述结束之后记得有一个温馨的结尾。", auto),
+					Content: fmt.Sprintf("你是一个智能家居系统，用人性化的语言描述智能系统回家自动化信息%v,这个系统是属于你创建的，所以尽量用‘我’作为第一人称去描述，描述结束之后记得有一个温馨的结尾。", auto),
 				}})
 
 				if err != nil {

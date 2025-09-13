@@ -1,6 +1,7 @@
 package main
 
 import (
+	"hahub/intelligent"
 	_ "hahub/intelligent"
 	"os"
 	"os/signal"
@@ -15,9 +16,11 @@ func main() {
 	// 等待 chaos.go 的初始化完成
 
 	//必须先创建脚本再创建自动化，这里不打开，改为ai驱动
-	//intelligent.InitSwitchSelect(ava.Background())
-	//intelligent.LightScriptSetting(ava.Background())
-	//intelligent.InitHoming(ava.Background())
+	intelligent.Display(ava.Background())
+	intelligent.InitSwitchSelect(ava.Background())
+	intelligent.InitHoming(ava.Background())
+	intelligent.InitLevingHome(ava.Background())
+	intelligent.CreateAutomation(ava.Background())
 	//intelligent.Chaos()
 
 	//启动音箱ai驱动

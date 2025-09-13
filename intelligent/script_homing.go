@@ -9,10 +9,10 @@ import (
 
 func InitHoming(c *ava.Context) {
 	// 创建回家场景
-	script, auto := homingScript()
-	if script != nil && len(script.Sequence) > 0 {
-		AddScript2Queue(c, script)
-	}
+	_, auto := homingScript()
+	//if script != nil && len(script.Sequence) > 0 {
+	//	AddScript2Queue(c, script)
+	//}
 
 	if auto != nil && len(auto.Actions) > 0 && len(auto.Triggers) > 0 {
 		AddAutomation2Queue(c, auto)
@@ -168,8 +168,8 @@ func homingScript() (*Script, *Automation) {
 			action = append(action, ActionTimerDelay{
 				Delay: &delay{
 					Hours:        0,
-					Minutes:      0,
-					Seconds:      30,
+					Minutes:      5,
+					Seconds:      0,
 					Milliseconds: 0,
 				},
 			})
@@ -235,7 +235,7 @@ func homingScript() (*Script, *Automation) {
 	//	script.Sequence = append(script.Sequence, act)
 	//}
 	if len(action) > 0 {
-		script.Sequence = append(script.Sequence, &ActionService{
+		action = append(action, &ActionService{
 			Action: "automation.turn_off",
 			Target: &struct {
 				EntityId string `json:"entity_id"`
@@ -262,8 +262,6 @@ func homingAutomation(action []interface{}) *Automation {
 		Description: "门锁打开/或者开关按键触发用或条件，判断客厅所有灯是否打开，存在传感器是否检车到人",
 		Mode:        "single",
 	}
-
-	var condition = make([]*Conditions, 0)
 
 	//条件：名字中带有"回家"的开关按键和场景按键
 	func() {
@@ -311,15 +309,6 @@ func homingAutomation(action []interface{}) *Automation {
 
 	if len(automation.Triggers) > 0 {
 		automation.Actions = append(automation.Actions, action...)
-		var con = &Conditions{
-			Condition: "or",
-		}
-
-		for _, v := range condition {
-			con.ConditionChild = append(con.ConditionChild, v)
-		}
-
-		automation.Conditions = append(automation.Conditions, con)
 	}
 
 	return automation
