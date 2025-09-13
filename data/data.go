@@ -447,7 +447,7 @@ type HttpServiceData struct {
 type HttpServiceDataPlay struct {
 	DeviceId    string  `json:"device_id,omitempty"`
 	EntityId    string  `json:"entity_id,omitempty"`
-	VolumeLevel float64 `json:"volume_level"`
+	VolumeLevel float64 `json:"volume_level,omitempty"`
 }
 
 type HttpServiceDataPlayPause struct {

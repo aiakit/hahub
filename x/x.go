@@ -2,6 +2,7 @@ package x
 
 import (
 	"math/rand"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -231,4 +232,15 @@ func ConvertUTCToCST(utcTime time.Time) time.Time {
 
 	// 返回东八区时间字符串及判断结果
 	return utcTime
+}
+
+func CleanString(input string) string {
+	// 定义正则表达式
+	re := regexp.MustCompile(`[\p{So}\p{Cn}\n\r\t]+`) // 表情和图案
+	cleaned := re.ReplaceAllString(input, "")         // 去掉表情和图案
+
+	// 去掉空格
+	cleaned = strings.ReplaceAll(cleaned, " ", "")
+
+	return cleaned
 }

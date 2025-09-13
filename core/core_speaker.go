@@ -16,6 +16,8 @@ import (
 )
 
 func PlayTextAction(deviceID, message string) {
+	message = x.CleanString(message)
+
 	entityId, ok := gSpeakerProcess.speakerEntityPlayText[deviceID]
 	if !ok {
 		return
@@ -65,7 +67,7 @@ func PlayTextAction(deviceID, message string) {
 func GetPlaybackDuration(message string) time.Duration {
 	// 设置中文字符和非中文字符的播报时间
 	var (
-		chineseCharDuration    = 130 * time.Millisecond
+		chineseCharDuration    = 150 * time.Millisecond
 		nonChineseCharDuration = 200 * time.Millisecond
 		minPlaybackDuration    = 2 * time.Second
 	)

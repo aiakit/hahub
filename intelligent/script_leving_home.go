@@ -41,21 +41,6 @@ func levingHomeScript() (*Script, *Automation) {
 		}
 	}()
 
-	// 关闭插座
-	func() {
-		entities, ok := data.GetEntityCategoryMap()[data.CategorySocket]
-		if ok {
-			for _, e := range entities {
-				action = append(action, ActionCommon{
-					Type:     "turn_off",
-					DeviceID: e.DeviceID,
-					EntityID: e.EntityID,
-					Domain:   "switch",
-				})
-			}
-		}
-	}()
-
 	// 关闭窗帘
 	func() {
 		entities, ok := data.GetEntityCategoryMap()[data.CategoryCurtain]
@@ -261,6 +246,8 @@ func levingHomeAutomation(action []interface{}) *Automation {
 			}
 		}
 	}()
+
+	//todo 增加判断所有存在传感器是否在10分钟之内检测到有人，如果没有执行离家自动化
 
 	trigger := virtualEventAction("离家自动化")
 	if trigger != nil {

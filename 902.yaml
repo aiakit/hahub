@@ -487,7 +487,7 @@ elements:
       line-height: 67px
   - type: action-button
     target:
-      entity_id: automation.li_jia_zi_dong_hua
+      entity_id: automation.chi_jia_zi_dong_hua
     title: 离家
     action: automation.trigger
     style:

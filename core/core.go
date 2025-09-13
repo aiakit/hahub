@@ -126,7 +126,7 @@ func registerHomingWelcome(simple *data.StateChangedSimple, body []byte) {
 	}
 
 	if strings.HasPrefix(simple.Event.Data.NewState.EntityID, "automation.") &&
-		strings.Contains(simple.Event.Data.NewState.Attributes.FriendlyName, "回家自动化") {
+		strings.Contains(simple.Event.Data.NewState.Attributes.FriendlyName, "回家自动化") && strings.Contains(simple.Event.Data.NewState.State, "on") {
 		fmt.Println("------1--", string(body))
 		if simple.Event.Data.NewState.Attributes.Current == 0 {
 			return
@@ -180,21 +180,19 @@ func registerHomingWelcome(simple *data.StateChangedSimple, body []byte) {
 		func() {
 			entities := data.GetEntityCategoryMap()[data.CategoryWaterHeater]
 			for _, v := range entities {
-				if strings.Contains(v.AreaName, "客厅") {
-					s, err := data.GetState(v.EntityID)
-					if err != nil {
-						continue
-					}
-					if strings.ToLower(s.State) == "on" {
-						waterHeaterState = "打开"
-					}
+				s, err := data.GetState(v.EntityID)
+				if err != nil {
+					continue
+				}
+				if strings.ToLower(s.State) == "on" {
+					waterHeaterState = "打开"
+				}
 
-					if strings.ToLower(s.State) == "off" {
-						waterHeaterState = "关闭"
-					}
-					if waterHeaterState != "" {
-						break
-					}
+				if strings.ToLower(s.State) == "off" {
+					waterHeaterState = "关闭"
+				}
+				if waterHeaterState != "" {
+					break
 				}
 			}
 		}()
@@ -234,15 +232,18 @@ func registerHomingWelcome(simple *data.StateChangedSimple, body []byte) {
 
 		//播放欢迎词
 		var id string
+		var did string
+		var prefix = fmt.Sprintf("你是一个%s般的助理，用人性化的语言%s地", character[x.Intn(len(character)-1)], professions[x.Intn(len(professions)-1)])
 
 		func() {
 			result, err := chat.ChatCompletionMessage([]*chat.ChatMessage{{
 				Role:    "user",
-				Content: "你是一个智能家居系统，我是你的宿主，我现在回家了，用30个字的左右的人性化、俏皮结合古诗词的语言欢迎我，不要有任何表情或者图案。",
+				Content: prefix + "用30个字的左右的人性化、幽默的语言欢迎我回家。",
 			}})
 
 			if err != nil {
 				ava.Error(err)
+				PlayTextActionByEntityId(id, "AI服务器出现了问题")
 				return
 			}
 
@@ -252,8 +253,9 @@ func registerHomingWelcome(simple *data.StateChangedSimple, body []byte) {
 			}
 
 			for _, e := range entities {
-				if strings.HasPrefix(e.EntityID, "text.") && strings.Contains(e.EntityID, "play_text_") && strings.Contains(e.AreaName, "客厅") {
+				if strings.HasPrefix(e.EntityID, "notify.") && strings.Contains(e.EntityID, "play_text_") && strings.Contains(e.AreaName, "客厅") {
 					id = e.EntityID
+					did = e.DeviceID
 					break
 				}
 			}
@@ -263,47 +265,8 @@ func registerHomingWelcome(simple *data.StateChangedSimple, body []byte) {
 				ava.Warn("No suitable media player found for welcome message")
 				return
 			}
-
-			err = x.Post(ava.Background(), data.GetHassUrl()+"/api/services/text/set_value", data.GetToken(), &data.HttpServiceData{
-				EntityId: id,
-				Value:    result,
-			}, nil)
-			if err != nil {
-				ava.Error(err)
-			}
-			time.Sleep(GetPlaybackDuration(result) + 1)
-		}()
-
-		func() {
-			//是否打开设备
-			if msg == "" {
-				return
-			}
-
-			result, err := chat.ChatCompletionMessage([]*chat.ChatMessage{{
-				Role:    "user",
-				Content: fmt.Sprintf("你是一个智能家居系统，我是你的宿主，我现在回家了，根据环境和状态信息(%s)用人性化的语言给出建议。例如：当前温度xxx，是否需要打开空调。", msg),
-			}})
-
-			if err != nil {
-				ava.Error(err)
-				return
-			}
-			// 添加检查，防止id为空
-			if id == "" {
-				ava.Warn("No suitable media player found for welcome message")
-				return
-			}
-
-			err = x.Post(ava.Background(), data.GetHassUrl()+"/api/services/text/set_value", data.GetToken(), &data.HttpServiceData{
-				EntityId: id,
-				Value:    result,
-			}, nil)
-			if err != nil {
-				ava.Error(err)
-			}
-
-			time.Sleep(GetPlaybackDuration(result) + 1)
+			result = x.CleanString(result)
+			PlayTextActionByEntityId(id, result)
 		}()
 
 		func() {
@@ -313,7 +276,7 @@ func registerHomingWelcome(simple *data.StateChangedSimple, body []byte) {
 			if err == nil {
 				result, err := chat.ChatCompletionMessage([]*chat.ChatMessage{{
 					Role:    "user",
-					Content: fmt.Sprintf("你是一个智能家居系统，用人性化的语言描述智能系统回家自动化信息%v,这个系统是属于你创建的，所以尽量用‘我’作为第一人称去描述，描述结束之后记得有一个温馨的结尾。", auto),
+					Content: fmt.Sprintf(prefix+"描述智能系统回家自动化信息%s,这个系统是属于你创建的，所以尽量用‘我’作为第一人称去描述，描述结束之后记得有一个温馨的结尾。", x.MustMarshal2String(auto)),
 				}})
 
 				if err != nil {
@@ -325,18 +288,88 @@ func registerHomingWelcome(simple *data.StateChangedSimple, body []byte) {
 					ava.Warn("No suitable media player found for welcome message")
 					return
 				}
-
-				err = x.Post(ava.Background(), data.GetHassUrl()+"/api/services/text/set_value", data.GetToken(), &data.HttpServiceData{
-					EntityId: id,
-					Value:    result,
-				}, nil)
-				if err != nil {
-					ava.Error(err)
-				}
-
-				time.Sleep(GetPlaybackDuration(result) + 1)
+				result = x.CleanString(result)
+				PlayTextActionByEntityId(id, result)
 			}
 		}()
+
+		func() {
+			//是否打开设备
+			if msg == "" {
+				return
+			}
+
+			result, err := chat.ChatCompletionMessage([]*chat.ChatMessage{{
+				Role:    "user",
+				Content: fmt.Sprintf(prefix+"根据环境和状态信息(%s)用人性化的语言对我进行询问，可以是打开/关闭空调或者热水器等，也可以是调整它们的温度，具体根据设备状态和环境来判断。", msg),
+			}})
+
+			if err != nil {
+				ava.Error(err)
+				return
+			}
+			// 添加检查，防止id为空
+			if id == "" {
+				ava.Warn("No suitable media player found for welcome message")
+				return
+			}
+
+			result = x.CleanString(result)
+			PlayTextActionByEntityId(id, result)
+		}()
+
+		func() {
+			//唤醒
+			// 添加检查，防止id为空
+			if did == "" {
+				ava.Warn("No suitable media player found for welcome message")
+				return
+			}
+			w, ok := data.GetEntitiesByDeviceId()[did]
+			if ok {
+				for _, v := range w {
+					if v.Category == data.CategoryXiaomiHomeSpeaker && strings.Contains(v.OriginalName, "唤醒") {
+						err := x.Post(ava.Background(), data.GetHassUrl()+"/api/services/button/press", data.GetToken(), &data.HttpServiceDataPlay{
+							EntityId: v.EntityID,
+						}, nil)
+						if err != nil {
+							ava.Error(err)
+						}
+						break
+					}
+				}
+			}
+		}()
+
+		func() {
+			// 停止播放
+			// 添加检查，防止id为空
+			if did == "" {
+				ava.Warn("No suitable media player found for welcome message")
+				return
+			}
+
+			//5分钟后关闭音乐
+			x.TimingwheelAfter(time.Minute*2, func() {
+				w, ok := data.GetEntitiesByDeviceId()[did]
+				if ok {
+					for _, v := range w {
+						if v.Category == data.CategoryXiaomiHomeSpeaker && strings.HasPrefix(v.EntityID, "media_player") {
+							err := x.Post(ava.Background(), data.GetHassUrl()+"/api/services/media_player/media_pause", data.GetToken(), &data.HttpServiceDataPlay{
+								EntityId: v.EntityID,
+							}, nil)
+							if err != nil {
+								ava.Error(err)
+							}
+							break
+						}
+					}
+				}
+			})
+		}()
+
+		//关闭回家自动化
+		intelligent.TurnOffAutomation(ava.Background(), simple.Event.Data.EntityID)
 	}
 }
 
@@ -406,4 +439,75 @@ func registerToggleLight(simple *data.StateChangedSimple, body []byte) {
 			}
 		}
 	}
+}
+
+var character = []string{
+	"幽默",
+	"善良",
+	"勇敢",
+	"聪明",
+	"乐观",
+	"细心",
+	"诚实",
+	"外向",
+	"内向",
+	"耐心",
+	"果断",
+	"热情",
+	"踏实",
+	"好奇",
+	"谨慎",
+	"宽容",
+	"创意",
+	"幽静",
+	"活泼",
+	"认真",
+	"坚定",
+	"友善",
+	"敏感",
+	"精力充沛",
+	"热爱学习",
+	"自信",
+	"富有同情心",
+	"适应力强",
+	"自律",
+	"自我反省",
+	"古代风格",
+}
+
+var professions = []string{
+	"诗人",
+	"作家",
+	"教师",
+	"医生",
+	"工程师",
+	"艺术家",
+	"音乐家",
+	"程序员",
+	"设计师",
+	"科学家",
+	"商人",
+	"记者",
+	"厨师",
+	"心理学家",
+	"建筑师",
+	"律师",
+	"运动员",
+	"摄影师",
+	"农民",
+	"演员",
+	"编辑",
+	"营销专员",
+	"社会工作者",
+	"公务员",
+	"翻译",
+	"咨询师",
+	"导游",
+	"保安",
+	"化学家",
+	"电工",
+	"美容师",
+	"穿越者",
+	"古人",
+	"未来的人",
 }

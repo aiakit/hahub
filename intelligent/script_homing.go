@@ -37,7 +37,6 @@ func homingScript() (*Script, *Automation) {
 		}{EntityId: "automation.li_jia_bu_fang"},
 	})
 
-	var xiaomiHomeSpeakerDeviceId string
 	func() {
 		entities, _ := data.GetEntityCategoryMap()[data.CategoryXiaomiHomeSpeaker]
 		for _, e := range entities {
@@ -52,7 +51,7 @@ func homingScript() (*Script, *Automation) {
 						DeviceID string `json:"device_id,omitempty"`
 					}{DeviceID: e.DeviceID},
 				})
-				xiaomiHomeSpeakerDeviceId = e.DeviceID
+				//xiaomiHomeSpeakerDeviceId = e.DeviceID
 				break
 			}
 		}
@@ -161,31 +160,31 @@ func homingScript() (*Script, *Automation) {
 		}
 	}()
 
-	func() {
-
-		entities, ok := data.GetEntityCategoryMap()[data.CategoryXiaomiHomeSpeaker]
-		if ok {
-			action = append(action, ActionTimerDelay{
-				Delay: &delay{
-					Hours:        0,
-					Minutes:      5,
-					Seconds:      0,
-					Milliseconds: 0,
-				},
-			})
-			for _, e := range entities {
-				if e.DeviceID == xiaomiHomeSpeakerDeviceId {
-					if strings.HasPrefix(e.EntityID, "media_player.") && strings.Contains(e.AreaName, "客厅") {
-						action = append(action, ActionService{
-							Action: "media_player.media_pause",
-							Target: &struct {
-								EntityId string `json:"entity_id"`
-							}{EntityId: e.EntityID}})
-					}
-				}
-			}
-		}
-	}()
+	//func() {
+	//
+	//	entities, ok := data.GetEntityCategoryMap()[data.CategoryXiaomiHomeSpeaker]
+	//	if ok {
+	//		action = append(action, ActionTimerDelay{
+	//			Delay: &delay{
+	//				Hours:        0,
+	//				Minutes:      5,
+	//				Seconds:      0,
+	//				Milliseconds: 0,
+	//			},
+	//		})
+	//		for _, e := range entities {
+	//			if e.DeviceID == xiaomiHomeSpeakerDeviceId {
+	//				if strings.HasPrefix(e.EntityID, "media_player.") && strings.Contains(e.AreaName, "客厅") {
+	//					action = append(action, ActionService{
+	//						Action: "media_player.media_pause",
+	//						Target: &struct {
+	//							EntityId string `json:"entity_id"`
+	//						}{EntityId: e.EntityID}})
+	//				}
+	//			}
+	//		}
+	//	}
+	//}()
 
 	//var act IfThenELSEAction
 
@@ -235,12 +234,12 @@ func homingScript() (*Script, *Automation) {
 	//	script.Sequence = append(script.Sequence, act)
 	//}
 	if len(action) > 0 {
-		action = append(action, &ActionService{
-			Action: "automation.turn_off",
-			Target: &struct {
-				EntityId string `json:"entity_id"`
-			}{EntityId: "automation.hui_jia_zi_dong_hua"},
-		})
+		//action = append(action, &ActionService{ //不能自己关自己，不然会让homeassitant死锁
+		//	Action: "automation.turn_off",
+		//	Target: &struct {
+		//		EntityId string `json:"entity_id"`
+		//	}{EntityId: "automation.hui_jia_zi_dong_hua"},
+		//})
 		script.Sequence = append(script.Sequence, action...)
 	}
 
@@ -259,7 +258,7 @@ func homingScript() (*Script, *Automation) {
 func homingAutomation(action []interface{}) *Automation {
 	var automation = &Automation{
 		Alias:       "回家自动化",
-		Description: "门锁打开/或者开关按键触发用或条件，判断客厅所有灯是否打开，存在传感器是否检车到人",
+		Description: "播放一段轻音乐、打开窗帘、插座、灯等等",
 		Mode:        "single",
 	}
 

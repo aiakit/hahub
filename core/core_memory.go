@@ -1,8 +1,13 @@
 package core
 
 import (
+	"hahub/data"
 	"hahub/internal/chat"
+	"hahub/x"
 	"sync"
+	"time"
+
+	"github.com/aiakit/ava"
 )
 
 // 内存记忆功能
@@ -95,3 +100,46 @@ func ClearAllHistory() {
 }
 
 // GetLastUpdated 获取指定设备的最后更新时间
+
+func PlayTextActionByEntityId(entityId, message string) {
+
+	// 使用 []rune 计算字符长度
+	runes := []rune(message)
+	if len(runes) > 800 {
+		// 按800个字符拆分消息
+		for i := 0; i < len(runes); i += 800 {
+			end := i + 800
+			if end > len(runes) {
+				end = len(runes)
+			}
+
+			// 将切片转换回字符串
+			chunk := string(runes[i:end])
+			err := x.Post(ava.Background(), data.GetHassUrl()+"/api/services/notify/send_message", data.GetToken(), &data.HttpServiceData{
+				EntityId: entityId,
+				Message:  chunk,
+			}, nil)
+			if err != nil {
+				ava.Error(err)
+				continue
+			}
+			// 暂停，等待播放完成
+			time.Sleep(GetPlaybackDuration(chunk))
+		}
+	} else {
+		err := x.Post(ava.Background(), data.GetHassUrl()+"/api/services/notify/send_message", data.GetToken(), &data.HttpServiceData{
+			EntityId: entityId,
+			Message:  message,
+		}, nil)
+		if err != nil {
+			ava.Error(err)
+			return
+		}
+		// 暂停，等待播放完成
+		time.Sleep(GetPlaybackDuration(message))
+		ava.Debugf("PlayTextAction |text=%s |latency=%v", message, GetPlaybackDuration(message))
+	}
+
+	//使用1秒补正
+	time.Sleep(time.Second)
+}
